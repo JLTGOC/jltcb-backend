@@ -25,9 +25,6 @@ class AuthController extends Controller
         }
         
     }
-    public function guest (Request $request) {
-        //
-    }
 
     public function login (Request $request) {
         $credentials = $request->only('email', 'password');

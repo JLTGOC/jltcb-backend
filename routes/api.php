@@ -21,7 +21,7 @@ Route::group([
 
 Route::group([
     'prefix' => 'dummy',
-    'middleware' => 'allow.guest'
+    'middleware' => 'guest'
 ], function ($route) {
     $route->get('/reels', [DummyController::class, 'dummyReels']);
     $route->get('/articles', [DummyController::class, 'dummyArticles']);
