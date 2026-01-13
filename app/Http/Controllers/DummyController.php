@@ -6,6 +6,10 @@ use Illuminate\Http\Request;
 
 class DummyController extends Controller
 {
+    /**
+     * Dummy Function 1
+     * 
+     */
     public function dummyReels(Request $request) {
         $isGuest = $request->attributes->get('is_guest', false);
         $user = $request->user();
@@ -24,6 +28,10 @@ class DummyController extends Controller
         ]);
     }
 
+    /**
+     * Dummy Function 2
+     * 
+     */
     public function dummyArticles(Request $request) {
         $isGuest = $request->attributes->get('is_guest', false);
         $user = $request->user();

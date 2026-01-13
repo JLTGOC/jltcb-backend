@@ -25,6 +25,10 @@ class AuthController extends Controller
             DB::beginTransaction();
             try {
                 $newUser = User::create([
+                    'first_name' => $request->firstName,
+                    'last_name' => $request->lastName,
+                    'address' => $request->address,
+                    'contact_number' => $request->contactNumber,
                     'email' => $request->email,
                     'password' => Hash::make($request->password)
                 ]);
