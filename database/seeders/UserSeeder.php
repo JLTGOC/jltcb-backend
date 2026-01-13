@@ -13,7 +13,7 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $roles = ['guest', 'client', 'accountant', 'marketing', 'hr'];
+        $roles = ['client', 'accountant', 'marketing', 'hr'];
 
 
 
