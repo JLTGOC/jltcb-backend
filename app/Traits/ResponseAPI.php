@@ -8,7 +8,7 @@ trait ResponseAPI
 
         return response()->json([
             "message" => $message,
-            "results" => $data,
+            "data" => $data,
             "code"    => $statusCode,
             "error"   => false
         ], $statusCode);
@@ -19,7 +19,7 @@ trait ResponseAPI
 
         return response()->json([
             "message" => $message,
-            "results" => $data,
+            "data" => $data,
             "code"    => $statusCode,
             "error"   => $error
         ], $statusCode);
