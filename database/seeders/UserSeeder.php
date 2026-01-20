@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
@@ -13,21 +14,24 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $roles = ['client', 'accountant', 'marketing', 'hr'];
+        $accounts = [
+            ['role' => 'Client', 'email' => 'client@gmail.com'],
+            ['role' => 'Account Specialist', 'email' => 'accountspecialist@gmail.com'],
+            ['role' => 'Marketing', 'email' => 'marketing@gmail.com'],
+            ['role' => 'Human Resource', 'email' => 'humanresource@gmail.com'],
+        ];
 
-
-
-        foreach($roles as $role) {
+        foreach($accounts as $account) {
             $user = User::create([
                     'first_name' => fake()->firstName(),
                     'last_name' =>  fake()->lastName(),
-                    'email' => $role . '@gmail.com',
-                    'password' => 'password',
+                    'email' => $account['email'],
+                    'password' => Hash::make($account['email']),
                     'address' => fake()->address(),
                     'contact_number' => fake()->numerify('09#########')
                 ]);
 
-            $user->assignRole($role);
+            $user->assignRole($account['role']);
         }
     }
 }
