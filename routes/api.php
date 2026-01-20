@@ -7,14 +7,14 @@ use App\Http\Controllers\{
     DummyController
 };
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// Route::get('/user', function (Request $request) {
+//     return $request->user();
+// })->middleware('auth:sanctum');
 
 Route::group([
     'prefix' => 'auth',
 ], function ($route) {
-    $route->post('/register', [AuthController::class, 'register']);
+    // $route->post('/register', [AuthController::class, 'register']);
     $route->post('/login', [AuthController::class, 'login']);
     $route->post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 });
