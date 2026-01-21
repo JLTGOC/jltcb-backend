@@ -107,7 +107,7 @@ class ReelController extends Controller
 
         // Create reel record with filename as title
         $reel = Reel::create([
-            'title' => pathinfo($fileName, PATHINFO_FILENAME),
+            // 'title' => pathinfo($fileName, PATHINFO_FILENAME),
             'video_path' => 'reels/videos/' . $fileName,
             'view_count' => 0,
         ]);
