@@ -10,7 +10,6 @@ class Reel extends Model
     use HasFactory;
 
     protected $fillable = [
-        'title',
         'video_path',
         'view_count',
     ];
