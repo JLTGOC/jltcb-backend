@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chunked File Upload</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .config-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .config-section h2 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .dropzone {
+            border: 3px dashed #667eea !important;
+            border-radius: 12px !important;
+            background: #f8f9ff !important;
+            padding: 40px !important;
+            transition: all 0.3s ease !important;
+            cursor: pointer;
+        }
+
+        .dropzone:hover {
+            border-color: #764ba2 !important;
+            background: #f0f2ff !important;
+        }
+
+        .dropzone .dz-message {
+            font-size: 18px;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .dropzone .dz-message .note {
+            display: block;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #999;
+            font-weight: normal;
+        }
+
+        .upload-status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .upload-status.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            display: block;
+        }
+
+        .upload-status.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            display: block;
+        }
+
+        .upload-status.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            display: block;
+        }
+
+        .info-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #856404;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .info-box code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📤 Chunked File Upload</h1>
+        <p class="subtitle">Upload large files with automatic chunking and resume support</p>
+
+        <div class="config-section">
+            <h2>⚙️ Configuration</h2>
+            <div class="form-group">
+                <label for="backendUrl">Laravel Backend URL:</label>
+                <input type="text" id="backendUrl" value="http://localhost:8000/api/reels" placeholder="http://your-laravel-app.com/api/reels">
+            </div>
+            <div class="form-group">
+                <label for="chunkSize">Chunk Size (MB):</label>
+                <input type="number" id="chunkSize" value="2" min="1" max="10">
+            </div>
+        </div>
+
+        <form action="#" class="dropzone" id="chunked-upload">
+            <div class="dz-message">
+                <strong>Drop video files here or click to upload</strong>
+                <span class="note">Accepts MP4, MOV, AVI, WMV formats</span>
+            </div>
+        </form>
+
+        <div id="uploadStatus" class="upload-status"></div>
+
+        <div class="info-box">
+            <strong>📋 Laravel Backend Setup:</strong>
+            1. Install package: <code>composer require pion/laravel-chunk-upload</code><br>
+            2. Create route in <code>routes/api.php</code> or <code>routes/web.php</code><br>
+            3. Make sure CORS is configured if using different domains<br>
+            4. See console for detailed upload progress
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js"></script>
+    <script>
+        // Disable auto-discover
+        Dropzone.autoDiscover = false;
+
+        // Get configuration
+        const backendUrlInput = document.getElementById('backendUrl');
+        const chunkSizeInput = document.getElementById('chunkSize');
+        const statusDiv = document.getElementById('uploadStatus');
+
+        function showStatus(message, type = 'info') {
+            statusDiv.textContent = message;
+            statusDiv.className = `upload-status ${type}`;
+        }
+
+        function initializeDropzone() {
+            // Remove existing dropzone if any
+            if (window.myDropzone) {
+                window.myDropzone.destroy();
+            }
+
+            const backendUrl = backendUrlInput.value;
+            const chunkSizeMB = parseInt(chunkSizeInput.value);
+            const chunkSizeBytes = chunkSizeMB * 1024 * 1024;
+
+            window.myDropzone = new Dropzone("#chunked-upload", {
+                url: backendUrl,
+                method: 'post',
+                paramName: 'video', // Match Laravel controller's expected field name
+                parallelUploads: 1,
+                uploadMultiple: false,
+                chunking: true,
+                forceChunking: true,
+                chunkSize: chunkSizeBytes,
+                parallelChunkUploads: false,
+                retryChunks: true,
+                retryChunksLimit: 3,
+                maxFilesize: 10000, // 10GB max
+                timeout: 300000, // 5 minutes
+                // acceptedFiles: 'video/mp4,video/quicktime,video/x-msvideo,video/x-ms-wmv,.mp4,.mov,.avi,.wmv', // Match Laravel validation
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                
+                init: function() {
+                    this.on("sending", function(file, xhr, formData) {
+                        console.log('📤 Sending chunk for file:', file.name);
+                    });
+
+                    this.on("uploadprogress", function(file, progress, bytesSent) {
+                        console.log(`📊 Progress: ${Math.round(progress)}% (${bytesSent} bytes sent)`);
+                        showStatus(`Uploading: ${Math.round(progress)}% complete`, 'info');
+                    });
+
+                    this.on("success", function(file, response) {
+                        console.log('✅ Upload successful:', response);
+                        showStatus(`✅ File uploaded successfully: ${file.name}`, 'success');
+                    });
+
+                    this.on("error", function(file, errorMessage, xhr) {
+                        console.error('❌ Upload error:', errorMessage);
+                        let message = typeof errorMessage === 'string' ? errorMessage : 'Upload failed';
+                        if (errorMessage.message) message = errorMessage.message;
+                        showStatus(`❌ Upload failed: ${message}`, 'error');
+                    });
+
+                    this.on("chunksUploaded", function(file, done) {
+                        console.log('🎉 All chunks uploaded for:', file.name);
+                        done();
+                    });
+
+                    this.on("addedfile", function(file) {
+                        console.log('📁 File added:', file.name, 'Size:', file.size, 'bytes');
+                        showStatus(`File added: ${file.name} (${(file.size / (1024*1024)).toFixed(2)} MB)`, 'info');
+                    });
+                }
+            });
+        }
+
+        // Initialize dropzone on page load
+        initializeDropzone();
+
+        // Reinitialize when configuration changes
+        backendUrlInput.addEventListener('change', initializeDropzone);
+        chunkSizeInput.addEventListener('change', initializeDropzone);
+
+        console.log('🚀 Chunked Upload initialized. Ready to upload files!');
+    </script>
+</body>
+</html>
