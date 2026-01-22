@@ -181,8 +181,21 @@
         <div class="config-section">
             <h2>⚙️ Configuration</h2>
             <div class="form-group">
-                <label for="backendUrl">Laravel Backend URL:</label>
+                <label for="backendUrl">Laravel Backend URL (collection endpoint):</label>
                 <input type="text" id="backendUrl" value="http://localhost:8000/api/reels" placeholder="http://your-laravel-app.com/api/reels">
+            </div>
+            <div class="form-group" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                <label style="margin: 0;">Mode:</label>
+                <label style="display: flex; align-items: center; gap: 6px; font-size: 14px;">
+                    <input type="radio" name="mode" value="create" checked> Create
+                </label>
+                <label style="display: flex; align-items: center; gap: 6px; font-size: 14px;">
+                    <input type="radio" name="mode" value="update"> Update existing
+                </label>
+            </div>
+            <div class="form-group" id="reelIdGroup" style="display:none;">
+                <label for="reelId">Reel ID to update:</label>
+                <input type="text" id="reelId" placeholder="e.g. 42">
             </div>
             <div class="form-group">
                 <label for="chunkSize">Chunk Size (MB):</label>
@@ -217,10 +230,27 @@
         const backendUrlInput = document.getElementById('backendUrl');
         const chunkSizeInput = document.getElementById('chunkSize');
         const statusDiv = document.getElementById('uploadStatus');
+        const modeInputs = document.querySelectorAll('input[name="mode"]');
+        const reelIdInput = document.getElementById('reelId');
+        const reelIdGroup = document.getElementById('reelIdGroup');
 
         function showStatus(message, type = 'info') {
             statusDiv.textContent = message;
             statusDiv.className = `upload-status ${type}`;
+        }
+
+        function currentMode() {
+            const checked = Array.from(modeInputs).find((input) => input.checked);
+            return checked ? checked.value : 'create';
+        }
+
+        function buildEndpoint() {
+            const base = backendUrlInput.value.replace(/\/$/, '');
+            if (currentMode() === 'update') {
+                const id = reelIdInput.value.trim();
+                return id ? `${base}/${id}` : base; // Dropzone will block start if ID missing
+            }
+            return base;
         }
 
         function initializeDropzone() {
@@ -229,7 +259,7 @@
                 window.myDropzone.destroy();
             }
 
-            const backendUrl = backendUrlInput.value;
+            const backendUrl = buildEndpoint();
             const chunkSizeMB = parseInt(chunkSizeInput.value);
             const chunkSizeBytes = chunkSizeMB * 1024 * 1024;
 
@@ -254,7 +284,18 @@
                 
                 init: function() {
                     this.on("sending", function(file, xhr, formData) {
-                        console.log('📤 Sending chunk for file:', file.name);
+                        const mode = currentMode();
+                        if (mode === 'update') {
+                            const id = reelIdInput.value.trim();
+                            if (!id) {
+                                xhr.abort();
+                                showStatus('❌ Please provide a Reel ID before uploading in update mode.', 'error');
+                                return;
+                            }
+                            // Laravel will treat this as PUT
+                            formData.append('_method', 'PUT');
+                        }
+                        console.log('📤 Sending chunk for file:', file.name, 'mode:', mode);
                     });
 
                     this.on("uploadprogress", function(file, progress, bytesSent) {
@@ -293,6 +334,14 @@
         // Reinitialize when configuration changes
         backendUrlInput.addEventListener('change', initializeDropzone);
         chunkSizeInput.addEventListener('change', initializeDropzone);
+        modeInputs.forEach((input) => {
+            input.addEventListener('change', () => {
+                const isUpdate = currentMode() === 'update';
+                reelIdGroup.style.display = isUpdate ? 'block' : 'none';
+                initializeDropzone();
+            });
+        });
+        reelIdInput.addEventListener('change', initializeDropzone);
 
         console.log('🚀 Chunked Upload initialized. Ready to upload files!');
     </script>
