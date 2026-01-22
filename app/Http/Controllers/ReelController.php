@@ -115,22 +115,12 @@ class ReelController extends Controller
      */
     protected function saveFile($file)
     {
-        $fileName = $this->createFilename($file);
-        
-        // Move the file to the public storage
-        $finalPath = storage_path('app/public/reels/videos/');
-        
-        // Create directory if it doesn't exist
-        if (!file_exists($finalPath)) {
-            mkdir($finalPath, 0777, true);
-        }
-
-        $file->move($finalPath, $fileName);
+        $videoPath = $this->moveVideoFile($file);
 
         // Create reel record with filename as title
         $reel = Reel::create([
             // 'title' => pathinfo($fileName, PATHINFO_FILENAME),
-            'video_path' => 'reels/videos/' . $fileName,
+            'video_path' => $videoPath,
             'view_count' => 0,
         ]);
 
@@ -147,6 +137,26 @@ class ReelController extends Controller
         $filename .= '_' . md5(time()) . '.' . $extension;
 
         return $filename;
+    }
+
+    /**
+     * Move uploaded video to storage and return relative path.
+     */
+    protected function moveVideoFile($file)
+    {
+        $fileName = $this->createFilename($file);
+
+        // Move the file to the public storage
+        $finalPath = storage_path('app/public/reels/videos/');
+
+        // Create directory if it doesn't exist
+        if (!file_exists($finalPath)) {
+            mkdir($finalPath, 0777, true);
+        }
+
+        $file->move($finalPath, $fileName);
+
+        return 'reels/videos/' . $fileName;
     }
 
     /**
@@ -172,35 +182,84 @@ class ReelController extends Controller
      */
     public function update(Request $request, Reel $reel)
     {
-        $validator = Validator::make($request->all(), [
-            'video' => 'required|file|mimes:mp4,mov,avi,wmv|max:1048576',
-        ]);
+        $isChunked = $request->has('dzuuid') || $request->has('dztotalfilesize');
 
-        if ($validator->fails()) {
-            return $this->error('Validation failed', 422, $validator->errors());
+        if ($isChunked) {
+            // Validate extension from original filename if present
+            $originalName = $request->file('video') ? $request->file('video')->getClientOriginalName() : null;
+
+            if ($originalName) {
+                $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+                $allowedExtensions = ['mp4', 'mov', 'avi', 'wmv'];
+
+                if (!in_array($extension, $allowedExtensions)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invalid file type. Only MP4, MOV, AVI, and WMV files are allowed.',
+                    ], 422);
+                }
+            }
+
+            // Validate total file size (from metadata)
+            if ($request->has('dztotalfilesize')) {
+                $totalSize = $request->input('dztotalfilesize');
+                $maxSize = 1048576 * 1024; // 1GB in KB (matching your max:1048576 which is in KB)
+
+                if ($totalSize > $maxSize) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'File too large. Maximum size is 1GB.',
+                    ], 422);
+                }
+            }
+        } else {
+            $validator = Validator::make($request->all(), [
+                'video' => 'required|file|mimes:mp4,mov,avi,wmv|max:1048576',
+            ]);
+
+            if ($validator->fails()) {
+                return $this->error('Validation failed', 422, $validator->errors());
+            }
         }
 
         try {
-            // Delete old video file
-            if ($reel->video_path) {
-                Storage::disk('public')->delete($reel->video_path);
+            // Create the file receiver (supports chunked and single uploads)
+            $receiver = new FileReceiver('video', $request, HandlerFactory::classFromRequest($request));
+
+            if ($receiver->isUploaded() === false) {
+                throw new UploadMissingFileException();
             }
 
-            // Save new video file
-            $fileName = $this->createFilename($request->file('video'));
-            $finalPath = storage_path('app/public/reels/videos/');
-            
-            if (!file_exists($finalPath)) {
-                mkdir($finalPath, 0777, true);
+            $save = $receiver->receive();
+
+            if ($save->isFinished()) {
+                $oldVideoPath = $reel->video_path;
+                $newVideoPath = $this->moveVideoFile($save->getFile());
+
+                $reel->video_path = $newVideoPath;
+                $reel->save();
+
+                // Remove old file after successful replacement
+                if ($oldVideoPath) {
+                    Storage::disk('public')->delete($oldVideoPath);
+                }
+
+                return $this->success('Reel video updated successfully', new ReelResource($reel));
             }
 
-            $request->file('video')->move($finalPath, $fileName);
+            /** @var AbstractHandler $handler */
+            $handler = $save->handler();
 
-            // Update video path
-            $reel->video_path = 'reels/videos/' . $fileName;
-            $reel->save();
-
-            return $this->success('Reel video updated successfully', new ReelResource($reel));
+            return response()->json([
+                'success' => true,
+                'done' => $handler->getPercentageDone(),
+                'status' => 'chunk_uploaded',
+            ]);
+        } catch (UploadMissingFileException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File missing from request',
+            ], 422);
         } catch (\Exception $e) {
             return $this->error('Failed to update reel video', 500, ['error' => $e->getMessage()]);
         }
