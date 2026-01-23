@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ReelController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -23,13 +24,17 @@ Route::group([
 Route::get('/reels', [ReelController::class, 'index']);
 Route::get('/reels/{reel}', [ReelController::class, 'show']);
 
-Route::group([
-    'prefix' => 'reels',
-    'middleware' => 'auth:sanctum'
-], function ($route) {
-    $route->post('/', [ReelController::class, 'store']);
-    $route->put('/{reel}', [ReelController::class, 'update']);
-    $route->delete('/{reel}', [ReelController::class, 'destroy']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('reels', ReelController::class)->only(['store', 'update', 'destroy']);
+});
+
+Route::get('/articles', [ArticleController::class, 'index']);
+Route::get('/articles/{article}', [ArticleController::class, 'show']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/articles', [ArticleController::class, 'store']);
+    Route::post('/articles/{article}', [ArticleController::class, 'update']);
+    Route::delete('/articles/{article}', [ArticleController::class, 'destroy']);
 });
 
 Route::group([
