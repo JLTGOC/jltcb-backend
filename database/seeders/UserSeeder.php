@@ -28,7 +28,8 @@ class UserSeeder extends Seeder
                     'email' => $account['email'],
                     'password' => Hash::make($account['email']),
                     'address' => fake()->address(),
-                    'contact_number' => fake()->numerify('09#########')
+                    'contact_number' => fake()->numerify('09#########'),
+                    'company_name' => ($account['role'] === 'Client') ? fake()->company() : null
                 ]);
 
             $user->assignRole($account['role']);
