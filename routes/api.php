@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 
 require __DIR__ . '/public_routes.php';
 
-//test webhook
+//test webhooks
 
 Route::post('auth/login', [AuthController::class, 'login']);
 
