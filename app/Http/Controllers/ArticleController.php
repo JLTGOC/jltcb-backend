@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Resources\ArticleResource;
 use App\Http\Requests\StoreArticleRequest;
 use Illuminate\Support\Facades\Storage; // Import Storage facade
+use Illuminate\Validation\ValidationException;
 
 class ArticleController extends Controller
 {
@@ -42,6 +43,7 @@ class ArticleController extends Controller
             $imagePath = upload_image($request, 'image', 'articles/images');
 
             $article = Article::create([
+                'user_id' => $request->user()->id,
                 'title' => $validated['title'],
                 'content' => $validated['content'],
                 'image_url' => $imagePath,
@@ -71,12 +73,23 @@ class ArticleController extends Controller
         return DB::transaction(function () use ($request, $article) {
             $validated = $request->validated();
 
-            if ($request->hasFile('image')) {
+            $isReplacingImage = $request->hasFile('image') || $request->filled('image');
+
+            if ($isReplacingImage) {
+                $newImagePath = upload_image($request, 'image', 'articles/images');
+
+                if (!$newImagePath) {
+                    throw ValidationException::withMessages([
+                        'image' => ['The image is not valid.'],
+                    ]);
+                }
+
                 if ($article->image_url && Storage::disk('public')->exists($article->image_url)) {
                     Storage::disk('public')->delete($article->image_url);
                 }
 
-                $validated['image_url'] = upload_image($request, 'image', 'articles/images');
+                $validated['image_url'] = $newImagePath;
+                unset($validated['image']);
             }
 
             $article->update($validated);
