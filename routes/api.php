@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__ . '/public_routes.php';
+// test webhook
 
 Route::post('auth/login', [AuthController::class, 'login']);
 
