@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Models\User;
 
 class ArticleResource extends JsonResource
 {
@@ -16,6 +17,7 @@ class ArticleResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'author' => User::where('id', $this->user_id)->value('first_name'),
             'title' => $this->title,
             'image_url' => $this->image_url,
             'content' => $this->content,
