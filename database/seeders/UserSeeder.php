@@ -24,6 +24,7 @@ class UserSeeder extends Seeder
         foreach($accounts as $account) {
             $user = User::create([
                     'first_name' => fake()->firstName(),
+                    'middle_name' => fake()->boolean() ? fake()->firstName() : null,
                     'last_name' =>  fake()->lastName(),
                     'email' => $account['email'],
                     'password' => Hash::make($account['email']),
