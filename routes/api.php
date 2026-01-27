@@ -21,14 +21,14 @@ Route::group([
     $route->post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 });
 
-// Route::get('/reels', [ReelController::class, 'index']);
+Route::get('/reels', [ReelController::class, 'index']);
 Route::get('/reels/{reel}', [ReelController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('reels', ReelController::class)->only(['store', 'update', 'destroy']);
 });
 
-// Route::get('/articles', [ArticleController::class, 'index']);
+Route::get('/articles', [ArticleController::class, 'index']);
 Route::get('/articles/{article}', [ArticleController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -38,8 +38,9 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::group([
-    'prefix' => 'home'
+    'prefix' => 'dummy',
+    'middleware' => 'allow.guest'
 ], function ($route) {
-    $route->get('/reels', [ReelController::class, 'index']);
-    $route->get('/articles', [ArticleController::class, 'index']);
+    $route->get('/reels', [DummyController::class, 'dummyReels']);
+    $route->get('/articles', [DummyController::class, 'dummyArticles']);
 });

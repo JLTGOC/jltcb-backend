@@ -42,7 +42,6 @@ class ArticleController extends Controller
             $imagePath = upload_image($request, 'image', 'articles/images');
 
             $article = Article::create([
-                'user_id' => auth()->id(),
                 'title' => $validated['title'],
                 'content' => $validated['content'],
                 'image_url' => $imagePath,
