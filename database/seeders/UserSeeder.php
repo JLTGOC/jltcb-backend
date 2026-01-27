@@ -30,7 +30,7 @@ class UserSeeder extends Seeder
                     'password' => Hash::make($account['email']),
                     'address' => fake()->address(),
                     'contact_number' => fake()->numerify('09#########'),
-                    'company_name' => ($account['role'] === 'Client') ? fake()->company() : null
+                    'company_name' => ($account['role'] === 'Client') ? fake()->company() : 'JLTCB'
                 ]);
 
             $user->assignRole($account['role']);
