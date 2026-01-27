@@ -22,6 +22,30 @@ class ReelSeeder extends Seeder
                 'video_path' => 'seeders/reels/ONE WRONG CUSTOMSCODE - CHESCA.mov',
                 'view_count' => 2340,
             ],
+            [
+                'video_path' => 'seeders/reels/DID YOU KNOW - CHESCA.mp4',
+                'view_count' => 1890,
+            ],
+            [
+                'video_path' => 'seeders/reels/ONE WRONG CUSTOMSCODE - CHESCA.mov',
+                'view_count' => 3100,
+            ],
+            [
+                'video_path' => 'seeders/reels/DID YOU KNOW - CHESCA.mp4',
+                'view_count' => 2750,
+            ],
+            [
+                'video_path' => 'seeders/reels/ONE WRONG CUSTOMSCODE - CHESCA.mov',
+                'view_count' => 1980,
+            ],
+            [
+                'video_path' => 'seeders/reels/DID YOU KNOW - CHESCA.mp4',
+                'view_count' => 2200,
+            ],
+            [
+                'video_path' => 'seeders/reels/ONE WRONG CUSTOMSCODE - CHESCA.mov',
+                'view_count' => 1450,
+            ],
         ];
 
         foreach ($reels as $reel) {
