@@ -8,15 +8,21 @@ use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
+
+    /**
+     * Index Dashboard
+     * 
+     * Display dashboard data based on user role
+     */
     public function index(Request $request)
     {
         $user = $request->user();
 
-        $primaryRole = $user->getRoleNames()->first(); 
+        $primaryRole = $user->getRoleNames()->first();
 
         $data = match ($primaryRole) {
             RoleType::MARKETING->value => (new MarketingDashboardService())->getStats($user),
-            default                  => ['message' => 'Generic dashboard data'],
+            default => ['message' => 'Generic dashboard data'],
         };
 
         return $this->success('Dashboard for ' . $primaryRole . ' retrieved successfully', $data, 200);
