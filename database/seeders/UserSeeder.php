@@ -24,11 +24,13 @@ class UserSeeder extends Seeder
         foreach($accounts as $account) {
             $user = User::create([
                     'first_name' => fake()->firstName(),
+                    'middle_name' => fake()->boolean() ? fake()->firstName() : null,
                     'last_name' =>  fake()->lastName(),
                     'email' => $account['email'],
                     'password' => Hash::make($account['email']),
                     'address' => fake()->address(),
-                    'contact_number' => fake()->numerify('09#########')
+                    'contact_number' => fake()->numerify('09#########'),
+                    'company_name' => ($account['role'] === 'Client') ? fake()->company() : null
                 ]);
 
             $user->assignRole($account['role']);

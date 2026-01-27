@@ -2,45 +2,25 @@
 
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ReelController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\{
-    AuthController,
-    DummyController
-};
 
-// Route::get('/user', function (Request $request) {
-//     return $request->user();
-// })->middleware('auth:sanctum');
+require __DIR__ . '/public_routes.php';
+// test webhook
 
-Route::group([
-    'prefix' => 'auth',
-], function ($route) {
-    // $route->post('/register', [AuthController::class, 'register']);
-    $route->post('/login', [AuthController::class, 'login']);
-    $route->post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-});
-
-Route::get('/reels', [ReelController::class, 'index']);
-Route::get('/reels/{reel}', [ReelController::class, 'show']);
+Route::post('auth/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
+
+    Route::prefix('auth')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+    });
+
+    Route::controller(ArticleController::class)->group(function () {
+        Route::post('/articles', 'store');
+        Route::post('/articles/{article}', 'update');
+        Route::delete('/articles/{article}', 'destroy');
+    });
+
     Route::apiResource('reels', ReelController::class)->only(['store', 'update', 'destroy']);
-});
-
-Route::get('/articles', [ArticleController::class, 'index']);
-Route::get('/articles/{article}', [ArticleController::class, 'show']);
-
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/articles', [ArticleController::class, 'store']);
-    Route::post('/articles/{article}', [ArticleController::class, 'update']);
-    Route::delete('/articles/{article}', [ArticleController::class, 'destroy']);
-});
-
-Route::group([
-    'prefix' => 'dummy',
-    'middleware' => 'allow.guest'
-], function ($route) {
-    $route->get('/reels', [DummyController::class, 'dummyReels']);
-    $route->get('/articles', [DummyController::class, 'dummyArticles']);
 });

@@ -16,11 +16,12 @@ class ArticleResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'user' => $this->user->first_name,
             'title' => $this->title,
             'image_url' => $this->image_url,
             'content' => $this->content,
-            'created_at' => $this->created_at->toDateTimeString(),
-            'updated_at' => $this->updated_at->toDateTimeString(),
+            'created_at' => $this->created_at->format('d/m/Y'),
+            'updated_at' => $this->updated_at->format('d/m/Y'),
         ];
     }
 }
