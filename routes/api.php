@@ -5,7 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ReelController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controller\UserController;
+use App\Http\Controllers\UserController;
 
 require __DIR__ . '/public_routes.php';
 // test webhook

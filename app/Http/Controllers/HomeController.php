@@ -17,7 +17,7 @@ class HomeController extends Controller
     /**
      * Home
      * 
-     * Fetch dashboard content
+     * Fetch homepage content
      */
     public function home() {
         $articles = Article::latest('updated_at')->get();
