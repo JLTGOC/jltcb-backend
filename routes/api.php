@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ReelController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controller\UserController;
 
 require __DIR__ . '/public_routes.php';
 // test webhook
@@ -24,7 +25,10 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::apiResource('reels', ReelController::class)->only(['store', 'update', 'destroy']);
-});
+
+    Route::controller(UserController::class)->group(function ($route) {
+        $route->get('/user/show', 'show');
+    });
 
     Route::get('/dashboard', [DashboardController::class, 'index']);
 });
