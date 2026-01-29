@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\UpdateArticleRequest;
 use App\Models\Article;
+use App\Events\ArticleEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\ArticleResource;
 use App\Http\Requests\StoreArticleRequest;
-use Illuminate\Support\Facades\Storage; // Import Storage facade
+use App\Http\Requests\UpdateArticleRequest;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Storage; // Import Storage facade
 
 class ArticleController extends Controller
 {
@@ -48,6 +49,8 @@ class ArticleController extends Controller
                 'content' => $validated['content'],
                 'image_url' => $imagePath,
             ]);
+
+            event(new ArticleEvent('stored'));
 
             return $this->success('Article created successfully.', new ArticleResource($article), 201);
         });
