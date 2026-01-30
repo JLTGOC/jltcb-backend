@@ -164,9 +164,19 @@ class QuotationController extends Controller
     /**
      * Index Service Options
      */
-    public function indexServiceOptions() {
-        $serviceOptionNames = ServiceOption::pluck('name');
+    public function enumQuotationOptions() {
+        $serviceTypes = ['IMPORT', 'EXPORT', 'BUSINESS SOLUTION'];
+        $transportModes = ['AIR', 'SEA'];
+        $serviceOptions = ServiceOption::pluck('name');
+        $cargoVolume = ['CONTAINERIZED', 'LCL'];
 
-        return $this->success('Service options fetched', $serviceOptionNames, 200);
+        $quotationOptions = [
+            'serviceTypes' => $serviceTypes,
+            'transportModes' => $transportModes,
+            'serviceOptions' => $serviceOptions,
+            'cargoVolume' => $cargoVolume,
+        ];
+
+        return $this->success('Service options fetched', $quotationOptions, 200);
     }
 }

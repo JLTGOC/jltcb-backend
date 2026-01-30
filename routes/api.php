@@ -38,7 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::group([
         'prefix' => 'quotation'
     ], function ($route) {
-        $route->get('/service-options', [QuotationController::class, 'indexServiceOptions']);
+        $route->get('/enum-options', [QuotationController::class, 'enumQuotationOptions']);
         $route->get('/', [QuotationController::class, 'index']);
         $route->post('/', [QuotationController::class, 'store']);
         $route->get('/{referenceNumber}', [QuotationController::class, 'show']);
