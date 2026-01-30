@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Http\Requests\StoreQuotationRequest;
+use App\Http\Requests\{
+    StoreQuotationRequest,
+    UpdateQuotationRequest
+};
 use App\Http\Resources\QuotationResource;
 use App\Models\{
     Quotation,
-    User
+    User,
+    ServiceOption
 };
 use Illuminate\Support\Facades\DB;
 
@@ -21,7 +25,7 @@ class QuotationController extends Controller
     }
 
     /**
-     * Store
+     * Store Quotation
      * 
      * Request new quotation
      */
@@ -32,7 +36,7 @@ class QuotationController extends Controller
         try {
             DB::beginTransaction();
 
-            if($user->role('CLIENT')) {
+            if($user->hasRole('Client')) {
                 $stringifiedServiceOptions = implode(',', $request->serviceOptions);
 
                 $quotation = Quotation::create([
@@ -56,6 +60,8 @@ class QuotationController extends Controller
                 DB::commit();
 
                 return $this->success('Quotation request submitted', $quotation, 200);
+            } else {
+                return $this->error('Unauthorized', 403);
             }
         } catch (\Exception $e) {
             DB::rollback();
@@ -64,21 +70,66 @@ class QuotationController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Show Quotation
+     * 
+     * Show individual quotation details
      */
     public function show($referenceNumber) {
         $quotation = Quotation::where('reference_number', $referenceNumber)->first();
+        
+        if (!$quotation) {
+            return $this->error('Quotation not found', 404);
+        }
+
         $quotationCollection = new QuotationResource($quotation);
 
         return $this->success('Quotation details fetched successfully', $quotationCollection, 200);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update Quotation
+     * 
+     * Update quotation request details
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateQuotationRequest $request, $referenceNumber)
     {
-        //
+        $user = User::find(auth()->id());
+        $quotation = Quotation::where('reference_number', $referenceNumber)->first();
+
+        if ($user->hasRole('Account Specialist')) {
+            $containerSize = $request->containerSize ?? null;
+            $stringifiedServiceOptions = implode(',', $request->serviceOptions) ?? null;
+
+            try {
+                DB::beginTransaction();
+
+                $quotation->update([
+                    'company_name' => $request->companyName ?? $quotation->company_name,
+                    'company_address' => $request->companyAddress ?? $quotation->company_address,
+                    'contact_person' => $request->contactPerson ?? $quotation->contact_person,
+                    'contact_number' => $request->contactNumber ?? $quotation->contact_number,
+                    'email' => $request->email ?? $quotation->email,
+                    'service_type' => $request->serviceType ?? $quotation->service_type,
+                    'transport_mode' => $request->transportMode ?? $quotation->transport_mode,
+                    'service_options' => $stringifiedServiceOptions ?? $quotation->service_options,
+                    'commodity' => $request->commodity ?? $quotation->commodity,
+                    'cargo_volume' => $request->cargoVolume ?? $quotation->cargo_volume,
+                    'container_size' => $containerSize ?? $quotation->container_size,
+                    'origin' => $request->origin ?? $quotation->origin,
+                    'destination' => $request->destination ?? $quotation->destination,
+                ]);
+
+                DB::commit();
+
+                return $this->success('Quotation request updated', $quotation, 200);
+
+            } catch (\Exception $e) {
+                DB::rollback();
+                return $this->error('Something went wrong', 400, $e);
+            }
+        } else {
+            return $this->error('Unauthorized', 403);
+        }
     }
 
     /**
@@ -87,5 +138,14 @@ class QuotationController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Index Service Options
+     */
+    public function indexServiceOptions() {
+        $serviceOptionNames = ServiceOption::pluck('name');
+
+        return $this->success('Service options fetched', $serviceOptionNames, 200);
     }
 }
