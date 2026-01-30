@@ -7,7 +7,9 @@ use App\Http\Controllers\{
     ArticleController,
     DashboardController,
     UserController,
-    QuotationController
+    QuotationController,
+    ChatController,
+    QuotationChatController
 };
 
 require __DIR__ . '/public_routes.php';
@@ -44,4 +46,23 @@ Route::middleware('auth:sanctum')->group(function () {
         $route->get('/{referenceNumber}', [QuotationController::class, 'show']);
         $route->put('/{referenceNumber}', [QuotationController::class, 'update']);
     });
+
+    // --- Standard Chat ---
+    Route::get('/chats', [ChatController::class, 'index']); // Inbox
+    Route::get('/chats/{conversation}', [ChatController::class, 'show']); // History
+    
+    // Reply to specific chat
+    Route::post('/chats/{conversation}/messages', [ChatController::class, 'sendMessageToConversation']);
+    
+    // Message a person (finds or creates chat)
+    Route::post('/users/{user}/messages', [ChatController::class, 'sendMessageToUser']);
+
+    // --- Quotation Workflow ---
+    // LeadAS sends card
+    Route::post('/quotations/send-card', [QuotationChatController::class, 'sendQuotationCard']);
+    
+    // Client approves -> New Group Chat
+    Route::post('/quotations/{id}/approve', [QuotationChatController::class, 'approveQuotation']);
+
+    Route::post('/quotations/{quotation}/chatLeadAs', [QuotationChatController::class, 'chatLeadAs']);
 });
