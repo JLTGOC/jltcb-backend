@@ -31,7 +31,8 @@ class AuthController extends Controller
     //                 'address' => $request->address,
     //                 'contact_number' => $request->contactNumber,
     //                 'email' => $request->email,
-    //                 'password' => Hash::make($request->password)
+    //                 'password' => Hash::make($request->password),
+    //                 'password_length' => strlen($request->password)
     //             ]);
     //             DB::commit();
     //             return $this->success('User registered', $newUser, 200);
