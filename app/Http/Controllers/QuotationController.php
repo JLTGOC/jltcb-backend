@@ -25,7 +25,7 @@ class QuotationController extends Controller
      * 
      * Request new quotation
      */
-    public function store(Request $request)
+    public function store(StoreQuotationRequest $request)
     {
         $user = User::find(auth()->id());
 
