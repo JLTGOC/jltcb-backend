@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Enums\RoleType;
-use App\Services\Dashboard\MarketingDashboardService;
 use Illuminate\Http\Request;
+use App\Services\Dashboard\ClientDashboardService;
+use App\Services\Dashboard\LeadAsDashboardService;
+use App\Services\Dashboard\MarketingDashboardService;
 
 class DashboardController extends Controller
 {
@@ -21,6 +23,8 @@ class DashboardController extends Controller
         $primaryRole = $user->getRoleNames()->first();
 
         $data = match ($primaryRole) {
+            RoleType::CLIENT->value => (new ClientDashboardService())->getStats($user),
+            RoleType::ACCOUNT_SPECIALIST->value => (new LeadAsDashboardService())->getStats($user),
             RoleType::MARKETING->value => (new MarketingDashboardService())->getStats($user),
             default => ['message' => 'Generic dashboard data'],
         };
