@@ -14,6 +14,7 @@ use App\Models\{
     ServiceOption
 };
 use Illuminate\Support\Facades\DB;
+use Faker\Factory as Faker;
 
 class QuotationController extends Controller
 {
@@ -38,10 +39,12 @@ class QuotationController extends Controller
 
             if($user->hasRole('Client')) {
                 $stringifiedServiceOptions = implode(',', $request->serviceOptions);
+                $specialists = User::role('Account Specialist')->pluck('id');
 
                 $quotation = Quotation::create([
                     'reference_number' => $this->quotationReferenceNumber(),
-                    'user_id' => $user->id,
+                    'client_id' => $user->id,
+                    'as_id' => Faker::create()->randomElement($specialists),
                     'company_name' => $request->companyName,
                     'company_address' => $request->companyAddress,
                     'contact_person' => $request->contactPerson,

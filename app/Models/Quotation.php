@@ -9,7 +9,8 @@ class Quotation extends Model
 {
     protected $fillable = [
         'reference_number',
-        'user_id',
+        'client_id',
+        'as_id',
         'status',
         'contact_person',
         'contact_number',
@@ -31,7 +32,11 @@ class Quotation extends Model
         'updated_at'
     ];
 
-    public function user() {
-        return $this->belongsTo(User::class, 'user_id');
+    public function client() {
+        return $this->belongsTo(User::class, 'client_id');
+    }
+
+    public function accountSpecialist() {
+        return $this->belongsTo(User::class, 'as_id');
     }
 }
