@@ -162,7 +162,7 @@ class QuotationController extends Controller
     }
 
     /**
-     * Index Service Options
+     * Enum Quotation Options
      */
     public function enumQuotationOptions() {
         $serviceTypes = ['IMPORT', 'EXPORT', 'BUSINESS SOLUTION'];
@@ -177,6 +177,6 @@ class QuotationController extends Controller
             'cargoVolume' => $cargoVolume,
         ];
 
-        return $this->success('Service options fetched', $quotationOptions, 200);
+        return $this->success('Quotation options fetched', $quotationOptions, 200);
     }
 }
