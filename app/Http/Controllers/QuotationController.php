@@ -62,7 +62,7 @@ class QuotationController extends Controller
 
                 DB::commit();
 
-                return $this->success('Quotation request submitted', $quotation, 200);
+                return $this->success('Quotation request submitted', new QuotationResource($quotation), 200);
             } else {
                 return $this->error('Unauthorized', 403);
             }
@@ -101,10 +101,28 @@ class QuotationController extends Controller
 
         if ($user->hasRole('Account Specialist')) {
             $containerSize = $request->containerSize ?? null;
-            $stringifiedServiceOptions = implode(',', $request->serviceOptions) ?? null;
+
+            if ($request->serviceOptions) {
+                $stringifiedServiceOptions = implode(',', $request->serviceOptions);
+            } else {
+                $stringifiedServiceOptions = null;
+            }            
 
             try {
                 DB::beginTransaction();
+
+                if ($quotation->status === 'RESPONDED') {
+                    return $this->error('Quotation already finalized', 400);
+                }
+
+                if ($request->has('status')) {
+                    $quotation->update([
+                        'status' => $request->status
+                    ]);
+
+                    DB::commit();
+                    return $this->success('Quotation status updated', new QuotationResource($quotation), 200);
+                }
 
                 $quotation->update([
                     'company_name' => $request->companyName ?? $quotation->company_name,
@@ -124,7 +142,7 @@ class QuotationController extends Controller
 
                 DB::commit();
 
-                return $this->success('Quotation request updated', $quotation, 200);
+                return $this->success('Quotation request updated', new QuotationResource($quotation), 200);
 
             } catch (\Exception $e) {
                 DB::rollback();
