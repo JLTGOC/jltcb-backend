@@ -5,6 +5,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ReelController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\QuotationController;
+use League\CommonMark\Extension\SmartPunct\Quote;
 
 require __DIR__ . '/public_routes.php';
 // test webhook
@@ -26,4 +28,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('reels', ReelController::class)->only(['store', 'update', 'destroy']);
 
     Route::get('/dashboard', [DashboardController::class, 'index']);
+
+    Route::group([
+        'prefix' => 'quotation'
+    ], function ($route) {
+        $route->post('/', [QuotationController::class, 'store']);
+        $route->get('/{referenceNumber}', [QuotationController::class, 'show']);
+    });
+
+    Route::post('/quotations/{quotation}/upload', [QuotationController::class, 'upload']);
 });

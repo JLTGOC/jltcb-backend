@@ -60,4 +60,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Article::class);
     }
+
+    public function quotations() {
+        return $this->hasMany(Quotation::class);
+    }
+
+    public function quotationFiles() {
+        return $this->hasMany(QuotationFile::class);
+    }
 }
