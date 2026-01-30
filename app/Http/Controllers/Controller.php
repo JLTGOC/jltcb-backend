@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 use App\Traits\{
-    ResponseAPI,
-    Generator
+    ResponseAPI
 };
 
 abstract class Controller
 {
-    use ResponseAPI, Generator;
+    use ResponseAPI;
 }

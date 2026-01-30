@@ -15,6 +15,7 @@ use App\Models\{
 };
 use Illuminate\Support\Facades\DB;
 use Faker\Factory as Faker;
+use Carbon\Carbon;
 
 class QuotationController extends Controller
 {
@@ -42,7 +43,6 @@ class QuotationController extends Controller
                 $specialists = User::role('Account Specialist')->pluck('id');
 
                 $quotation = Quotation::create([
-                    'reference_number' => $this->quotationReferenceNumber(),
                     'client_id' => $user->id,
                     'as_id' => Faker::create()->randomElement($specialists),
                     'company_name' => $request->companyName,
@@ -58,6 +58,13 @@ class QuotationController extends Controller
                     'container_size' => $request->containerSize ?? null,
                     'origin' => $request->origin,
                     'destination' => $request->destination,
+                ]);
+
+                $dateSection = Carbon::now()->format('m-Y');
+                $idSection = str_pad($quotation->id, 3, '0', STR_PAD_LEFT);
+
+                $quotation->update([
+                    'reference_number' => "QT-{$dateSection}-{$idSection}"
                 ]);
 
                 DB::commit();

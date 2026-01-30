@@ -9,16 +9,13 @@ use App\Models\{
     Quotation,
     User
 };
-use App\Traits\Generator;
+use Carbon\Carbon;
 
 class QuotationSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
-    
-    use Generator;
-
     public function run(): void
     {
         // $faker = Faker::create();
@@ -32,7 +29,6 @@ class QuotationSeeder extends Seeder
             $firstName = fake()->firstName();
             $companyName = fake()->company();
             $quotation = Quotation::create([
-                'reference_number' => $this->quotationReferenceNumber(),
                 'status' => fake()->randomElement(['REQUESTED', 'REQUESTED', 'RESPONDED']),
                 'client_id' => fake()->randomElement($clients),
                 'as_id' => fake()->randomElement($specialists),
@@ -40,7 +36,7 @@ class QuotationSeeder extends Seeder
                 'company_address' => fake()->address(),
                 'contact_person' => $firstName . ' ' . $lastName,
                 'contact_number' => fake()->numerify('09#########'),
-                'email' => $lastName . '.' . $firstName . '@' . $companyName . '.com',
+                'email' => mb_strtolower($lastName) . '.' . mb_strtolower($firstName) . '@gmail.com',
                 'service_type' => fake()->randomElement(['IMPORT', 'EXPORT', 'BUSINESS SOLUTION']),
                 'transport_mode' => fake()->randomElement(['AIR', 'SEA']),
                 'service_options' => 'ALL IN',
@@ -48,6 +44,13 @@ class QuotationSeeder extends Seeder
                 'cargo_volume' => fake()->randomElement(['CONTAINERIZED', 'LCL']),
                 'origin' => fake()->address(),
                 'destination' => fake()->address(),
+            ]);
+
+            $dateSection = Carbon::now()->format('m-Y');
+            $idSection = str_pad($quotation->id, 3, '0', STR_PAD_LEFT);
+
+            $quotation->update([
+                'reference_number' => "QT-{$dateSection}-{$idSection}"
             ]);
 
             if ($quotation->cargo_volume === 'CONTAINERIZED') {

@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('quotations', function (Blueprint $table) {
             $table->id();
-            $table->string('reference_number')->unique();
+            $table->string('reference_number')->unique()->nullable();
             $table->unsignedBigInteger('client_id');
             $table->foreign('client_id')->references('id')->on('users')->constrained()->cascadeOnDelete();
             $table->unsignedBigInteger('as_id');
