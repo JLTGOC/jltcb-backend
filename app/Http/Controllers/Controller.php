@@ -1,9 +1,12 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Traits\ResponseAPI;
+use App\Traits\{
+    ResponseAPI,
+    Generator
+};
 
 abstract class Controller
 {
-    use ResponseAPI;
+    use ResponseAPI, Generator;
 }

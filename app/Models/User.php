@@ -9,6 +9,10 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Auth\Passwords\CanResetPassword;
+use App\Models\{
+    Article,
+    Quotation
+};
 
 class User extends Authenticatable
 {
@@ -26,6 +30,7 @@ class User extends Authenticatable
         'last_name',
         'email',
         'password',
+        // 'password_length',
         'address',
         'contact_number',
         'company_name',
@@ -60,5 +65,9 @@ class User extends Authenticatable
     public function articles()
     {
         return $this->hasMany(Article::class);
+    }
+
+    public function quotations() {
+        return $this->hasMany(Quotation::class);
     }
 }

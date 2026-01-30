@@ -1,11 +1,14 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ReelController;
-use App\Http\Controllers\ArticleController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\{
+    AuthController,
+    ReelController,
+    ArticleController,
+    DashboardController,
+    UserController,
+    QuotationController
+};
 
 require __DIR__ . '/public_routes.php';
 // test webhook
@@ -31,4 +34,11 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/dashboard', [DashboardController::class, 'index']);
+
+    Route::group([
+        'prefix' => 'quotation'
+    ], function ($route) {
+        $route->post('/', [QuotationController::class, 'store']);
+        $route->get('/{referenceNumber}', [QuotationController::class, 'show']);
+    });
 });
