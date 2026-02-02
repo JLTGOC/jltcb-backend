@@ -32,8 +32,7 @@ class StoreQuotationRequest extends FormRequest
             'transportMode' => ['required', 'string', Rule::in(['SEA', 'AIR'])],
             'serviceOptions' => 'required|array',
             'commodity' => 'required|string',
-            'cargoVolume' => ['required', 'string', Rule::in(['CONTAINERIZED', 'LCL'])],
-            'containerSize' => 'sometimes|string',
+            'cargoType' => ['required', 'string', Rule::in(['CONTAINERIZED', 'LCL'])],
             'origin' => 'required|string',
             'destination' => 'required|string',
         ];

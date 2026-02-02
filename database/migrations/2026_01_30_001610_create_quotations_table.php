@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('quotations', function (Blueprint $table) {
             $table->id();
-            $table->string('reference_number')->unique()->nullable();
+            $table->string('reference_number')->unique();
             $table->unsignedBigInteger('client_id');
             $table->foreign('client_id')->references('id')->on('users')->constrained()->cascadeOnDelete();
             $table->unsignedBigInteger('as_id');
@@ -29,7 +29,8 @@ return new class extends Migration
             $table->enum('transport_mode', ['AIR', 'SEA'])->default('AIR');
             $table->string('service_options');
             $table->string('commodity');
-            $table->enum('cargo_volume', ['CONTAINERIZED', 'LCL'])->default('CONTAINERIZED');
+            $table->enum('cargo_type', ['CONTAINERIZED', 'LCL'])->default('CONTAINERIZED');
+            $table->unsignedBigInteger('cargo_volume')->nullable();
             $table->string('container_size')->nullable();
             $table->string('origin');
             $table->string('destination');

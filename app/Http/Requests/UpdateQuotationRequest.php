@@ -33,8 +33,7 @@ class UpdateQuotationRequest extends FormRequest
             'transportMode' => ['sometimes', 'string', Rule::in(['SEA', 'AIR'])],
             'serviceOptions' => 'sometimes|array',
             'commodity' => 'sometimes|string',
-            'cargoVolume' => ['sometimes', 'string', Rule::in(['CONTAINERIZED', 'LCL'])],
-            'containerSize' => 'sometimes|string',
+            'cargoType' => ['sometimes', 'string', Rule::in(['CONTAINERIZED', 'LCL'])],
             'origin' => 'sometimes|string',
             'destination' => 'sometimes|string',
         ];

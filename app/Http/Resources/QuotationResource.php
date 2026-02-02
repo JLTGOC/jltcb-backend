@@ -14,6 +14,11 @@ class QuotationResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        if ($this->cargo_volume) {
+            $cargoVolume = "{$this->cargo_volume} m³";
+        } else {
+            $cargoVolume = null;
+        }
         return [
             'referenceNumber' => $this->reference_number,
             'clientId' => $this->client_id,
@@ -28,7 +33,8 @@ class QuotationResource extends JsonResource
             'serviceOptions' => explode(',', $this->service_options),
             'transportMode' => $this->transport_mode,
             'commodity' => $this->commodity,
-            'cargoVolume' => $this->cargo_volume,
+            'cargoType' => $this->cargo_type,
+            'cargoVolume' => $cargoVolume,
             'containerSize' => $this->container_size ?? null,
             'origin' => $this->origin,
             'destination' => $this->destination,

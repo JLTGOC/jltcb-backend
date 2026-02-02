@@ -25,10 +25,16 @@ class QuotationSeeder extends Seeder
 
         $i = 0;
         do {
+            $lastId = Quotation::max('id') ?? 0;
+            $dateSection = Carbon::now()->format('m-Y');
+            $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
+
             $lastName = fake()->lastName();
             $firstName = fake()->firstName();
             $companyName = fake()->company();
+
             $quotation = Quotation::create([
+                'reference_number' => "QT-{$dateSection}-{$idSection}",
                 'status' => fake()->randomElement(['REQUESTED', 'REQUESTED', 'RESPONDED']),
                 'client_id' => fake()->randomElement($clients),
                 'as_id' => fake()->randomElement($specialists),
@@ -41,21 +47,18 @@ class QuotationSeeder extends Seeder
                 'transport_mode' => fake()->randomElement(['AIR', 'SEA']),
                 'service_options' => 'ALL IN',
                 'commodity' => 'CASTABLE 16 REFRACTOR',
-                'cargo_volume' => fake()->randomElement(['CONTAINERIZED', 'LCL']),
+                'cargo_type' => fake()->randomElement(['CONTAINERIZED', 'LCL']),
                 'origin' => fake()->address(),
                 'destination' => fake()->address(),
             ]);
 
-            $dateSection = Carbon::now()->format('m-Y');
-            $idSection = str_pad($quotation->id, 3, '0', STR_PAD_LEFT);
-
-            $quotation->update([
-                'reference_number' => "QT-{$dateSection}-{$idSection}"
-            ]);
-
-            if ($quotation->cargo_volume === 'CONTAINERIZED') {
+            if ($quotation->cargo_type === 'CONTAINERIZED') {
                 $quotation->update([
                     'container_size' => fake()->randomElement(['1x20', '1x40']),
+                ]);
+            } elseif ($quotation->cargo_type === 'LCL') {
+                $quotation->update([
+                    'cargo_volume' => fake()->numberBetween(1, 15)
                 ]);
             }
 

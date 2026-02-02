@@ -21,6 +21,7 @@ class Quotation extends Model
         'transport_mode',
         'service_options',
         'commodity',
+        'cargo_type',
         'cargo_volume',
         'container_size',
         'origin',
