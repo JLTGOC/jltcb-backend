@@ -132,4 +132,23 @@ class QuotationController extends Controller
             ]);
         }
     }
+
+
+    /**
+     * Show Quotation File
+     */
+    public function showFile(Quotation $quotation) {
+
+        $quotationFile = $quotation->file;
+        
+        if (! $quotationFile) {
+            return $this->success('No quotation file available.', []);
+        }
+
+        return $this->success(
+            'Quotation file retrieved successfully.', new QuotationFileResource($quotationFile)
+        );
+
+    }   
+
 }

@@ -36,5 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
         $route->get('/{referenceNumber}', [QuotationController::class, 'show']);
     });
 
+    //temporary routes for quotation files
     Route::post('/quotations/{quotation}/upload', [QuotationController::class, 'upload']);
+    Route::get('/quotations/{quotation}/showFile', [QuotationController::class, 'showFile']);
 });
