@@ -223,12 +223,14 @@ class QuotationController extends Controller
         $transportModes = ['AIR', 'SEA'];
         $serviceOptions = ServiceOption::pluck('name');
         $cargoType = ['CONTAINERIZED', 'LCL'];
+        $containerSize = ['1x10', '1x20', '1x40'];
 
         $quotationOptions = [
             'serviceTypes' => $serviceTypes,
             'transportModes' => $transportModes,
             'serviceOptions' => $serviceOptions,
             'cargoType' => $cargoType,
+            'containerSize' => $containerSize,
         ];
 
         return $this->success('Quotation options fetched', $quotationOptions, 200);
