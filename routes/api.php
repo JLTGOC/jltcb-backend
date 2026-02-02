@@ -7,7 +7,8 @@ use App\Http\Controllers\{
     ArticleController,
     DashboardController,
     UserController,
-    QuotationController
+    QuotationController,
+    ShipmentController
 };
 
 require __DIR__ . '/public_routes.php';
@@ -43,5 +44,11 @@ Route::middleware('auth:sanctum')->group(function () {
         $route->post('/', [QuotationController::class, 'store']);
         $route->get('/{referenceNumber}', [QuotationController::class, 'show']);
         $route->put('/{referenceNumber}', [QuotationController::class, 'update']);
+    });
+
+    Route::group([
+        'prefix' => 'shipment'
+    ], function ($route) {
+        $route->post('/', [ShipmentController::class, 'store']);
     });
 });
