@@ -39,4 +39,8 @@ class Quotation extends Model
     {
         return $this->morphMany(Message::class, 'reference');
     }
+    
+    public function file() {
+        return $this->hasOne(QuotationFile::class);
+    }
 }

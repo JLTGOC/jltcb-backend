@@ -76,4 +76,8 @@ class User extends Authenticatable
         return $this->belongsToMany(Conversation::class, 'participants')
             ->withPivot('last_read_at');
     }
+
+    public function quotationFiles() {
+        return $this->hasMany(QuotationFile::class);
+    }
 }

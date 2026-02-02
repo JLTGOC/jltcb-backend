@@ -3,17 +3,17 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Http\Requests\{
-    StoreQuotationRequest,
-    UpdateQuotationRequest
-};
+use App\Http\Requests\StoreQuotationRequest;
+use App\Http\Resources\QuotationFileResource;
 use App\Http\Resources\QuotationResource;
 use App\Models\{
     Quotation,
     User,
-    ServiceOption
+    ServiceOption,
+    QuotationFile
 };
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class QuotationController extends Controller
 {
@@ -147,5 +147,46 @@ class QuotationController extends Controller
         $serviceOptionNames = ServiceOption::pluck('name');
 
         return $this->success('Service options fetched', $serviceOptionNames, 200);
+    }
+    
+    /**
+     * Upload/Update Quotation File
+     */
+    public function upload(Quotation $quotation, Request $request) {
+        $request->validate([
+            'quotation' => ['required', 'file', 'mimes:pdf']
+        ]);
+
+        $file = $request->file('quotation');
+        $directory = 'quotations/files';
+        $filename = $file->getClientOriginalName();
+       
+        DB::beginTransaction();
+        try {
+            $path = $file->storeAs($directory, $filename, 'public');
+            $url = Storage::url($path);
+
+            $quotationFile = QuotationFile::updateOrCreate(
+                ['quotation_id' => $quotation->id],
+                ['file_path' => $url],
+            );
+
+            $message = $quotationFile->wasRecentlyCreated 
+                ? 'Quotation file uploaded successfully' 
+                : 'Quotation file updated sucessfully';
+
+            $status = $quotationFile->wasRecentlyCreated ? 201 : 200;
+
+            DB::commit();
+            return $this->success($message, new QuotationFileResource($quotationFile), $status);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to upload quotation file',
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }
