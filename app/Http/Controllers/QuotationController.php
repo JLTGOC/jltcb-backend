@@ -16,6 +16,7 @@ use App\Models\{
 use Illuminate\Support\Facades\DB;
 use Faker\Factory as Faker;
 use Carbon\Carbon;
+use Illuminate\Validation\ValidationException;
 
 class QuotationController extends Controller
 {
@@ -42,6 +43,16 @@ class QuotationController extends Controller
                 $stringifiedServiceOptions = implode(',', $request->serviceOptions);
                 $specialists = User::role('Account Specialist')->pluck('id');
 
+                if ($request->cargoType === 'CONTAINERIZED') {
+                    $request->validate([
+                        'containerSize' => 'required|string'
+                    ]);
+                } elseif ($request->cargoType === 'LCL') {
+                    $request->validate([
+                        'cargoVolume' => 'required|numeric|min:1'
+                    ]);
+                }
+
                 $quotation = Quotation::create([
                     'client_id' => $user->id,
                     'as_id' => Faker::create()->randomElement($specialists),
@@ -54,7 +65,8 @@ class QuotationController extends Controller
                     'transport_mode' => $request->transportMode,
                     'service_options' => $stringifiedServiceOptions,
                     'commodity' => $request->commodity,
-                    'cargo_volume' => $request->cargoVolume,
+                    'cargo_type' => $request->cargoType,
+                    'cargo_volume' => $request->cargoVolume ?? null,
                     'container_size' => $request->containerSize ?? null,
                     'origin' => $request->origin,
                     'destination' => $request->destination,
@@ -66,6 +78,16 @@ class QuotationController extends Controller
                 $quotation->update([
                     'reference_number' => "QT-{$dateSection}-{$idSection}"
                 ]);
+
+                if ($quotation->cargo_type === 'CONTAINERIZED' && isset($quotation->cargo_volume)) {
+                    $quotation->update([
+                        'cargo_volume' => null
+                    ]);
+                } elseif ($quotation->cargo_type === 'LCL' && isset($quotation->container_size)) {
+                    $quotation->update([
+                        'container_size' => null
+                    ]);
+                }
 
                 DB::commit();
 
@@ -131,6 +153,16 @@ class QuotationController extends Controller
                     return $this->success('Quotation status updated', new QuotationResource($quotation), 200);
                 }
 
+                if ($request->cargoType === 'CONTAINERIZED') {
+                    $request->validate([
+                        'containerSize' => 'required|string'
+                    ]);
+                } elseif ($request->cargoType === 'LCL') {
+                    $request->validate([
+                        'cargoVolume' => 'required|numeric|min:1'
+                    ]);
+                }
+
                 $quotation->update([
                     'company_name' => $request->companyName ?? $quotation->company_name,
                     'company_address' => $request->companyAddress ?? $quotation->company_address,
@@ -141,11 +173,22 @@ class QuotationController extends Controller
                     'transport_mode' => $request->transportMode ?? $quotation->transport_mode,
                     'service_options' => $stringifiedServiceOptions ?? $quotation->service_options,
                     'commodity' => $request->commodity ?? $quotation->commodity,
-                    'cargo_volume' => $request->cargoVolume ?? $quotation->cargo_volume,
+                    'cargo_type' => $request->cargoType,
+                    'cargo_volume' => $request->cargoVolume ?? $quotation->cargoVolume,
                     'container_size' => $containerSize ?? $quotation->container_size,
                     'origin' => $request->origin ?? $quotation->origin,
                     'destination' => $request->destination ?? $quotation->destination,
                 ]);
+
+                if ($quotation->cargo_type === 'CONTAINERIZED' && isset($quotation->cargo_volume)) {
+                    $quotation->update([
+                        'cargo_volume' => null
+                    ]);
+                } elseif ($quotation->cargo_type === 'LCL' && isset($quotation->container_size)) {
+                    $quotation->update([
+                        'container_size' => null
+                    ]);
+                }
 
                 DB::commit();
 
@@ -175,13 +218,13 @@ class QuotationController extends Controller
         $serviceTypes = ['IMPORT', 'EXPORT', 'BUSINESS SOLUTION'];
         $transportModes = ['AIR', 'SEA'];
         $serviceOptions = ServiceOption::pluck('name');
-        $cargoVolume = ['CONTAINERIZED', 'LCL'];
+        $cargoType = ['CONTAINERIZED', 'LCL'];
 
         $quotationOptions = [
             'serviceTypes' => $serviceTypes,
             'transportModes' => $transportModes,
             'serviceOptions' => $serviceOptions,
-            'cargoVolume' => $cargoVolume,
+            'cargoType' => $cargoType,
         ];
 
         return $this->success('Quotation options fetched', $quotationOptions, 200);
