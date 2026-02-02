@@ -83,17 +83,36 @@ class ShipmentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($referenceNumber)
     {
-        //
+        $shipment = Shipment::where('reference_number', $referenceNumber)
+            ->first();
+
+        if (!$shipment) {
+            return $this->error('Shipment not found', 404);
+        }
+
+        return $this->success('Shipment details fetched', new ShipmentResource($shipment), 200);    
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $referenceNumber)
     {
-        //
+        $shipment = Shipment::where('reference_number', $referenceNumber)
+            ->where('status', 'ONGOING')
+            ->first();
+
+        if (!$shipment) {
+            return $this->error('Shipment not found', 404);
+        }
+
+        $shipment->update([
+            'status' => 'DELIVERED'
+        ]);
+
+        return $this->success('Shipment status updated', 200);
     }
 
     /**

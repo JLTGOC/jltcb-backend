@@ -50,5 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
         'prefix' => 'shipment'
     ], function ($route) {
         $route->post('/', [ShipmentController::class, 'store']);
+        $route->get('/{referenceNumber}', [ShipmentController::class, 'show']);
+        $route->put('/{referenceNumber}', [ShipmentController::class, 'update']);
     });
 });

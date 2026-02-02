@@ -7,7 +7,8 @@ use Illuminate\Database\Seeder;
 // use Faker\Factory as Faker;
 use App\Models\{
     Quotation,
-    User
+    User,
+    Shipment
 };
 use Carbon\Carbon;
 
@@ -35,7 +36,7 @@ class QuotationSeeder extends Seeder
 
             $quotation = Quotation::create([
                 'reference_number' => "QT-{$dateSection}-{$idSection}",
-                'status' => fake()->randomElement(['REQUESTED', 'REQUESTED', 'RESPONDED']),
+                'status' => fake()->randomElement(['REQUESTED', 'RESPONDED']),
                 'client_id' => fake()->randomElement($clients),
                 'as_id' => fake()->randomElement($specialists),
                 'company_name' => $companyName,
@@ -62,7 +63,31 @@ class QuotationSeeder extends Seeder
                 ]);
             }
 
+            if ($quotation->status === 'RESPONDED') {
+                $lastId = Shipment::max('id') ?? 0;
+                $dateSection = Carbon::now()->format('m-Y');
+                $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
+
+                Shipment::create([
+                    'reference_number' => "IM-{$dateSection}-{$idSection}",
+                    'quotation_id' => $quotation->id,
+                    'client_id' => $quotation->client_id,
+                    'as_id' => $quotation->as_id,
+                    'status' => fake()->randomElement(['ONGOING', 'DELIVERED']),
+                    'company_name' => $quotation->company_name,
+                    'contact_person' => $quotation->contact_person,
+                    'contact_number' => $quotation->contact_number,
+                    'email' => $quotation->email,
+                    'commodity' => $quotation->commodity,
+                    'cargo_type' => $quotation->cargo_type,
+                    'cargo_volume' => $quotation->cargo_volume ?? null,
+                    'container_size' => $quotation->container_size ?? null,
+                    'origin' => $quotation->origin,
+                    'destination' => $quotation->destination,
+                ]);
+            }
+
             $i+=1;
-        } while ($i<5);
+        } while ($i<10);
     }
 }
