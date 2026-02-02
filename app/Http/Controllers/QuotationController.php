@@ -14,6 +14,8 @@ use App\Models\{
 };
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Faker\Factory as Faker;
+use Carbon\Carbon;
 
 class QuotationController extends Controller
 {
@@ -38,10 +40,11 @@ class QuotationController extends Controller
 
             if($user->hasRole('Client')) {
                 $stringifiedServiceOptions = implode(',', $request->serviceOptions);
+                $specialists = User::role('Account Specialist')->pluck('id');
 
                 $quotation = Quotation::create([
-                    'reference_number' => $this->quotationReferenceNumber(),
-                    'user_id' => $user->id,
+                    'client_id' => $user->id,
+                    'as_id' => Faker::create()->randomElement($specialists),
                     'company_name' => $request->companyName,
                     'company_address' => $request->companyAddress,
                     'contact_person' => $request->contactPerson,
@@ -57,9 +60,16 @@ class QuotationController extends Controller
                     'destination' => $request->destination,
                 ]);
 
+                $dateSection = Carbon::now()->format('m-Y');
+                $idSection = str_pad($quotation->id, 3, '0', STR_PAD_LEFT);
+
+                $quotation->update([
+                    'reference_number' => "QT-{$dateSection}-{$idSection}"
+                ]);
+
                 DB::commit();
 
-                return $this->success('Quotation request submitted', $quotation, 200);
+                return $this->success('Quotation request submitted', new QuotationResource($quotation), 200);
             } else {
                 return $this->error('Unauthorized', 403);
             }
@@ -98,10 +108,28 @@ class QuotationController extends Controller
 
         if ($user->hasRole('Account Specialist')) {
             $containerSize = $request->containerSize ?? null;
-            $stringifiedServiceOptions = implode(',', $request->serviceOptions) ?? null;
+
+            if ($request->serviceOptions) {
+                $stringifiedServiceOptions = implode(',', $request->serviceOptions);
+            } else {
+                $stringifiedServiceOptions = null;
+            }            
 
             try {
                 DB::beginTransaction();
+
+                if ($quotation->status === 'RESPONDED') {
+                    return $this->error('Quotation already finalized', 400);
+                }
+
+                if ($request->has('status')) {
+                    $quotation->update([
+                        'status' => $request->status
+                    ]);
+
+                    DB::commit();
+                    return $this->success('Quotation status updated', new QuotationResource($quotation), 200);
+                }
 
                 $quotation->update([
                     'company_name' => $request->companyName ?? $quotation->company_name,
@@ -121,7 +149,7 @@ class QuotationController extends Controller
 
                 DB::commit();
 
-                return $this->success('Quotation request updated', $quotation, 200);
+                return $this->success('Quotation request updated', new QuotationResource($quotation), 200);
 
             } catch (\Exception $e) {
                 DB::rollback();
@@ -141,12 +169,22 @@ class QuotationController extends Controller
     }
 
     /**
-     * Index Service Options
+     * Enum Quotation Options
      */
-    public function indexServiceOptions() {
-        $serviceOptionNames = ServiceOption::pluck('name');
+    public function enumQuotationOptions() {
+        $serviceTypes = ['IMPORT', 'EXPORT', 'BUSINESS SOLUTION'];
+        $transportModes = ['AIR', 'SEA'];
+        $serviceOptions = ServiceOption::pluck('name');
+        $cargoVolume = ['CONTAINERIZED', 'LCL'];
 
-        return $this->success('Service options fetched', $serviceOptionNames, 200);
+        $quotationOptions = [
+            'serviceTypes' => $serviceTypes,
+            'transportModes' => $transportModes,
+            'serviceOptions' => $serviceOptions,
+            'cargoVolume' => $cargoVolume,
+        ];
+
+        return $this->success('Quotation options fetched', $quotationOptions, 200);
     }
     
     /**

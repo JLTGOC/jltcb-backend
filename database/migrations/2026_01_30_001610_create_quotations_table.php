@@ -14,8 +14,11 @@ return new class extends Migration
     {
         Schema::create('quotations', function (Blueprint $table) {
             $table->id();
-            $table->string('reference_number')->unique();
-            $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
+            $table->string('reference_number')->unique()->nullable();
+            $table->unsignedBigInteger('client_id');
+            $table->foreign('client_id')->references('id')->on('users')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('as_id');
+            $table->foreign('as_id')->references('id')->on('users')->constrained();
             $table->enum('status', ['REQUESTED', 'RESPONDED'])->default('REQUESTED');
             $table->string('contact_person');
             $table->string('contact_number');

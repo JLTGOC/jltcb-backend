@@ -20,7 +20,8 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             ArticleSeeder::class,
             ReelSeeder::class,
-            ServiceOptionSeeder::class
+            ServiceOptionSeeder::class,
+            QuotationSeeder::class
         ]);
     }
 }

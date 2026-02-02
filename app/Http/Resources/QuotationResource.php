@@ -16,7 +16,8 @@ class QuotationResource extends JsonResource
     {
         return [
             'referenceNumber' => $this->reference_number,
-            'clientId' => $this->user_id,
+            'clientId' => $this->client_id,
+            'accountSpecialistId' => $this->as_id,
             'status' => $this->status,
             'companyName' => $this->company_name,
             'companyAddress' => $this->company_address,
@@ -31,8 +32,8 @@ class QuotationResource extends JsonResource
             'containerSize' => $this->container_size ?? null,
             'origin' => $this->origin,
             'destination' => $this->destination,
-            'created_at' => $this->created_at->format('d/m/Y'),
-            'updated_at' => $this->updated_at->format('d/m/Y'),
+            'createdAt' => $this->created_at->format('d/m/Y'),
+            'updatedAt' => $this->updated_at->format('d/m/Y'),
         ];
     }
 }
