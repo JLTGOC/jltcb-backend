@@ -53,7 +53,12 @@ class QuotationController extends Controller
                     ]);
                 }
 
+                $lastId = Quotation::max('id') ?? 0;
+                $dateSection = Carbon::now()->format('m-Y');
+                $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
+
                 $quotation = Quotation::create([
+                    'reference_number' => "QT-{$dateSection}-{$idSection}",
                     'client_id' => $user->id,
                     'as_id' => Faker::create()->randomElement($specialists),
                     'company_name' => $request->companyName,
@@ -72,13 +77,6 @@ class QuotationController extends Controller
                     'destination' => $request->destination,
                 ]);
 
-                $dateSection = Carbon::now()->format('m-Y');
-                $idSection = str_pad($quotation->id, 3, '0', STR_PAD_LEFT);
-
-                $quotation->update([
-                    'reference_number' => "QT-{$dateSection}-{$idSection}"
-                ]);
-
                 if ($quotation->cargo_type === 'CONTAINERIZED' && isset($quotation->cargo_volume)) {
                     $quotation->update([
                         'cargo_volume' => null
@@ -95,9 +93,12 @@ class QuotationController extends Controller
             } else {
                 return $this->error('Unauthorized', 403);
             }
+        } catch (ValidationException $e) {
+            DB::rollback();
+            return $this->error('Validation failed', 422, $e->errors());
         } catch (\Exception $e) {
             DB::rollback();
-            return $this->error('Something went wrong', 400, $e);
+            return $this->error('Something went wrong', 400, $e->getMessage());
         }
     }
 
@@ -194,9 +195,12 @@ class QuotationController extends Controller
 
                 return $this->success('Quotation request updated', new QuotationResource($quotation), 200);
 
+            } catch (ValidationException $e) {
+                DB::rollback();
+                return $this->error('Validation failed', 422, $e->errors());
             } catch (\Exception $e) {
                 DB::rollback();
-                return $this->error('Something went wrong', 400, $e);
+                return $this->error('Something went wrong', 400, $e->getMessage());
             }
         } else {
             return $this->error('Unauthorized', 403);
