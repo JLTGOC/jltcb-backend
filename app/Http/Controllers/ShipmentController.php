@@ -27,8 +27,8 @@ class ShipmentController extends Controller
     public function store(Request $request)
     {
         $user = auth()->user();
-        if ($request->referenceNumber) {
-            $quotation = Quotation::where('reference_number', $request->referenceNumber)
+        if ($request->reference_number) {
+            $quotation = Quotation::where('reference_number', $request->reference_number)
                 ->where('client_id', $user->id)
                 ->where('status', 'RESPONDED')
                 ->first();
