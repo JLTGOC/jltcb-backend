@@ -28,7 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('users', UserController::class)->only(['show']);
 
-    Route::get('dashboard', DashboardController::class);
+    Route::get('dashboard', [DashboardController::class, 'index']);
 
     Route::get('quotations/enum-options', [QuotationController::class, 'enumQuotationOptions']);
     Route::apiResource('quotations', QuotationController::class);
