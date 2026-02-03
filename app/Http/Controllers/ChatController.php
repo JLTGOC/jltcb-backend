@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Conversation;
 use App\Models\User;
+use App\Models\Conversation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Resources\MessageResource;
 
 class ChatController extends Controller
 {
@@ -34,19 +35,44 @@ class ChatController extends Controller
             // Calculate Unread Count
             $lastRead = $me?->pivot->last_read_at;
             $unread = 0;
+
             if ($chat->lastMessage) {
-                $unread = (!$lastRead)
-                    ? $chat->messages()->count()
-                    : $chat->messages()->where('created_at', '>', $lastRead)->count();
+                // Base query: Messages in this chat sent by OTHERS OR SYSTEM
+                $query = $chat->messages()->where(function ($q) use ($userId) {
+                    $q->where('sender_id', '!=', $userId)
+                        ->orWhereNull('sender_id'); // <--- Include System Messages
+                });
+
+                if (!$lastRead) {
+                    // If I've never read the chat, count all messages from others/system
+                    $unread = $query->count();
+                } else {
+                    // Count messages from others/system created AFTER my last read time
+                    $unread = $query->where('created_at', '>', $lastRead)->count();
+                }
+            }
+
+            if ($chat->lastMessage->type === 'TEXT') {
+                $lastMessage = $chat->lastMessage->content;
+            } else if ($chat->lastMessage->type === 'IMAGE') {
+                $lastMessage = '[Image]';
+            } else if ($chat->lastMessage->type === 'FILE') {
+                $lastMessage = '[File]';
+            } else if ($chat->lastMessage->type === 'QUOTATION_CARD') {
+                $lastMessage = '[Quotation Card]';
+            } else if ($chat->lastMessage->type === 'SHIPMENT_CARD') {
+                $lastMessage = '[Shipment Card]';
+            } else {
+                $lastMessage = 'No message';
             }
 
             return [
                 'id' => $chat->id,
                 'type' => $chat->type,
-                'title' => $chat->type === 'GROUP' ? $chat->name : ($other->name ?? 'User'),
-                'avatar' => $chat->type === 'GROUP' ? null : $other->avatar_url,
-                'last_message' => $chat->lastMessage?->content ?? 'No message',
-                'time' => $chat->lastMessage?->created_at?->diffForHumans(),
+                'title' => $chat->type === 'GROUP' ? $chat->name : ($other->full_name ?? 'User'),
+                'image_path' => $chat->type === 'GROUP' ? null : asset($other->image_path),
+                'last_message' => $lastMessage,
+                'time' => $chat->lastMessage?->created_at?->format('h:iA'),
                 'unread_count' => $unread,
             ];
         });
@@ -64,42 +90,17 @@ class ChatController extends Controller
         // Mark as read
         $conversation->participants()->updateExistingPivot(Auth::id(), ['last_read_at' => now()]);
 
-        // 1. Fetch the messages
+        // Fetch messages
         $messages = $conversation->messages()
-            ->with(['sender:id,full_name,image_path', 'reference']) // We load full reference first
-            ->orderBy('created_at', 'asc') // Oldest first
+            ->with(['sender:id,full_name,image_path', 'reference'])
+            ->orderBy('created_at', 'asc') // Oldest first (Standard Chat UI)
             ->get();
 
-        // 2. Transform the data to strictly limit what is sent
-        $formattedMessages = $messages->map(function ($message) {
-
-            // Clean up the Quotation Card data if it exists
-            if ($message->type === 'QUOTATION_CARD' && $message->reference) {
-                return [
-                    'id' => $message->id,
-                    'type' => $message->type,
-                    'content' => $message->content,
-                    'created_at' => $message->created_at->format('m/d/Y'),
-                    'sender' => [
-                        'id' => $message->sender->id,
-                        'full_name' => $message->sender->full_name,
-                        'image_path' => $message->sender->image_path,
-                    ],
-                    'reference' => [
-                        'id' => $message->reference->id,
-                        'reference_number' => $message->reference->reference_number,
-                        'commodity' => $message->reference->commodity,
-                        'volume' => $message->reference->volume,
-                        'date_created' => $message->reference->created_at->format('m/d/Y'),
-                    ]
-                ];
-            }
-
-            // Return normal text messages as is (or simplify them too if needed)
-            return $message;
-        });
-
-        return $this->success('Messages retrieved successfully.', $formattedMessages);
+        // Use the Resource
+        return $this->success(
+            'Messages retrieved successfully.',
+            MessageResource::collection($messages)
+        );
     }
 
     /**
@@ -129,22 +130,24 @@ class ChatController extends Controller
      */
     public function sendMessageToUser(Request $request, User $user)
     {
-        $request->validate(['content' => 'required|string']);
+        // 1. Validation
+        $request->validate([
+            'type' => 'required|in:TEXT,IMAGE,FILE',
+            'content' => 'required_if:type,TEXT|nullable|string',
+            'file' => 'required_if:type,IMAGE,FILE|max:5120',
+        ]);
 
         $senderId = Auth::id();
 
-        // Direct message to LeadAS
+        // Direct message to LeadAS logic...
         $leadAsId = 2;
-
-        // check for conversations
         if (!Auth::user()->conversations()->exists()) {
-            // send to LeadAS
             $receiverId = $leadAsId;
         } else {
-            // send to the requested user
             $receiverId = $user->id;
         }
 
+        // Find or Create Conversation logic...
         $conversation = Conversation::where('type', 'DIRECT')
             ->whereHas('participants', fn($q) => $q->where('user_id', $senderId))
             ->whereHas('participants', fn($q) => $q->where('user_id', $receiverId))
@@ -158,28 +161,60 @@ class ChatController extends Controller
             });
         }
 
-        $message = DB::transaction(function () use ($conversation, $request, $senderId) {
+        // 2. HANDLE FILE UPLOADS (Separated Logic)
+        $attachmentPath = null;
+
+        // CASE A: IMAGE (Use the Helper)
+        if ($request->type === 'IMAGE') {
+            // 'file' is the key name in the request
+            // 'chat_images' is the folder name inside storage/app/public/
+            $path = upload_image($request, 'file', 'chat_images');
+
+            if ($path) {
+                // Prepend 'storage/' so it matches your symlink structure
+                $attachmentPath = 'storage/' . $path;
+            }
+        }
+        // CASE B: FILE (PDF, Docs - Standard Upload)
+        elseif ($request->type === 'FILE') {
+            if ($request->hasFile('file')) {
+                // Store in 'chat_files' folder
+                $path = $request->file('file')->store('chat_files', 'public');
+                $attachmentPath = 'storage/' . $path;
+            }
+        }
+
+        // 3. CREATE MESSAGE
+        $message = DB::transaction(function () use ($conversation, $request, $senderId, $attachmentPath) {
             $msg = $conversation->messages()->create([
                 'sender_id' => $senderId,
                 'content' => $request['content'],
-                'type' => 'TEXT',
+                'type' => $request['type'],
+                'attachment_path' => $attachmentPath,
             ]);
+
             $conversation->update(['last_message_at' => now()]);
+
             return $msg->load('sender');
         });
 
-        // Format response with sender nested
+        // 4. FORMAT RESPONSE
+        // (Using manual array construction as requested, though Resource is better)
+        $attachmentUrl = $message->attachment_path ? asset($message->attachment_path) : null;
+        $fileName = $message->attachment_path ? basename($message->attachment_path) : null;
+
         $formattedMessage = [
             'id' => $message->id,
-            'content' => $message->content,
             'type' => $message->type,
+            'content' => $message->content,
+            'attachment_url' => $attachmentUrl,
+            'file_name' => $fileName,
             'conversation_id' => $message->conversation_id,
             'created_at' => $message->created_at->toDateTimeString(),
-            'updated_at' => $message->updated_at->toDateTimeString(),
             'sender' => [
                 'id' => $message->sender->id,
                 'full_name' => $message->sender->full_name,
-                'image_path' => $message->sender->image_path,
+                'image_path' => $message->sender->image_path ? asset($message->sender->image_path) : null,
             ],
         ];
 
