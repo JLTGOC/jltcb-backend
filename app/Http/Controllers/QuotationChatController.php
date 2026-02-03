@@ -16,18 +16,18 @@ class QuotationChatController extends Controller
     {
         $request->validate([
             'conversation_id' => 'required|exists:conversations,id',
-            'quotation_id'    => 'required|exists:quotations,id',
+            'quotation_id' => 'required|exists:quotations,id',
         ]);
 
         $quotation = Quotation::findOrFail($request->quotation_id);
 
         $message = Message::create([
             'conversation_id' => $request->conversation_id,
-            'sender_id'       => auth()->id(),
-            'type'            => 'QUOTATION_CARD', 
-            'content'         => "Quotation #{$quotation->reference_no}", 
-            'reference_id'    => $quotation->id,
-            'reference_type'  => Quotation::class,
+            'sender_id' => auth()->id(),
+            'type' => 'QUOTATION_CARD',
+            'content' => "Quotation #{$quotation->reference_no}",
+            'reference_id' => $quotation->id,
+            'reference_type' => Quotation::class,
         ]);
 
         $message->conversation->update(['last_message_at' => now()]);
@@ -52,12 +52,12 @@ class QuotationChatController extends Controller
             // Add Members: Client + Lead (You)
             // Note: Add your logic here to add other Operations Staff IDs
             $members = [$quotation->client_user_id, auth()->id()];
-            
+
             $opsGroup->participants()->attach(array_unique($members));
 
             // System Message
             $opsGroup->messages()->create([
-                'sender_id' => null, 
+                'sender_id' => null,
                 'type' => 'SYSTEM',
                 'content' => "Operations Channel created for {$quotation->reference_no}.",
             ]);
@@ -68,30 +68,25 @@ class QuotationChatController extends Controller
             ]);
         });
     }
-    
+
     /**
      * "CHAT PIC" BUTTON ACTION
-     * 1. Finds the conversation between Client and the PIC (Lead AS).
+     * 1. Finds the conversation between Client and the (Lead AS).
      * 2. Always sends the Quotation Card as a new message (to provide context).
      * 3. Returns the conversation ID for redirection.
      */
-    public function chatLeadAs(Quotation $quotation)
+    public function chatWithQuotation(Quotation $quotation)
     {
         $clientId = auth()->id();
 
-        // for the meantime, use LeadAs
+        // 1. Get the Lead (Receiver)
         $leadAsUser = User::where('email', 'accountspecialist@gmail.com')->first();
-        
-        // Safety check: Ensure the Lead account exists before proceeding
-        if (!$leadAsUser) {
-             return response()->json(['error' => 'Lead AS account not found'], 404);
-        }
-        
+        if (!$leadAsUser) return response()->json(['error' => 'Lead AS account missing'], 404);
         $leadAsId = $leadAsUser->id;
 
         return DB::transaction(function () use ($clientId, $leadAsId, $quotation) {
             
-            // 1. Find or Create the Direct Conversation
+            // 2. Find or Create Conversation (Client <-> Lead)
             $conversation = Conversation::where('type', 'DIRECT')
                 ->whereHas('participants', fn($q) => $q->where('user_id', $clientId))
                 ->whereHas('participants', fn($q) => $q->where('user_id', $leadAsId))
@@ -101,32 +96,28 @@ class QuotationChatController extends Controller
                 $conversation = Conversation::create(['type' => 'DIRECT']);
                 $conversation->participants()->attach([$clientId, $leadAsId]);
             }
-            
-            // 2. CHECK: Is the LAST message already this exact card?
-            $lastMessage = $conversation->lastMessage; 
 
-            $alreadySent = $lastMessage 
-                && $lastMessage->type === 'QUOTATION_CARD' 
-                && (int)$lastMessage->reference_id === (int)$quotation->id
-                && $lastMessage->reference_type === Quotation::class;
+            // 3. CHECK: Prevent Duplicate Cards
+            // Scan history to see if this Quotation Card was EVER sent
+            $alreadySent = $conversation->messages()
+                ->where('type', 'QUOTATION_CARD')
+                ->where('reference_id', $quotation->id)
+                ->where('reference_type', Quotation::class)
+                ->exists();
 
-            // 3. ONLY send if it wasn't just sent
+            // 4. SEND SYSTEM MESSAGE (If not duplicate)
             if (!$alreadySent) {
                 $conversation->messages()->create([
-                    'sender_id'       => $clientId,
+                    'sender_id'       => null, // <--- FIX: SET TO NULL (System)
                     'type'            => 'QUOTATION_CARD',
-                    'content'         => null,
+                    'content'         => null, 
                     'reference_id'    => $quotation->id,
                     'reference_type'  => Quotation::class,
                 ]);
 
-                // Bump the timestamp so it goes to the top of the inbox
                 $conversation->update(['last_message_at' => now()]);
             }
 
-            // --- FIX ENDS HERE ---
-
-            // Return the ID so the frontend can navigate: /chats/{id}
             return response()->json([
                 'message' => $alreadySent ? 'Navigating to chat' : 'Connected to Lead AS',
                 'conversation_id' => $conversation->id
