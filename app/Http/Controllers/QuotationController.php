@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreQuotationRequest;
+use App\Http\Requests\UpdateQuotationRequest;
 use App\Http\Resources\QuotationFileResource;
 use App\Http\Resources\QuotationResource;
-use App\Http\Requests\UpdateQuotationRequest;
 use App\Models\{
     Quotation,
     User,
@@ -251,7 +251,7 @@ class QuotationController extends Controller
 
         return $this->success('Quotation options fetched', $quotationOptions, 200);
     }
-    
+
     /**
      * Upload/Update Quotation File
      */
@@ -326,8 +326,7 @@ class QuotationController extends Controller
      * Show Quotation File
      */
     public function showFile(Quotation $quotation) {
-
-        $quotationFile = $quotation->file;
+        $quotationFile = $quotation->files()->first();
         
         if (! $quotationFile) {
             return $this->success('No quotation file available.', []);
@@ -336,7 +335,6 @@ class QuotationController extends Controller
         return $this->success(
             'Quotation file retrieved successfully.', new QuotationFileResource($quotationFile)
         );
-
     }   
 
 }
