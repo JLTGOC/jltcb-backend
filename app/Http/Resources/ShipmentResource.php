@@ -15,9 +15,9 @@ class ShipmentResource extends JsonResource
     public function toArray(Request $request): array
     {
         if ($this->cargo_volume) {
-            $cargoVolume = "{$this->cargo_volume} m³";
-        } else {
-            $cargoVolume = null;
+            $volume = "LCL {$this->cargo_volume} m³";
+        } elseif ($this->container_size) {
+            $volume = "CONTAINERIZED {$this->container_size}";
         }
         return [
             'general_info' => [
@@ -27,19 +27,17 @@ class ShipmentResource extends JsonResource
                 'account_pecialist_id' => $this->as_id,
                 'status' => $this->status,
             ],
-            'company_details' => [
-                'company_name' => $this->company_name,
-                'contact_person' => $this->contact_person,
+            'commodity_details' => [
+                'commodity' => $this->commodity,
+                'consignee_name' => $this->company_name,
+                'volume' => $volume
+            ],
+            'contact_person' => [
+                'full_name' => $this->contact_person,
                 'contact_number' => $this->contact_number,
                 'email' => $this->email,
             ],
-            'commodity_details' => [
-                'commodity' => $this->commodity,
-                'cargo_type' => $this->cargo_type,
-                'cargo_volume' => $cargoVolume,
-                'container_size' => $this->container_size ?? null,
-            ],
-            'shipment_details' => [
+            'shipment_information' => [
                 'origin' => $this->origin,
                 'destination' => $this->destination,
                 'created_at' => $this->created_at->format('d/m/Y'),

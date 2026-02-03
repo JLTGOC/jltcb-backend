@@ -23,18 +23,18 @@ class StoreQuotationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'company_name' => 'required|string',
-            'company_address' => 'required|string',
-            'contact_person' => 'required|string',
-            'contact_number' => 'required|string|min:11|max:11|regex:/^09\d{9}$/',
-            'email' => 'required|email',
-            'service_type' => ['required', 'string', Rule::in(['IMPORT', 'EXPORT', 'BUSINESS SOLUTION'])],
-            'transport_mode' => ['required', 'string', Rule::in(['SEA', 'AIR'])],
-            'service_options' => 'required|array',
-            'commodity' => 'required|string',
-            'cargo_type' => ['required', 'string', Rule::in(['CONTAINERIZED', 'LCL'])],
-            'origin' => 'required|string',
-            'destination' => 'required|string',
+            'company.name' => 'required|string',
+            'company.address' => 'required|string',
+            'company.contact_person' => 'required|string',
+            'company.contact_number' => 'required|string|min:11|max:11|regex:/^09\d{9}$/',
+            'company.email' => 'required|email',
+            'service.type' => ['required', 'string', Rule::in(['IMPORT', 'EXPORT', 'BUSINESS SOLUTION'])],
+            'service.transport_mode' => ['required', 'string', Rule::in(['SEA', 'AIR'])],
+            'service.options' => 'required|array',
+            'commodity.commodity' => 'required|string',
+            'commodity.cargo_type' => ['required', 'string', Rule::in(['CONTAINERIZED', 'LCL'])],
+            'shipment.origin' => 'required|string',
+            'shipment.destination' => 'required|string',
         ];
     }
 }

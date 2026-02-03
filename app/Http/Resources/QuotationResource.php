@@ -15,9 +15,9 @@ class QuotationResource extends JsonResource
     public function toArray(Request $request): array
     {
         if ($this->cargo_volume) {
-            $cargoVolume = "{$this->cargo_volume} m³";
-        } else {
-            $cargoVolume = null;
+            $volume = "LCL {$this->cargo_volume} m³";
+        } elseif ($this->container_size) {
+            $volume = "CONTAINERIZED {$this->container_size}";
         }
         return [
             'general_info' => [
@@ -26,25 +26,18 @@ class QuotationResource extends JsonResource
                 'account_specialist_id' => $this->as_id,
                 'status' => $this->status,
             ],
-            'company_details' => [
+            'consignee_details' => [
                 'company_name' => $this->company_name,
                 'company_address' => $this->company_address,
                 'contact_person' => $this->contact_person,
                 'contact_number' => $this->contact_number,
                 'email' => $this->email,
             ],
-            'service_details' => [
-                'service_type' => $this->service_type,
-                'service_options' => explode(',', $this->service_options),
-                'transport_mode' => $this->transport_mode,
-            ],
-            'commodity_details' => [
-                'commodity' => $this->commodity,
-                'cargo_type' => $this->cargo_type,
-                'cargo_volume' => $cargoVolume,
-                'container_size' => $this->container_size ?? null,
-            ],
             'shipment_details' => [
+                'service_type' => $this->service_type,
+                'transport_mode' => $this->transport_mode,
+                'commodity' => $this->commodity,
+                'volume' => $volume,
                 'origin' => $this->origin,
                 'destination' => $this->destination,
                 'created_at' => $this->created_at->format('d/m/Y'),
