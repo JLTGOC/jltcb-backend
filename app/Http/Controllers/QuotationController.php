@@ -40,16 +40,16 @@ class QuotationController extends Controller
             DB::beginTransaction();
 
             if($user->hasRole('Client')) {
-                $stringifiedServiceOptions = implode(',', $request->serviceOptions);
+                $stringifiedServiceOptions = implode(',', $request->service_options);
                 $specialists = User::role('Account Specialist')->pluck('id');
 
-                if ($request->cargoType === 'CONTAINERIZED') {
+                if ($request->cargo_type === 'CONTAINERIZED') {
                     $request->validate([
-                        'containerSize' => 'required|string'
+                        'container_size' => 'required|string'
                     ]);
-                } elseif ($request->cargoType === 'LCL') {
+                } elseif ($request->cargo_type === 'LCL') {
                     $request->validate([
-                        'cargoVolume' => 'required|numeric|min:1'
+                        'cargo_volume' => 'required|numeric|min:1'
                     ]);
                 }
 
@@ -61,18 +61,18 @@ class QuotationController extends Controller
                     'reference_number' => "QT-{$dateSection}-{$idSection}",
                     'client_id' => $user->id,
                     'as_id' => Faker::create()->randomElement($specialists),
-                    'company_name' => $request->companyName,
-                    'company_address' => $request->companyAddress,
-                    'contact_person' => $request->contactPerson,
-                    'contact_number' => $request->contactNumber,
+                    'company_name' => $request->company_name,
+                    'company_address' => $request->company_address,
+                    'contact_person' => $request->contact_person,
+                    'contact_number' => $request->contact_number,
                     'email' => $request->email,
-                    'service_type' => $request->serviceType,
-                    'transport_mode' => $request->transportMode,
+                    'service_type' => $request->service_type,
+                    'transport_mode' => $request->transport_mode,
                     'service_options' => $stringifiedServiceOptions,
                     'commodity' => $request->commodity,
-                    'cargo_type' => $request->cargoType,
-                    'cargo_volume' => $request->cargoVolume ?? null,
-                    'container_size' => $request->containerSize ?? null,
+                    'cargo_type' => $request->cargo_type,
+                    'cargo_volume' => $request->cargo_volume ?? null,
+                    'container_size' => $request->container_size ?? null,
                     'origin' => $request->origin,
                     'destination' => $request->destination,
                 ]);
@@ -130,10 +130,8 @@ class QuotationController extends Controller
         $quotation = Quotation::where('reference_number', $referenceNumber)->first();
 
         if ($user->hasRole('Account Specialist')) {
-            $containerSize = $request->containerSize ?? null;
-
-            if ($request->serviceOptions) {
-                $stringifiedServiceOptions = implode(',', $request->serviceOptions);
+            if ($request->service_options) {
+                $stringifiedServiceOptions = implode(',', $request->service_options);
             } else {
                 $stringifiedServiceOptions = null;
             }            
@@ -154,29 +152,29 @@ class QuotationController extends Controller
                     return $this->success('Quotation status updated', new QuotationResource($quotation), 200);
                 }
 
-                if ($request->cargoType === 'CONTAINERIZED') {
+                if ($request->cargo_type === 'CONTAINERIZED') {
                     $request->validate([
-                        'containerSize' => 'required|string'
+                        'container_size' => 'required|string'
                     ]);
-                } elseif ($request->cargoType === 'LCL') {
+                } elseif ($request->cargo_type === 'LCL') {
                     $request->validate([
-                        'cargoVolume' => 'required|numeric|min:1'
+                        'cargo_volume' => 'required|numeric|min:1'
                     ]);
                 }
 
                 $quotation->update([
-                    'company_name' => $request->companyName ?? $quotation->company_name,
-                    'company_address' => $request->companyAddress ?? $quotation->company_address,
-                    'contact_person' => $request->contactPerson ?? $quotation->contact_person,
-                    'contact_number' => $request->contactNumber ?? $quotation->contact_number,
+                    'company_name' => $request->company_name ?? $quotation->company_name,
+                    'company_address' => $request->company_address ?? $quotation->company_address,
+                    'contact_person' => $request->contact_person ?? $quotation->contact_person,
+                    'contact_number' => $request->contact_number ?? $quotation->contact_number,
                     'email' => $request->email ?? $quotation->email,
-                    'service_type' => $request->serviceType ?? $quotation->service_type,
-                    'transport_mode' => $request->transportMode ?? $quotation->transport_mode,
+                    'service_type' => $request->service_type ?? $quotation->service_type,
+                    'transport_mode' => $request->transport_mode ?? $quotation->transport_mode,
                     'service_options' => $stringifiedServiceOptions ?? $quotation->service_options,
                     'commodity' => $request->commodity ?? $quotation->commodity,
-                    'cargo_type' => $request->cargoType,
-                    'cargo_volume' => $request->cargoVolume ?? $quotation->cargoVolume,
-                    'container_size' => $containerSize ?? $quotation->container_size,
+                    'cargo_type' => $request->cargo_type,
+                    'cargo_volume' => $request->cargo_volume ?? $quotation->cargoVolume,
+                    'container_size' => $request->container_size ?? $quotation->container_size,
                     'origin' => $request->origin ?? $quotation->origin,
                     'destination' => $request->destination ?? $quotation->destination,
                 ]);
@@ -226,11 +224,11 @@ class QuotationController extends Controller
         $containerSize = ['1x10', '1x20', '1x40'];
 
         $quotationOptions = [
-            'serviceTypes' => $serviceTypes,
-            'transportModes' => $transportModes,
-            'serviceOptions' => $serviceOptions,
-            'cargoType' => $cargoType,
-            'containerSize' => $containerSize,
+            'service_types' => $serviceTypes,
+            'transport_modes' => $transportModes,
+            'service_options' => $serviceOptions,
+            'cargo_type' => $cargoType,
+            'container_size' => $containerSize,
         ];
 
         return $this->success('Quotation options fetched', $quotationOptions, 200);

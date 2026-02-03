@@ -24,16 +24,16 @@ class UpdateQuotationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'companyName' => 'sometimes|string',
-            'companyAddress' => 'sometimes|string',
-            'contactPerson' => 'sometimes|string',
-            'contactNumber' => 'sometimes|string|min:11|max:11|regex:/^09\d{9}$/',
+            'company_name' => 'sometimes|string',
+            'company_address' => 'sometimes|string',
+            'contact_person' => 'sometimes|string',
+            'contact_number' => 'sometimes|string|min:11|max:11|regex:/^09\d{9}$/',
             'email' => 'sometimes|email',
-            'serviceType' => ['sometimes', 'string', Rule::in(['IMPORT', 'EXPORT', 'BUSINESS SOLUTION'])],
-            'transportMode' => ['sometimes', 'string', Rule::in(['SEA', 'AIR'])],
-            'serviceOptions' => 'sometimes|array',
+            'service_type' => ['sometimes', 'string', Rule::in(['IMPORT', 'EXPORT', 'BUSINESS SOLUTION'])],
+            'transport_mode' => ['sometimes', 'string', Rule::in(['SEA', 'AIR'])],
+            'service_options' => 'sometimes|array',
             'commodity' => 'sometimes|string',
-            'cargoType' => ['sometimes', 'string', Rule::in(['CONTAINERIZED', 'LCL'])],
+            'cargo_type' => ['sometimes', 'string', Rule::in(['CONTAINERIZED', 'LCL'])],
             'origin' => 'sometimes|string',
             'destination' => 'sometimes|string',
         ];

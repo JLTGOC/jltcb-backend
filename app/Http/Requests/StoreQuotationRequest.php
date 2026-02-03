@@ -23,16 +23,16 @@ class StoreQuotationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'companyName' => 'required|string',
-            'companyAddress' => 'required|string',
-            'contactPerson' => 'required|string',
-            'contactNumber' => 'required|string|min:11|max:11|regex:/^09\d{9}$/',
+            'company_name' => 'required|string',
+            'company_address' => 'required|string',
+            'contact_person' => 'required|string',
+            'contact_number' => 'required|string|min:11|max:11|regex:/^09\d{9}$/',
             'email' => 'required|email',
-            'serviceType' => ['required', 'string', Rule::in(['IMPORT', 'EXPORT', 'BUSINESS SOLUTION'])],
-            'transportMode' => ['required', 'string', Rule::in(['SEA', 'AIR'])],
-            'serviceOptions' => 'required|array',
+            'service_type' => ['required', 'string', Rule::in(['IMPORT', 'EXPORT', 'BUSINESS SOLUTION'])],
+            'transport_mode' => ['required', 'string', Rule::in(['SEA', 'AIR'])],
+            'service_options' => 'required|array',
             'commodity' => 'required|string',
-            'cargoType' => ['required', 'string', Rule::in(['CONTAINERIZED', 'LCL'])],
+            'cargo_type' => ['required', 'string', Rule::in(['CONTAINERIZED', 'LCL'])],
             'origin' => 'required|string',
             'destination' => 'required|string',
         ];

@@ -9,7 +9,8 @@ use App\Http\Controllers\{
     UserController,
     QuotationController,
     ChatController,
-    QuotationChatController
+    QuotationChatController,
+    ShipmentController
 };
 use League\CommonMark\Extension\SmartPunct\Quote;
 
@@ -66,8 +67,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/quotations/{id}/approve', [QuotationChatController::class, 'approveQuotation']);
 
     Route::post('/quotations/{quotation}/chatLeadAs', [QuotationChatController::class, 'chatLeadAs']);
-});
+    
     Route::post('/', [QuotationController::class, 'store']);
     Route::get('/{referenceNumber}', [QuotationController::class, 'show']);
 
     Route::post('/quotations/{quotation}/upload', [QuotationController::class, 'upload']);
+    Route::group([
+        'prefix' => 'shipment'
+    ], function ($route) {
+        $route->post('/', [ShipmentController::class, 'store']);
+        $route->get('/{referenceNumber}', [ShipmentController::class, 'show']);
+        $route->put('/{referenceNumber}', [ShipmentController::class, 'update']);
+    });
+});
