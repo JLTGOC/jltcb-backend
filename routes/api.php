@@ -28,15 +28,20 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('users', UserController::class)->only(['show']);
 
-    Route::apiResource('dashboard', DashboardController::class)->only(['index']);
+    Route::get('dashboard', DashboardController::class);
 
     Route::get('quotations/enum-options', [QuotationController::class, 'enumQuotationOptions']);
     Route::apiResource('quotations', QuotationController::class);
+    
+    //Temporary routes for quotation files
+    Route::post('/quotations/{quotation}/upload', [QuotationController::class, 'upload']);
+    Route::get('/quotations/{quotation}/showFile', [QuotationController::class, 'showFile']);
 
-    // Inbox
-    Route::get('/chats', [ChatController::class, 'index']);
-    // History
-    Route::get('/chats/{conversation}', [ChatController::class, 'show']);
+    Route::prefix('chats')->group(function () {
+        Route::get('/', [ChatController::class, 'index']); // Inbox
+        Route::get('/{conversation}', [ChatController::class, 'show']); // History
+        Route::post('/{conversation}/messages', [ChatController::class, 'sendMessageToGroup']); // Message a conversation
+    });
 
     // Message a group
     Route::post('/groups/{conversation}/messages', [ChatController::class, 'sendMessageToGroup']);
@@ -47,11 +52,5 @@ Route::middleware('auth:sanctum')->group(function () {
     // Quotation Chat
     Route::post('/quotations/{quotation}/chat', [QuotationChatController::class, 'chatWithQuotation']);
 
-    Route::post('/quotations/{quotation}/upload', [QuotationController::class, 'upload']);
-    
     Route::apiResource('shipments', ShipmentController::class)->only(['store', 'show', 'update']);
-
-    //temporary routes for quotation files
-    Route::post('/quotations/{quotation}/upload', [QuotationController::class, 'upload']);
-    Route::get('/quotations/{quotation}/showFile', [QuotationController::class, 'showFile']);
 });
