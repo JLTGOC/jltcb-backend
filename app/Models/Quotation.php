@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Quotation extends Model
 {
-    protected $fillable = [
+     protected $fillable = [
         'reference_number',
         'client_id',
         'as_id',
@@ -38,5 +38,14 @@ class Quotation extends Model
 
     public function accountSpecialist() {
         return $this->belongsTo(User::class, 'as_id');
+    }
+
+    public function messages()
+    {
+        return $this->morphMany(Message::class, 'reference');
+    }
+    
+    public function files() {
+        return $this->hasMany(QuotationFile::class);
     }
 }

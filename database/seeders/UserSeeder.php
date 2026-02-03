@@ -22,12 +22,14 @@ class UserSeeder extends Seeder
 
         $accounts = [
             ['role' => 'Client', 'email' => 'client@gmail.com'],
+            ['role' => 'Client', 'email' => 'client2@gmail.com'],
             ['role' => 'Account Specialist', 'email' => 'accountspecialist@gmail.com'],
             ['role' => 'Marketing', 'email' => 'marketing@gmail.com'],
             ['role' => 'Human Resource', 'email' => 'humanresource@gmail.com'],
         ];
 
         $profileImagePath = $this->copySeederFile('images', 'profile.jpg');
+        $this->copySeederFile('images', 'jltcb.png');
 
         foreach($accounts as $account) {
             $user = User::create([

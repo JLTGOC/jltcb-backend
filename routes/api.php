@@ -8,8 +8,11 @@ use App\Http\Controllers\{
     DashboardController,
     UserController,
     QuotationController,
+    ChatController,
+    QuotationChatController,
     ShipmentController
 };
+use League\CommonMark\Extension\SmartPunct\Quote;
 
 require __DIR__ . '/public_routes.php';
 // test webhook
@@ -46,6 +49,29 @@ Route::middleware('auth:sanctum')->group(function () {
         $route->put('/{referenceNumber}', [QuotationController::class, 'update']);
     });
 
+    // --- Standard Chat ---
+    Route::get('/chats', [ChatController::class, 'index']); // Inbox
+    Route::get('/chats/{conversation}', [ChatController::class, 'show']); // History
+
+    // Reply to specific chat
+    Route::post('/chats/{conversation}/messages', [ChatController::class, 'sendMessageToConversation']);
+
+    // Message a person (finds or creates chat)
+    Route::post('/users/{user}/messages', [ChatController::class, 'sendMessageToUser']);
+
+    // --- Quotation Workflow ---
+    // LeadAS sends card
+    Route::post('/quotations/send-card', [QuotationChatController::class, 'sendQuotationCard']);
+
+    // Client approves -> New Group Chat
+    Route::post('/quotations/{id}/approve', [QuotationChatController::class, 'approveQuotation']);
+
+    Route::post('/quotations/{quotation}/chat', [QuotationChatController::class, 'chatWithQuotation']);
+    
+    Route::post('/', [QuotationController::class, 'store']);
+    Route::get('/{referenceNumber}', [QuotationController::class, 'show']);
+
+    Route::post('/quotations/{quotation}/upload', [QuotationController::class, 'upload']);
     Route::group([
         'prefix' => 'shipment'
     ], function ($route) {
@@ -53,4 +79,8 @@ Route::middleware('auth:sanctum')->group(function () {
         $route->get('/{referenceNumber}', [ShipmentController::class, 'show']);
         $route->put('/{referenceNumber}', [ShipmentController::class, 'update']);
     });
+
+    //temporary routes for quotation files
+    Route::post('/quotations/{quotation}/upload', [QuotationController::class, 'upload']);
+    Route::get('/quotations/{quotation}/showFile', [QuotationController::class, 'showFile']);
 });

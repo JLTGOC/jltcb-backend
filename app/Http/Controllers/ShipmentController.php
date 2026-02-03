@@ -7,7 +7,9 @@ use App\Models\{
     Shipment,
     Quotation,
     QuotationFile,
-    ShipmentFile
+    ShipmentFile,
+    Conversation,
+    User
 };
 use App\Http\Resources\ShipmentResource;
 use Carbon\Carbon;
@@ -78,6 +80,26 @@ class ShipmentController extends Controller
                         'quotation_file_id' => $file->id
                     ]);
                 }
+                // Create Group Conversation with all users
+                $allUsers = User::pluck('id')->toArray();
+                
+                $shipmentConversation = Conversation::create([
+                    'type' => 'GROUP',
+                    'name' => $shipment->reference_number,
+                    'last_message_at' => now(),
+                ]);
+
+                // Add all users as participants
+                $shipmentConversation->participants()->attach($allUsers);
+
+                // Create system message
+                $shipmentConversation->messages()->create([
+                    'sender_id' => null,
+                    'type' => 'SHIPMENT_CARD',
+                    'content' => null,
+                    'reference_id'    => $shipment->id,
+                    'reference_type'  => Shipment::class,
+                ]);
 
                 DB::commit();
 

@@ -70,4 +70,14 @@ class User extends Authenticatable
     public function quotations() {
         return $this->hasMany(Quotation::class);
     }
+    
+    public function conversations()
+    {
+        return $this->belongsToMany(Conversation::class, 'participants')
+            ->withPivot('last_read_at');
+    }
+
+    public function files() {
+        return $this->hasMany(QuotationFile::class, 'uploaded_by');
+    }
 }
