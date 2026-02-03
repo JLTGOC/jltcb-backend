@@ -108,21 +108,75 @@ class ChatController extends Controller
      */
     public function sendMessageToGroup(Request $request, Conversation $conversation)
     {
-        $request->validate(['content' => 'required|string']);
+        // 1. Validation (Matched with User logic)
+        $request->validate([
+            'type'    => 'required|in:TEXT,IMAGE,FILE',
+            'content' => 'required_if:type,TEXT|nullable|string',
+            'file'    => 'required_if:type,IMAGE,FILE|max:5120', // Max 5MB
+        ]);
 
+        // 2. Authorization
         abort_unless($conversation->participants()->where('user_id', Auth::id())->exists(), 403);
 
-        $message = DB::transaction(function () use ($conversation, $request) {
+        $senderId = Auth::id();
+
+        // 3. HANDLE FILE UPLOADS (Same logic as sendMessageToUser)
+        $attachmentPath = null;
+
+        // CASE A: IMAGE (Use the Helper)
+        if ($request['type'] === 'IMAGE') {
+            // 'file' is the key name, 'chat_images' is the folder
+            $path = upload_image($request, 'file', 'chat_images');
+
+            if ($path) {
+                // Prepend 'storage/' to match symlink structure
+                $attachmentPath = 'storage/' . $path;
+            }
+        }
+        // CASE B: FILE (PDF, Docs - Standard Upload)
+        elseif ($request['type'] === 'FILE') {
+            if ($request->hasFile('file')) {
+                // Store in 'chat_files' folder
+                $path = $request->file('file')->store('chat_files', 'public');
+                $attachmentPath = 'storage/' . $path;
+            }
+        }
+
+        // 4. CREATE MESSAGE
+        $message = DB::transaction(function () use ($conversation, $request, $senderId, $attachmentPath) {
             $msg = $conversation->messages()->create([
-                'sender_id' => Auth::id(),
-                'content' => $request['content'],
-                'type' => 'TEXT',
+                'sender_id'       => $senderId,
+                'content'         => $request['content'],
+                'type'            => $request['type'],
+                'attachment_path' => $attachmentPath,
             ]);
+
+            // Update timestamp to bump conversation to top
             $conversation->update(['last_message_at' => now()]);
-            return $msg;
+
+            return $msg->load('sender');
         });
 
-        return response()->json($message, 201);
+        // 5. FORMAT RESPONSE (Matched with User logic)
+        $attachmentUrl = $message->attachment_path ? asset($message->attachment_path) : null;
+        $fileName = $message->attachment_path ? basename($message->attachment_path) : null;
+
+        $formattedMessage = [
+            'id'              => $message->id,
+            'type'            => $message->type,
+            'content'         => $message->content,
+            'attachment_url'  => $attachmentUrl,
+            'file_name'       => $fileName,
+            'conversation_id' => $message->conversation_id,
+            'created_at'      => $message->created_at->toDateTimeString(),
+            'sender' => [
+                'id'         => $message->sender->id,
+                'full_name'  => $message->sender->full_name,
+                'image_path' => $message->sender->image_path ? asset($message->sender->image_path) : null,
+            ],
+        ];
+
+        return $this->success('Message sent successfully.', $formattedMessage, 201);
     }
 
     /**
