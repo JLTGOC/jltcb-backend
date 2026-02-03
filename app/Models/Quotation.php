@@ -7,9 +7,10 @@ use App\Models\User;
 
 class Quotation extends Model
 {
-    protected $fillable = [
+     protected $fillable = [
         'reference_number',
-        'user_id',
+        'client_id',
+        'as_id',
         'status',
         'contact_person',
         'contact_number',
@@ -20,6 +21,7 @@ class Quotation extends Model
         'transport_mode',
         'service_options',
         'commodity',
+        'cargo_type',
         'cargo_volume',
         'container_size',
         'origin',
@@ -31,11 +33,15 @@ class Quotation extends Model
         'updated_at'
     ];
 
-    public function user() {
-        return $this->belongsTo(User::class, 'user_id');
+    public function client() {
+        return $this->belongsTo(User::class, 'client_id');
     }
 
-    public function file() {
-        return $this->hasOne(QuotationFile::class);
+    public function accountSpecialist() {
+        return $this->belongsTo(User::class, 'as_id');
+    }
+
+    public function files() {
+        return $this->hasMany(QuotationFile::class);
     }
 }

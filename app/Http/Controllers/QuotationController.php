@@ -97,21 +97,49 @@ class QuotationController extends Controller
      */
     public function upload(Quotation $quotation, Request $request) {
         $request->validate([
-            'quotation' => ['required', 'file', 'mimes:pdf']
+            'file' => ['required', 'file', 'mimes:pdf']
         ]);
 
-        $file = $request->file('quotation');
-        $directory = 'quotations/files';
-        $filename = $file->getClientOriginalName();
+        $user = $request->user();
+
+        if ($user->hasRole('Client')) {
+            $type = 'REQUESTED';
+        } elseif($user->hasRole('Account Specialist')) {
+            $type = 'PROPOSAL';
+        }
+
+        $file = $request->file('file');
+        $directory = 'files';
+        $extension = $file->getClientOriginalExtension();
+        $originalFileName = $file->getClientOriginalName();
+
+        $quoteFile = $quotation->files()->where('type', $type)->exists();
+
+        if ($quoteFile) {
+            $existingFile = $quotation->files()->where('type', $type)->first();
+            $existingFileName = str_replace('/storage/files/', '', $existingFile->file_path);
+
+            $filename = $existingFileName;
+        } else {
+            $filename = uniqid() . '.' . $extension;
+        }
        
         DB::beginTransaction();
         try {
+
             $path = $file->storeAs($directory, $filename, 'public');
             $url = Storage::url($path);
 
             $quotationFile = QuotationFile::updateOrCreate(
-                ['quotation_id' => $quotation->id],
-                ['file_path' => $url],
+                [
+                    'quotation_id' => $quotation->id,
+                    'uploaded_by' => $user->id
+                ],
+                [
+                    'file_path' => $url,
+                    'type' => $type,
+                    'original_file_name' => $originalFileName
+                ],
             );
 
             $message = $quotationFile->wasRecentlyCreated 

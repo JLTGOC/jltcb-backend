@@ -65,4 +65,7 @@ class User extends Authenticatable
         return $this->hasMany(Quotation::class);
     }
 
+    public function files() {
+        return $this->hasMany(QuotationFile::class, 'uploaded_by');
+    }
 }

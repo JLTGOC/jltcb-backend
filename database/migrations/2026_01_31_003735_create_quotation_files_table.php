@@ -15,8 +15,15 @@ return new class extends Migration
             $table->id();
             $table->foreignId('quotation_id')->constrained('quotations')->cascadeOnDelete();
             $table->string('file_path');
+            $table->string('original_file_name');
+            $table->foreignId('uploaded_by')->constrained('users');
+            $table->enum('type', ['REQUESTED', 'PROPOSAL'])->default('REQUESTED');
             $table->timestamps();
+            $table->unique(['quotation_id', 'uploaded_by']);
         });
+
+        //shipment id
+        //quote file id
     }
 
     /**
