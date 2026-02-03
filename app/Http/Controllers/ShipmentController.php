@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\{
     Shipment,
-    Quotation
+    Quotation,
+    QuotationFile,
+    ShipmentFile
 };
 use App\Http\Resources\ShipmentResource;
 use Carbon\Carbon;
@@ -68,6 +70,14 @@ class ShipmentController extends Controller
                     'origin' => $quotation->origin,
                     'destination' => $quotation->destination,
                 ]);
+
+                $quotationFiles = QuotationFile::where('quotation_id', $quotation->id)->get();
+                foreach ($quotationFiles as $file) {
+                    ShipmentFile::create([
+                        'shipment_id' => $shipment->id,
+                        'quotation_file_id' => $file->id
+                    ]);
+                }
 
                 DB::commit();
 

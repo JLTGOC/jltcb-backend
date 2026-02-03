@@ -7,12 +7,17 @@ use App\Http\Requests\{
     StoreQuotationRequest,
     UpdateQuotationRequest
 };
-use App\Http\Resources\QuotationResource;
+use App\Http\Resources\{
+    QuotationResource,
+    QuotationFileResource
+};
 use App\Models\{
     Quotation,
     User,
-    ServiceOption
+    ServiceOption,
+    QuotationFile
 };
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Faker\Factory as Faker;
 use Carbon\Carbon;
@@ -142,7 +147,7 @@ class QuotationController extends Controller
         $user = User::find(auth()->id());
         $quotation = Quotation::where('reference_number', $referenceNumber)->first();
 
-        if ($user->hasRole('Account Specialist')) {
+        if (($user->id === $quotation->client_id) || ($user->id === $quotation->as_id)) {
             if ($request->service_options) {
                 $stringifiedServiceOptions = implode(',', $request->service['options']);
             } else {
@@ -152,17 +157,21 @@ class QuotationController extends Controller
             try {
                 DB::beginTransaction();
 
-                if ($quotation->status === 'RESPONDED') {
-                    return $this->error('Quotation already finalized', 400);
-                }
+                if ($user->hasRole('Account Specialist')) {    
+                    if ($quotation->status === 'RESPONDED') {
+                        return $this->error('Quotation already finalized', 400);
+                    }
 
-                if ($request->has('status')) {
-                    $quotation->update([
-                        'status' => $request->status
-                    ]);
+                    if ($request->has('status')) {
+                        $quotation->update([
+                            'status' => $request->status
+                        ]);
 
-                    DB::commit();
-                    return $this->success('Quotation status updated', new QuotationResource($quotation), 200);
+                        DB::commit();
+                        return $this->success('Quotation status updated', new QuotationResource($quotation), 200);
+                    }
+                } else {
+                    return $this->error('Unauthorized', 403);
                 }
 
                 if ($request->commodity['cargo_type'] === 'CONTAINERIZED') {

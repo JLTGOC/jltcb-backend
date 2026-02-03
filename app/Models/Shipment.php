@@ -3,10 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\{
-    User,
-    Quotation
-};
 
 class Shipment extends Model
 {
@@ -43,5 +39,9 @@ class Shipment extends Model
 
     public function quotation() {
         return $this->belongsTo(Quotation::class, 'quotation_id');
+    }
+
+    public function shipmentFile() {
+        return $this->hasMany(ShipmentFile::class, 'shipment_id');
     }
 }
