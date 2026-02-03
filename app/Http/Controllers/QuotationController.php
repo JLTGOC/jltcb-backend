@@ -6,14 +6,15 @@ use Illuminate\Http\Request;
 use App\Http\Requests\StoreQuotationRequest;
 use App\Http\Resources\QuotationFileResource;
 use App\Http\Resources\QuotationResource;
+use App\Http\Requests\UpdateQuotationRequest;
 use App\Models\{
     Quotation,
     User,
     ServiceOption,
     QuotationFile
 };
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Faker\Factory as Faker;
 use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
@@ -23,8 +24,21 @@ class QuotationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index() {
-        //
+    public function index(Request $request) {
+        $user = auth()->user();
+        $query = Quotation::query();
+
+        $quotations = $query->where('client_id', $user->id);
+        $requestedQuotations = $quotations->where('status', 'REQUESTED')->get();
+        $respondedQuotations = $quotations->where('status', 'RESPONDED')->get();
+
+        if ($request->has('status')) {
+            if ($request->status === 'REQUESTED') {
+                return $this->success('Requested quotations fetched', QuotationResource::collection($requestedQuotations) ?? null, 200);
+            } elseif ($request->status === 'RESPONDED') {
+                return $this->success('Responded quotations fetched', QuotationResource::collection($respondedQuotations) ?? null, 200);
+            }
+        }
     }
 
     /**
@@ -40,16 +54,16 @@ class QuotationController extends Controller
             DB::beginTransaction();
 
             if($user->hasRole('Client')) {
-                $stringifiedServiceOptions = implode(',', $request->service_options);
+                $stringifiedServiceOptions = implode(',', $request->service['options']);
                 $specialists = User::role('Account Specialist')->pluck('id');
 
-                if ($request->cargo_type === 'CONTAINERIZED') {
+                if ($request->commodity['cargo_type'] === 'CONTAINERIZED') {
                     $request->validate([
-                        'container_size' => 'required|string'
+                        'commodity.container_size' => 'required|string'
                     ]);
-                } elseif ($request->cargo_type === 'LCL') {
+                } elseif ($request->commodity['cargo_type'] === 'LCL') {
                     $request->validate([
-                        'cargo_volume' => 'required|numeric|min:1'
+                        'commodity.cargo_volume' => 'required|numeric|min:1'
                     ]);
                 }
 
@@ -61,20 +75,20 @@ class QuotationController extends Controller
                     'reference_number' => "QT-{$dateSection}-{$idSection}",
                     'client_id' => $user->id,
                     'as_id' => Faker::create()->randomElement($specialists),
-                    'company_name' => $request->company_name,
-                    'company_address' => $request->company_address,
-                    'contact_person' => $request->contact_person,
-                    'contact_number' => $request->contact_number,
-                    'email' => $request->email,
-                    'service_type' => $request->service_type,
-                    'transport_mode' => $request->transport_mode,
+                    'company_name' => $request->company['name'],
+                    'company_address' => $request->company['address'],
+                    'contact_person' => $request->company['contact_person'],
+                    'contact_number' => $request->company['contact_number'],
+                    'email' => $request->company['email'],
+                    'service_type' => $request->service['type'],
+                    'transport_mode' => $request->service['transport_mode'],
                     'service_options' => $stringifiedServiceOptions,
-                    'commodity' => $request->commodity,
-                    'cargo_type' => $request->cargo_type,
-                    'cargo_volume' => $request->cargo_volume ?? null,
-                    'container_size' => $request->container_size ?? null,
-                    'origin' => $request->origin,
-                    'destination' => $request->destination,
+                    'commodity' => $request->commodity['commodity'],
+                    'cargo_type' => $request->commodity['cargo_type'],
+                    'cargo_volume' => $request->commodity['cargo_volume'] ?? null,
+                    'container_size' => $request->commodity['container_size'] ?? null,
+                    'origin' => $request->shipment['origin'],
+                    'destination' => $request->shipment['destination'],
                 ]);
 
                 if ($quotation->cargo_type === 'CONTAINERIZED' && isset($quotation->cargo_volume)) {
@@ -129,9 +143,9 @@ class QuotationController extends Controller
         $user = User::find(auth()->id());
         $quotation = Quotation::where('reference_number', $referenceNumber)->first();
 
-        if ($user->hasRole('Account Specialist')) {
+        if (($user->id === $quotation->client_id) || ($user->id === $quotation->as_id)) {
             if ($request->service_options) {
-                $stringifiedServiceOptions = implode(',', $request->service_options);
+                $stringifiedServiceOptions = implode(',', $request->service['options']);
             } else {
                 $stringifiedServiceOptions = null;
             }            
@@ -139,44 +153,48 @@ class QuotationController extends Controller
             try {
                 DB::beginTransaction();
 
-                if ($quotation->status === 'RESPONDED') {
-                    return $this->error('Quotation already finalized', 400);
+                if ($user->hasRole('Account Specialist')) {    
+                    if ($quotation->status === 'RESPONDED') {
+                        return $this->error('Quotation already finalized', 400);
+                    }
+
+                    if ($request->has('status')) {
+                        $quotation->update([
+                            'status' => $request->status
+                        ]);
+
+                        DB::commit();
+                        return $this->success('Quotation status updated', new QuotationResource($quotation), 200);
+                    }
+                } else {
+                    return $this->error('Unauthorized', 403);
                 }
 
-                if ($request->has('status')) {
-                    $quotation->update([
-                        'status' => $request->status
-                    ]);
-
-                    DB::commit();
-                    return $this->success('Quotation status updated', new QuotationResource($quotation), 200);
-                }
-
-                if ($request->cargo_type === 'CONTAINERIZED') {
+                if ($request->commodity['cargo_type'] === 'CONTAINERIZED') {
                     $request->validate([
-                        'container_size' => 'required|string'
+                        'commodity.container_size' => 'required|string'
                     ]);
-                } elseif ($request->cargo_type === 'LCL') {
+                } elseif ($request->commodity['cargo_type'] === 'LCL') {
                     $request->validate([
-                        'cargo_volume' => 'required|numeric|min:1'
+                        'commodity.cargo_volume' => 'required|numeric|min:1'
                     ]);
                 }
 
                 $quotation->update([
-                    'company_name' => $request->company_name ?? $quotation->company_name,
-                    'company_address' => $request->company_address ?? $quotation->company_address,
-                    'contact_person' => $request->contact_person ?? $quotation->contact_person,
-                    'contact_number' => $request->contact_number ?? $quotation->contact_number,
-                    'email' => $request->email ?? $quotation->email,
-                    'service_type' => $request->service_type ?? $quotation->service_type,
-                    'transport_mode' => $request->transport_mode ?? $quotation->transport_mode,
+                    'company_name' => $request->company['name'] ?? $quotation->company_name,
+                    'company_address' => $request->company['address'] ?? $quotation->company_address,
+                    'contact_person' => $request->company['contact_person'] ?? $quotation->contact_person,
+                    'contact_number' => $request->company['contact_number'] ?? $quotation->contact_number,
+                    'email' => $request->company['email'] ?? $quotation->email,
+                    'service_type' => $request->service['type'] ?? $quotation->service_type,
+                    'transport_mode' => $request->service['transport_mode'] ?? $quotation->transport_mode,
                     'service_options' => $stringifiedServiceOptions ?? $quotation->service_options,
-                    'commodity' => $request->commodity ?? $quotation->commodity,
-                    'cargo_type' => $request->cargo_type,
-                    'cargo_volume' => $request->cargo_volume ?? $quotation->cargoVolume,
-                    'container_size' => $request->container_size ?? $quotation->container_size,
-                    'origin' => $request->origin ?? $quotation->origin,
-                    'destination' => $request->destination ?? $quotation->destination,
+                    'commodity' => $request->commodity['commodity'] ?? $quotation->commodity,
+                    'cargo_type' => $request->commodity['cargo_type'],
+                    'cargo_volume' => $request->commodity['cargo_volume'] ?? $quotation->cargoVolume,
+                    'container_size' => $request->commodity['container_size'] ?? $quotation->container_size,
+                    'origin' => $request->shipment['origin'] ?? $quotation->origin,
+                    'destination' => $request->shipment['destination'] ?? $quotation->destination,
                 ]);
 
                 if ($quotation->cargo_type === 'CONTAINERIZED' && isset($quotation->cargo_volume)) {

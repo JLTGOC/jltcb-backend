@@ -24,18 +24,18 @@ class UpdateQuotationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'company_name' => 'sometimes|string',
-            'company_address' => 'sometimes|string',
-            'contact_person' => 'sometimes|string',
-            'contact_number' => 'sometimes|string|min:11|max:11|regex:/^09\d{9}$/',
-            'email' => 'sometimes|email',
-            'service_type' => ['sometimes', 'string', Rule::in(['IMPORT', 'EXPORT', 'BUSINESS SOLUTION'])],
-            'transport_mode' => ['sometimes', 'string', Rule::in(['SEA', 'AIR'])],
-            'service_options' => 'sometimes|array',
-            'commodity' => 'sometimes|string',
-            'cargo_type' => ['sometimes', 'string', Rule::in(['CONTAINERIZED', 'LCL'])],
-            'origin' => 'sometimes|string',
-            'destination' => 'sometimes|string',
+            'company.name' => 'sometimes|string',
+            'company.address' => 'sometimes|string',
+            'company.contact_person' => 'sometimes|string',
+            'company.contact_number' => 'sometimes|string|min:11|max:11|regex:/^09\d{9}$/',
+            'company.email' => 'sometimes|email',
+            'service.type' => ['sometimes', 'string', Rule::in(['IMPORT', 'EXPORT', 'BUSINESS SOLUTION'])],
+            'service.transport_mode' => ['sometimes', 'string', Rule::in(['SEA', 'AIR'])],
+            'service.options' => 'sometimes|array',
+            'commodity.commodity' => 'sometimes|string',
+            'commodity.cargo_type' => ['sometimes', 'string', Rule::in(['CONTAINERIZED', 'LCL'])],
+            'shipment.origin' => 'sometimes|string',
+            'shipment.destination' => 'sometimes|string',
         ];
     }
 }
