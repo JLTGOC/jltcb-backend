@@ -34,6 +34,8 @@ class UpdateQuotationRequest extends FormRequest
             'service.options' => 'sometimes|array',
             'commodity.commodity' => 'sometimes|string',
             'commodity.cargo_type' => ['sometimes', 'string', Rule::in(['CONTAINERIZED', 'LCL'])],
+            'commodity.cargo_volume' => 'required_if:cargo_type,LCL|numeric|min:1',
+            'commodity.container_size' => 'required_if:cargo_type,CONTAINERIZED|string',
             'shipment.origin' => 'sometimes|string',
             'shipment.destination' => 'sometimes|string',
         ];

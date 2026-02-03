@@ -61,16 +61,6 @@ class QuotationController extends Controller
                 $stringifiedServiceOptions = implode(',', $request->service['options']);
                 $specialists = User::role('Account Specialist')->pluck('id');
 
-                if ($request->commodity['cargo_type'] === 'CONTAINERIZED') {
-                    $request->validate([
-                        'commodity.container_size' => 'required|string'
-                    ]);
-                } elseif ($request->commodity['cargo_type'] === 'LCL') {
-                    $request->validate([
-                        'commodity.cargo_volume' => 'required|numeric|min:1'
-                    ]);
-                }
-
                 $lastId = Quotation::max('id') ?? 0;
                 $dateSection = Carbon::now()->format('m-Y');
                 $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
@@ -156,32 +146,21 @@ class QuotationController extends Controller
 
             try {
                 DB::beginTransaction();
-
-                if ($user->hasRole('Account Specialist')) {    
-                    if ($quotation->status === 'RESPONDED') {
-                        return $this->error('Quotation already finalized', 400);
-                    }
-
-                    if ($request->has('status')) {
-                        $quotation->update([
-                            'status' => $request->status
-                        ]);
-
-                        DB::commit();
-                        return $this->success('Quotation status updated', new QuotationResource($quotation), 200);
-                    }
-                } else {
-                    return $this->error('Unauthorized', 403);
+   
+                if ($quotation->status === 'RESPONDED') {
+                    return $this->error('Quotation already finalized', 400);
                 }
 
-                if ($request->commodity['cargo_type'] === 'CONTAINERIZED') {
-                    $request->validate([
-                        'commodity.container_size' => 'required|string'
+                if ($request->has('status')) {
+                    if (!$user->hasRole('Account Specialist')) {
+                        return $this->error('Unauthorized', 403);
+                    }
+                    $quotation->update([
+                        'status' => $request->status
                     ]);
-                } elseif ($request->commodity['cargo_type'] === 'LCL') {
-                    $request->validate([
-                        'commodity.cargo_volume' => 'required|numeric|min:1'
-                    ]);
+
+                    DB::commit();
+                    return $this->success('Quotation status updated', new QuotationResource($quotation), 200);
                 }
 
                 $quotation->update([
