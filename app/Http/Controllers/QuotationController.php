@@ -11,7 +11,8 @@ use App\Models\{
     Quotation,
     User,
     ServiceOption,
-    QuotationFile
+    QuotationFile,
+    Shipment
 };
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -142,9 +143,10 @@ class QuotationController extends Controller
 
             try {
                 DB::beginTransaction();
-   
-                if ($quotation->status === 'RESPONDED') {
-                    return $this->error('Quotation already finalized', 400);
+
+                $shipped = Shipment::where('quotation_id', $quotation->id)->first();
+                if ($shipped) {
+                    return $this->error('Shipment already ongoing', 422);
                 }
 
                 if ($request->has('status')) {
