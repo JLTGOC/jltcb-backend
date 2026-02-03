@@ -77,7 +77,4 @@ class User extends Authenticatable
             ->withPivot('last_read_at');
     }
 
-    public function quotationFiles() {
-        return $this->hasMany(QuotationFile::class);
-    }
 }

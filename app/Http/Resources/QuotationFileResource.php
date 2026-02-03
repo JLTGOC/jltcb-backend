@@ -17,7 +17,7 @@ class QuotationFileResource extends JsonResource
         return [
             'id' => $this->id,
             'quotation_id' => $this->quotation_id,
-            'file_path' => $this->file_path,
+            'file_path' => asset($this->file_path),
             'created_at' => $this->created_at?->toDateTimeString(),
             'updated_at' => $this->updated_at?->toDateTimeString(),
         ];
