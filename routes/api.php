@@ -66,7 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Client approves -> New Group Chat
     Route::post('/quotations/{id}/approve', [QuotationChatController::class, 'approveQuotation']);
 
-    Route::post('/quotations/{quotation}/chatLeadAs', [QuotationChatController::class, 'chatLeadAs']);
+    Route::post('/quotations/{quotation}/chat', [QuotationChatController::class, 'chatWithQuotation']);
     
     Route::post('/', [QuotationController::class, 'store']);
     Route::get('/{referenceNumber}', [QuotationController::class, 'show']);
@@ -79,7 +79,7 @@ Route::middleware('auth:sanctum')->group(function () {
         $route->get('/{referenceNumber}', [ShipmentController::class, 'show']);
         $route->put('/{referenceNumber}', [ShipmentController::class, 'update']);
     });
-    
+
     //temporary routes for quotation files
     Route::post('/quotations/{quotation}/upload', [QuotationController::class, 'upload']);
     Route::get('/quotations/{quotation}/showFile', [QuotationController::class, 'showFile']);
