@@ -112,9 +112,7 @@ class QuotationController extends Controller
      * 
      * Show individual quotation details
      */
-    public function show($referenceNumber) {
-        $quotation = Quotation::where('reference_number', $referenceNumber)->first();
-        
+    public function show(Quotation $quotation) {   
         if (!$quotation) {
             return $this->error('Quotation not found', 404);
         }
@@ -129,10 +127,9 @@ class QuotationController extends Controller
      * 
      * Update quotation request details
      */
-    public function update(UpdateQuotationRequest $request, $referenceNumber)
+    public function update(UpdateQuotationRequest $request, Quotation $quotation)
     {
         $user = User::find(auth()->id());
-        $quotation = Quotation::where('reference_number', $referenceNumber)->first();
 
         if (($user->id === $quotation->client_id) || ($user->id === $quotation->as_id)) {
             if ($request->service_options) {

@@ -115,11 +115,8 @@ class ShipmentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($referenceNumber)
+    public function show(Shipment $shipment)
     {
-        $shipment = Shipment::where('reference_number', $referenceNumber)
-            ->first();
-
         if (!$shipment) {
             return $this->error('Shipment not found', 404);
         }
@@ -130,14 +127,10 @@ class ShipmentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $referenceNumber)
+    public function update(Request $request, Shipment $shipment)
     {
-        $shipment = Shipment::where('reference_number', $referenceNumber)
-            ->where('status', 'ONGOING')
-            ->first();
-
-        if (!$shipment) {
-            return $this->error('Shipment not found', 404);
+        if ($shipment->status !== 'ONGOING') {
+            return $this->error('Shipment not found or not in ONGOING status', 404);
         }
 
         $shipment->update([
