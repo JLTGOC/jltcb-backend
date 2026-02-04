@@ -11,12 +11,15 @@ trait SeederFileTrait
      * 
      * @param string $sourceDir - Subdirectory in database/seeders (e.g., 'reels', 'articles', 'images')
      * @param string $filename - Name of the file
+     * @param string|null $destinationDir - Subdirectory in storage/app/public (defaults to $sourceDir)
      * @return string - The path to use in the database
      */
-    protected function copySeederFile(string $sourceDir, string $filename): string
+    protected function copySeederFile(string $sourceDir, string $filename, ?string $destinationDir = null): string
     {
+        $destinationDir = $destinationDir ?: $sourceDir;
+
         $sourcePath = database_path("seeders/{$sourceDir}/{$filename}");
-        $publicStorageDir = storage_path("app/public/{$sourceDir}");
+        $publicStorageDir = storage_path("app/public/{$destinationDir}");
         $destinationPath = "{$publicStorageDir}/{$filename}";
         
         // Create the public storage directory if it doesn't exist
@@ -30,7 +33,7 @@ trait SeederFileTrait
         }
         
         // Return the path to use in the database
-        return "storage/{$sourceDir}/{$filename}";
+        return "storage/{$destinationDir}/{$filename}";
     }
 
     /**
