@@ -16,7 +16,7 @@ class ReelResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'video_path' => $this->video_path,
+            'video_path' => asset($this->video_path),
             'view_count' => $this->formatViewCount($this->view_count),
             'created_at' => $this->created_at?->toDateTimeString(),
             'updated_at' => $this->updated_at?->toDateTimeString(),
