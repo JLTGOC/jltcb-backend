@@ -120,6 +120,8 @@ class ShipmentController extends Controller
     }
 
     /**
+     * Show Shipment
+     * 
      * Display the specified resource.
      */
     public function show(Shipment $shipment)
@@ -132,6 +134,8 @@ class ShipmentController extends Controller
     }
 
     /**
+     * Update Shipment
+     * 
      * Update the specified resource in storage.
      */
     public function update(Request $request, Shipment $shipment)

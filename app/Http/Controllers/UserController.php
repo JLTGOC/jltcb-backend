@@ -25,6 +25,8 @@ class UserController extends Controller
     }
 
     /**
+     * Show User
+     * 
      * Display the specified resource.
      */
     public function show(User $user)
