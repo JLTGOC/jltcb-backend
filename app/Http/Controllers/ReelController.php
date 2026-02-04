@@ -47,10 +47,7 @@ class ReelController extends Controller
                 $allowedExtensions = ['mp4', 'mov', 'avi', 'wmv'];
                 
                 if (!in_array($extension, $allowedExtensions)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Invalid file type. Only MP4, MOV, AVI, and WMV files are allowed.',
-                    ], 422);
+                    return $this->error('Invalid file type. Only MP4, MOV, AVI, and WMV files are allowed.', 422);
                 }
             }
             
@@ -60,10 +57,7 @@ class ReelController extends Controller
                 $maxSize = 1048576 * 1024; // 1GB in KB (matching your max:1048576 which is in KB)
                 
                 if ($totalSize > $maxSize) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'File too large. Maximum size is 1GB.',
-                    ], 422);
+                    return $this->error('File too large. Maximum size is 1GB.', 422);
                 }
             }
         }
@@ -90,23 +84,15 @@ class ReelController extends Controller
             /** @var AbstractHandler $handler */
             $handler = $save->handler();
 
-            return response()->json([
-                'success' => true,
+            return $this->success('Chunk uploaded', [
                 'done' => $handler->getPercentageDone(),
                 'status' => 'chunk_uploaded',
             ]); 
 
         } catch (UploadMissingFileException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'File missing from request',
-            ], 422);
+            return $this->error('File missing from request', 422);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to upload reel',
-                'error' => $e->getMessage(),
-            ], 500);
+            return $this->error('Failed to upload reel', 500, $e->getMessage());
         }
     }
 
@@ -193,10 +179,7 @@ class ReelController extends Controller
                 $allowedExtensions = ['mp4', 'mov', 'avi', 'wmv'];
 
                 if (!in_array($extension, $allowedExtensions)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Invalid file type. Only MP4, MOV, AVI, and WMV files are allowed.',
-                    ], 422);
+                    return $this->error('Invalid file type. Only MP4, MOV, AVI, and WMV files are allowed.', 422);
                 }
             }
 
@@ -206,10 +189,7 @@ class ReelController extends Controller
                 $maxSize = 1048576 * 1024; // 1GB in KB (matching your max:1048576 which is in KB)
 
                 if ($totalSize > $maxSize) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'File too large. Maximum size is 1GB.',
-                    ], 422);
+                    return $this->error('File too large. Maximum size is 1GB.', 422);
                 }
             }
         } else {
@@ -250,16 +230,12 @@ class ReelController extends Controller
             /** @var AbstractHandler $handler */
             $handler = $save->handler();
 
-            return response()->json([
-                'success' => true,
+            return $this->success('Chunk uploaded', [
                 'done' => $handler->getPercentageDone(),
                 'status' => 'chunk_uploaded',
             ]);
         } catch (UploadMissingFileException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'File missing from request',
-            ], 422);
+            return $this->error('File missing from request', 422);
         } catch (\Exception $e) {
             return $this->error('Failed to update reel video', 500, ['error' => $e->getMessage()]);
         }

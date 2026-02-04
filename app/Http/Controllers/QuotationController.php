@@ -23,6 +23,8 @@ use Illuminate\Validation\ValidationException;
 class QuotationController extends Controller
 {
     /**
+     * Index Quotations
+     * 
      * Display a listing of the resource.
      */
     public function index(Request $request) {
@@ -211,6 +213,8 @@ class QuotationController extends Controller
 
     /**
      * Enum Quotation Options
+     * 
+     * Fetch enumeration options for quotations
      */
     public function enumQuotationOptions() {
         $serviceTypes = ['IMPORT', 'EXPORT', 'BUSINESS SOLUTION'];
@@ -231,7 +235,9 @@ class QuotationController extends Controller
     }
 
     /**
-     * Upload/Update Quotation File
+     * Upload Quotation File
+     * 
+     * Uploads a file for the quotation
      */
     public function upload(Quotation $quotation, Request $request) {
         $request->validate([
@@ -304,17 +310,17 @@ class QuotationController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to upload file',
-                'error' => $e->getMessage(),
-            ]);
+            return $this->error(
+                'Failed to upload file', 500, $e->getMessage()
+            );
         }
     }
 
 
     /**
      * Show Quotation File
+     * 
+     * Displays the quotation file details
      */
     public function showFile(Quotation $quotation) {
         $quotationFile = $quotation->files()->first();
