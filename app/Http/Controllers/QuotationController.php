@@ -244,22 +244,28 @@ class QuotationController extends Controller
             $type = 'REQUESTED';
         } elseif($user->hasRole('Account Specialist')) {
             $type = 'PROPOSAL';
+        } else {
+            return $this->error('Unauthorized', [], 404);
         }
 
         $file = $request->file('file');
         $directory = 'files';
-        $extension = $file->getClientOriginalExtension();
-        $originalFileName = $file->getClientOriginalName();
 
-        $quoteFile = $quotation->files()->where('type', $type)->exists();
+        //store original file name with extension
+        // $originalFileName = $file->getClientOriginalName();
 
-        if ($quoteFile) {
+        //store original file name without extension
+        $originalFileName = str_replace('.' . $file->extension(), '', $file->getClientOriginalName());
+
+        $fileExists = $quotation->files()->where('type', $type)->exists();
+
+        if ($fileExists) {
             $existingFile = $quotation->files()->where('type', $type)->first();
             $existingFileName = str_replace('/storage/files/', '', $existingFile->file_path);
 
             $filename = $existingFileName;
         } else {
-            $filename = uniqid() . '.' . $extension;
+            $filename = $file->hashName();
         }
        
         DB::beginTransaction();
@@ -280,9 +286,16 @@ class QuotationController extends Controller
                 ],
             );
 
+            //update uploaded quotation status
+            if ($type == 'PROPOSAL') {
+                $quotation->update([
+                    'status' => 'RESPONDED'
+                ]);
+            }
+            
             $message = $quotationFile->wasRecentlyCreated 
-                ? 'Quotation file uploaded successfully' 
-                : 'Quotation file updated sucessfully';
+                ? 'File uploaded successfully' 
+                : 'File updated sucessfully';
 
             $status = $quotationFile->wasRecentlyCreated ? 201 : 200;
 
@@ -293,7 +306,7 @@ class QuotationController extends Controller
             DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to upload quotation file',
+                'message' => 'Failed to upload file',
                 'error' => $e->getMessage(),
             ]);
         }
@@ -314,5 +327,4 @@ class QuotationController extends Controller
             'Quotation file retrieved successfully.', new QuotationFileResource($quotationFile)
         );
     }   
-
 }
