@@ -33,6 +33,8 @@ class StoreQuotationRequest extends FormRequest
             'service.options' => 'required|array',
             'commodity.commodity' => 'required|string',
             'commodity.cargo_type' => ['required', 'string', Rule::in(['CONTAINERIZED', 'LCL'])],
+            'commodity.cargo_volume' => 'required_if:cargo_type,LCL|numeric|min:1',
+            'commodity.container_size' => 'required_if:cargo_type,CONTAINERIZED|string',
             'shipment.origin' => 'required|string',
             'shipment.destination' => 'required|string',
         ];
