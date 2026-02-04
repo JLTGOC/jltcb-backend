@@ -47,6 +47,16 @@ class MessageResource extends JsonResource
                 ] : null,
             ],
 
+            'SHIPMENT_CARD' => [
+                'shipment' => $this->reference ? [
+                    'id' => $this->reference->id,
+                    'reference_number' => $this->reference->reference_number,
+                    'commodity' => $this->reference->commodity,
+                    'volume' => $this->reference->volume,
+                    'date_created' => $this->reference->created_at->format('m/d/Y'),
+                ] : null,
+            ],
+
             'TEXT' => [
                 'content' => $this->content,
             ],
