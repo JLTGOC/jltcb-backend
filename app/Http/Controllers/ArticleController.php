@@ -14,6 +14,12 @@ use Illuminate\Support\Facades\Storage; // Import Storage facade
 
 class ArticleController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->authorizeResource(Article::class, 'article');
+    }
+
     /**
      * Index Articles
      * 
@@ -110,7 +116,7 @@ class ArticleController extends Controller
      */
     public function destroy(Article $article)
     {
-        return DB::transaction(function () use ($article) {  
+        return DB::transaction(function () use ($article) {
             if ($article->image_url && Storage::disk('public')->exists($article->image_url)) {
                 Storage::disk('public')->delete($article->image_url);
             }
