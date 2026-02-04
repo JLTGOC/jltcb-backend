@@ -21,7 +21,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
     });
 
-    Route::apiResource('articles', ArticleController::class)->only(['store', 'update', 'destroy']);
+    Route::prefix('articles')->group(function () {
+        Route::get('{article}', [ArticleController::class, 'show']);
+        Route::post('{article}', [ArticleController::class, 'update']);
+        Route::delete('{article}', [ArticleController::class, 'destroy']);
+    });
 
     Route::apiResource('reels', ReelController::class)->only(['store', 'update', 'destroy']);
 
