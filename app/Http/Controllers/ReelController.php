@@ -110,6 +110,10 @@ class ReelController extends Controller
             'view_count' => 0,
         ]);
 
+        $reel->generateThumbnail();
+
+        $reel->refresh();
+
         return $this->success('Reel uploaded successfully', new ReelResource($reel), 201);
     }
 
@@ -132,17 +136,11 @@ class ReelController extends Controller
     {
         $fileName = $this->createFilename($file);
 
-        // Move the file to the public storage
-        $finalPath = storage_path('app/public/reels/videos/');
+        // Store the file on the public disk
+        $diskPath = 'reels/videos';
+        Storage::disk('public')->putFileAs($diskPath, $file, $fileName);
 
-        // Create directory if it doesn't exist
-        if (!file_exists($finalPath)) {
-            mkdir($finalPath, 0777, true);
-        }
-
-        $file->move($finalPath, $fileName);
-
-        return 'reels/videos/' . $fileName;
+        return 'storage/' . $diskPath . '/' . $fileName;
     }
 
     /**
@@ -214,14 +212,27 @@ class ReelController extends Controller
 
             if ($save->isFinished()) {
                 $oldVideoPath = $reel->video_path;
+                $oldThumbnailPath = $reel->thumbnail_path;
                 $newVideoPath = $this->moveVideoFile($save->getFile());
 
                 $reel->video_path = $newVideoPath;
                 $reel->save();
 
+                $reel->generateThumbnail();
+
                 // Remove old file after successful replacement
                 if ($oldVideoPath) {
-                    Storage::disk('public')->delete($oldVideoPath);
+                    $oldVideoDiskPath = Reel::normalizePublicDiskPath($oldVideoPath);
+                    if ($oldVideoDiskPath) {
+                        Storage::disk('public')->delete($oldVideoDiskPath);
+                    }
+                }
+
+                if ($oldThumbnailPath) {
+                    $oldThumbnailDiskPath = Reel::normalizePublicDiskPath($oldThumbnailPath);
+                    if ($oldThumbnailDiskPath) {
+                        Storage::disk('public')->delete($oldThumbnailDiskPath);
+                    }
                 }
 
                 return $this->success('Reel video updated successfully', new ReelResource($reel));
@@ -251,7 +262,17 @@ class ReelController extends Controller
         try {
             // Delete video file
             if ($reel->video_path) {
-                Storage::disk('public')->delete($reel->video_path);
+                $videoDiskPath = Reel::normalizePublicDiskPath($reel->video_path);
+                if ($videoDiskPath) {
+                    Storage::disk('public')->delete($videoDiskPath);
+                }
+            }
+
+            if ($reel->thumbnail_path) {
+                $thumbnailDiskPath = Reel::normalizePublicDiskPath($reel->thumbnail_path);
+                if ($thumbnailDiskPath) {
+                    Storage::disk('public')->delete($thumbnailDiskPath);
+                }
             }
 
             $reel->delete($reel);

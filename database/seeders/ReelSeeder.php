@@ -26,41 +26,42 @@ class ReelSeeder extends Seeder
 
         $reels = [
             [
-                'video_path' => $this->copySeederFile('reels', $videos[0]),
+                'video_path' => $this->copySeederFile('reels', $videos[0], 'reels/videos'),
                 'view_count' => 1250,
             ],
             [
-                'video_path' => $this->copySeederFile('reels', $videos[1]),
+                'video_path' => $this->copySeederFile('reels', $videos[1], 'reels/videos'),
                 'view_count' => 2340,
             ],
             [
-                'video_path' => $this->copySeederFile('reels', $videos[0]),
+                'video_path' => $this->copySeederFile('reels', $videos[0], 'reels/videos'),
                 'view_count' => 1890,
             ],
             [
-                'video_path' => $this->copySeederFile('reels', $videos[1]),
+                'video_path' => $this->copySeederFile('reels', $videos[1], 'reels/videos'),
                 'view_count' => 3100,
             ],
             [
-                'video_path' => $this->copySeederFile('reels', $videos[0]),
+                'video_path' => $this->copySeederFile('reels', $videos[0], 'reels/videos'),
                 'view_count' => 2750,
             ],
             [
-                'video_path' => $this->copySeederFile('reels', $videos[1]),
+                'video_path' => $this->copySeederFile('reels', $videos[1], 'reels/videos'),
                 'view_count' => 1980,
             ],
             [
-                'video_path' => $this->copySeederFile('reels', $videos[0]),
+                'video_path' => $this->copySeederFile('reels', $videos[0], 'reels/videos'),
                 'view_count' => 2200,
             ],
             [
-                'video_path' => $this->copySeederFile('reels', $videos[1]),
+                'video_path' => $this->copySeederFile('reels', $videos[1], 'reels/videos'),
                 'view_count' => 1450,
             ],
         ];
 
         foreach ($reels as $reel) {
-            Reel::create($reel);
+            $createdReel = Reel::create($reel);
+            $createdReel->generateThumbnail();
         }
     }
 }

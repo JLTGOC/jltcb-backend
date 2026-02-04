@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('reels', function (Blueprint $table) {
             $table->id();
             $table->string('video_path');
+            $table->string('thumbnail_path')->nullable();
             $table->unsignedBigInteger('view_count')->default(0);
             $table->timestamps();
         });

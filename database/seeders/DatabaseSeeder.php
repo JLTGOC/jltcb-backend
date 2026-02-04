@@ -16,11 +16,25 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Clear storage/app/public directory
+        // Clear storage/app/public directory (preserve .gitignore)
         $storagePath = storage_path('app/public');
         if (File::isDirectory($storagePath)) {
-            File::deleteDirectory($storagePath);
-            File::makeDirectory($storagePath);
+            $files = File::files($storagePath);
+            $directories = File::directories($storagePath);
+            
+            // Delete all files except .gitignore
+            foreach ($files as $file) {
+                if (basename($file) !== '.gitignore') {
+                    File::delete($file);
+                }
+            }
+            
+            // Delete all directories
+            foreach ($directories as $directory) {
+                File::deleteDirectory($directory);
+            }
+        } else {
+            File::makeDirectory($storagePath, 0755, true);
         }
 
         $this->call([
