@@ -3,16 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Quotation;
 use App\Models\Conversation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\MessageResource;
 
 class ChatController extends Controller
 {
     /**
-     * INBOX: List all chats
+     * Index Chats
+     * 
+     * Inbox of the user's conversations
      */
     public function index()
     {
@@ -81,7 +85,9 @@ class ChatController extends Controller
     }
 
     /**
-     * HISTORY: Get messages for a chat
+     * Show Converstion
+     * 
+     * Fetch messages in a conversation
      */
     public function show(Conversation $conversation)
     {
@@ -104,15 +110,74 @@ class ChatController extends Controller
     }
 
     /**
-     * SEND TYPE A: Reply to an existing Conversation
+     * Chat With Quotation
+     * 
+     * Sends a quotation card in a conversation
+     */
+    public function chatWithQuotation(Quotation $quotation)
+    {
+        $clientId = auth()->id();
+
+        // 1. Get the Lead (Receiver)
+        $leadAsUser = User::where('email', 'accountspecialist@gmail.com')->first();
+        if (!$leadAsUser)
+            return $this->error('Lead AS account missing', 404);
+        $leadAsId = $leadAsUser->id;
+
+        return DB::transaction(function () use ($clientId, $leadAsId, $quotation) {
+
+            // 2. Find or Create Conversation (Client <-> Lead)
+            $conversation = Conversation::where('type', 'DIRECT')
+                ->whereHas('participants', fn($q) => $q->where('user_id', $clientId))
+                ->whereHas('participants', fn($q) => $q->where('user_id', $leadAsId))
+                ->first();
+
+            if (!$conversation) {
+                $conversation = Conversation::create(['type' => 'DIRECT']);
+                $conversation->participants()->attach([$clientId, $leadAsId]);
+            }
+
+            // 3. CHECK: Prevent Duplicate Cards
+            // Scan history to see if this Quotation Card was EVER sent
+            $alreadySent = $conversation->messages()
+                ->where('type', 'QUOTATION_CARD')
+                ->where('reference_id', $quotation->id)
+                ->where('reference_type', Quotation::class)
+                ->exists();
+
+            // 4. SEND SYSTEM MESSAGE (If not duplicate)
+            if (!$alreadySent) {
+                $conversation->messages()->create([
+                    'sender_id' => null, // <--- FIX: SET TO NULL (System)
+                    'type' => 'QUOTATION_CARD',
+                    'content' => null,
+                    'reference_id' => $quotation->id,
+                    'reference_type' => Quotation::class,
+                ]);
+
+                $conversation->update(['last_message_at' => now()]);
+            }
+
+            return $this->success(
+                $alreadySent ? 'Navigating to chat' : 'Connected to Lead AS',
+                ["conversation_id" => $conversation->id],
+                200
+            );
+        });
+    }
+
+    /**
+     * Send Message to Group
+     * 
+     * Reply to a group conversation
      */
     public function sendMessageToGroup(Request $request, Conversation $conversation)
     {
         // 1. Validation (Matched with User logic)
         $request->validate([
-            'type'    => 'required|in:TEXT,IMAGE,FILE',
+            'type' => 'required|in:TEXT,IMAGE,FILE',
             'content' => 'required_if:type,TEXT|nullable|string',
-            'file'    => 'required_if:type,IMAGE,FILE|max:5120', // Max 5MB
+            'file' => 'required_if:type,IMAGE,FILE|max:5120', // Max 5MB
         ]);
 
         // 2. Authorization
@@ -145,9 +210,9 @@ class ChatController extends Controller
         // 4. CREATE MESSAGE
         $message = DB::transaction(function () use ($conversation, $request, $senderId, $attachmentPath) {
             $msg = $conversation->messages()->create([
-                'sender_id'       => $senderId,
-                'content'         => $request['content'],
-                'type'            => $request['type'],
+                'sender_id' => $senderId,
+                'content' => $request['content'],
+                'type' => $request['type'],
                 'attachment_path' => $attachmentPath,
             ]);
 
@@ -162,16 +227,16 @@ class ChatController extends Controller
         $fileName = $message->attachment_path ? basename($message->attachment_path) : null;
 
         $formattedMessage = [
-            'id'              => $message->id,
-            'type'            => $message->type,
-            'content'         => $message->content,
-            'attachment_url'  => $attachmentUrl,
-            'file_name'       => $fileName,
+            'id' => $message->id,
+            'type' => $message->type,
+            'content' => $message->content,
+            'attachment_url' => $attachmentUrl,
+            'file_name' => $fileName,
             'conversation_id' => $message->conversation_id,
-            'created_at'      => $message->created_at->toDateTimeString(),
+            'created_at' => $message->created_at->toDateTimeString(),
             'sender' => [
-                'id'         => $message->sender->id,
-                'full_name'  => $message->sender->full_name,
+                'id' => $message->sender->id,
+                'full_name' => $message->sender->full_name,
                 'image_path' => $message->sender->image_path ? asset($message->sender->image_path) : null,
             ],
         ];
@@ -180,7 +245,9 @@ class ChatController extends Controller
     }
 
     /**
-     * SEND TYPE B: Message a specific User (Find or Create Chat)
+     * Send Message to User
+     * 
+     * Reply to a user
      */
     public function sendMessageToUser(Request $request, User $user)
     {
