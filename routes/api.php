@@ -10,7 +10,6 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QuotationController;
-use App\Http\Controllers\QuotationChatController;
 
 require __DIR__ . '/public_routes.php';
 
@@ -47,7 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('users/{user}/messages', [ChatController::class, 'sendMessageToUser']);
 
     // Quotation Chat
-    Route::post('quotations/{quotation}/chat', [QuotationChatController::class, 'chatWithQuotation']);
+    Route::post('quotations/{quotation}/chat', [ChatController::class, 'chatWithQuotation']);
 
     // Shipment Routes
     Route::apiResource('shipments', ShipmentController::class)->only(['store', 'show', 'update']);
