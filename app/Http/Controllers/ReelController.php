@@ -14,20 +14,26 @@ use Pion\Laravel\ChunkUpload\Exceptions\UploadMissingFileException;
 
 class ReelController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->authorizeResource(Reel::class, 'reel');
+    }
+
     /**
      * Index Reels
      * 
      * Display a listing of reels with view counts.
      */
     public function index()
-    {   
+    {
         $reels = Reel::orderBy('created_at', 'desc')
             ->get();
 
         if ($reels->isEmpty()) {
             return $this->error('No reels found', 404);
         }
-        
+
         return $this->success('Reels retrieved successfully', ReelResource::collection($reels));
     }
 
@@ -41,21 +47,21 @@ class ReelController extends Controller
         if ($request->has('dzuuid') || $request->has('dztotalfilesize')) {
             // Get original filename from the request
             $originalName = $request->file('video') ? $request->file('video')->getClientOriginalName() : null;
-            
+
             if ($originalName) {
                 $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
                 $allowedExtensions = ['mp4', 'mov', 'avi', 'wmv'];
-                
+
                 if (!in_array($extension, $allowedExtensions)) {
                     return $this->error('Invalid file type. Only MP4, MOV, AVI, and WMV files are allowed.', 422);
                 }
             }
-            
+
             // Validate total file size (from metadata)
             if ($request->has('dztotalfilesize')) {
                 $totalSize = $request->input('dztotalfilesize');
                 $maxSize = 1048576 * 1024; // 1GB in KB (matching your max:1048576 which is in KB)
-                
+
                 if ($totalSize > $maxSize) {
                     return $this->error('File too large. Maximum size is 1GB.', 422);
                 }
@@ -87,7 +93,7 @@ class ReelController extends Controller
             return $this->success('Chunk uploaded', [
                 'done' => $handler->getPercentageDone(),
                 'status' => 'chunk_uploaded',
-            ]); 
+            ]);
 
         } catch (UploadMissingFileException $e) {
             return $this->error('File missing from request', 422);
