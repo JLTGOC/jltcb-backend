@@ -35,22 +35,20 @@ Route::middleware('auth:sanctum')->group(function () {
     
     //Temporary routes for quotation files
     Route::post('/quotations/{quotation}/upload', [QuotationController::class, 'upload']);
-    Route::get('/quotations/{quotation}/showFile', [QuotationController::class, 'showFile']);
+    Route::get('/quotations/{quotation}/show-file', [QuotationController::class, 'showFile']);
 
-    Route::prefix('chats')->group(function () {
-        Route::get('/', [ChatController::class, 'index']); // Inbox
-        Route::get('/{conversation}', [ChatController::class, 'show']); // History
-        Route::post('/{conversation}/messages', [ChatController::class, 'sendMessageToGroup']); // Message a conversation
+    Route::prefix('conversations')->group(function () {
+        Route::get('', [ChatController::class, 'index']); // Inbox
+        Route::get('{conversation}', [ChatController::class, 'show']); // History
+        Route::post('{conversation}/messages', [ChatController::class, 'sendMessageToGroup']); // Message a conversation
     });
 
-    // Message a group
-    Route::post('/groups/{conversation}/messages', [ChatController::class, 'sendMessageToGroup']);
-
     // Message a user
-    Route::post('/users/{user}/messages', [ChatController::class, 'sendMessageToUser']);
+    Route::post('users/{user}/messages', [ChatController::class, 'sendMessageToUser']);
 
     // Quotation Chat
-    Route::post('/quotations/{quotation}/chat', [QuotationChatController::class, 'chatWithQuotation']);
+    Route::post('quotations/{quotation}/chat', [QuotationChatController::class, 'chatWithQuotation']);
 
+    // Shipment Routes
     Route::apiResource('shipments', ShipmentController::class)->only(['store', 'show', 'update']);
 });
