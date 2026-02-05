@@ -22,6 +22,14 @@ use Illuminate\Validation\ValidationException;
 
 class QuotationController extends Controller
 {
+
+    public function __construct() {
+        $this->authorizeResource(Quotation::class, 'quotation');
+        $this->middleware('can:enumQuotationOptions,' . Quotation::class)->only('enumQuotationOptions');
+        $this->middleware('can:upload,quotation')->only('upload');
+        $this->middleware('can:showFile,quotation')->only('showFile');
+    }
+
     /**
      * Index Quotations
      * 
@@ -56,50 +64,47 @@ class QuotationController extends Controller
         try {
             DB::beginTransaction();
 
-            if($user->hasRole('Client')) {
-                $stringifiedServiceOptions = implode(',', $request->service['options']);
-                $specialists = User::role('Account Specialist')->pluck('id');
+            $stringifiedServiceOptions = implode(',', $request->service['options']);
+            $specialists = User::role('Account Specialist')->pluck('id');
 
-                $lastId = Quotation::max('id') ?? 0;
-                $dateSection = Carbon::now()->format('m-Y');
-                $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
+            $lastId = Quotation::max('id') ?? 0;
+            $dateSection = Carbon::now()->format('m-Y');
+            $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
 
-                $quotation = Quotation::create([
-                    'reference_number' => "QT-{$dateSection}-{$idSection}",
-                    'client_id' => $user->id,
-                    'as_id' => Faker::create()->randomElement($specialists),
-                    'company_name' => $request->company['name'],
-                    'company_address' => $request->company['address'],
-                    'contact_person' => $request->company['contact_person'],
-                    'contact_number' => $request->company['contact_number'],
-                    'email' => $request->company['email'],
-                    'service_type' => $request->service['type'],
-                    'transport_mode' => $request->service['transport_mode'],
-                    'service_options' => $stringifiedServiceOptions,
-                    'commodity' => $request->commodity['commodity'],
-                    'cargo_type' => $request->commodity['cargo_type'],
-                    'cargo_volume' => $request->commodity['cargo_volume'] ?? null,
-                    'container_size' => $request->commodity['container_size'] ?? null,
-                    'origin' => $request->shipment['origin'],
-                    'destination' => $request->shipment['destination'],
+            $quotation = Quotation::create([
+                'reference_number' => "QT-{$dateSection}-{$idSection}",
+                'client_id' => $user->id,
+                'as_id' => Faker::create()->randomElement($specialists),
+                'company_name' => $request->company['name'],
+                'company_address' => $request->company['address'],
+                'contact_person' => $request->company['contact_person'],
+                'contact_number' => $request->company['contact_number'],
+                'email' => $request->company['email'],
+                'service_type' => $request->service['type'],
+                'transport_mode' => $request->service['transport_mode'],
+                'service_options' => $stringifiedServiceOptions,
+                'commodity' => $request->commodity['commodity'],
+                'cargo_type' => $request->commodity['cargo_type'],
+                'cargo_volume' => $request->commodity['cargo_volume'] ?? null,
+                'container_size' => $request->commodity['container_size'] ?? null,
+                'origin' => $request->shipment['origin'],
+                'destination' => $request->shipment['destination'],
+            ]);
+
+            if ($quotation->cargo_type === 'CONTAINERIZED' && isset($quotation->cargo_volume)) {
+                $quotation->update([
+                    'cargo_volume' => null
                 ]);
-
-                if ($quotation->cargo_type === 'CONTAINERIZED' && isset($quotation->cargo_volume)) {
-                    $quotation->update([
-                        'cargo_volume' => null
-                    ]);
-                } elseif ($quotation->cargo_type === 'LCL' && isset($quotation->container_size)) {
-                    $quotation->update([
-                        'container_size' => null
-                    ]);
-                }
-
-                DB::commit();
-
-                return $this->success('Quotation request submitted', new QuotationResource($quotation), 200);
-            } else {
-                return $this->error('Unauthorized', 403);
+            } elseif ($quotation->cargo_type === 'LCL' && isset($quotation->container_size)) {
+                $quotation->update([
+                    'container_size' => null
+                ]);
             }
+
+            DB::commit();
+
+            return $this->success('Quotation request submitted', new QuotationResource($quotation), 200);
+            
         } catch (ValidationException $e) {
             DB::rollback();
             return $this->error('Validation failed', 422, $e->errors());
