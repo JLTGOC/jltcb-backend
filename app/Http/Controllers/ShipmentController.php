@@ -17,6 +17,11 @@ use Illuminate\Support\Facades\DB;
 
 class ShipmentController extends Controller
 {
+    public function __construct()
+    {
+        $this->authorizeResource(Shipment::class, 'shipment');
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -32,6 +37,9 @@ class ShipmentController extends Controller
      */
     public function store(Request $request)
     {
+
+        $this->authorize('create', [Shipment::class, (string) $request->input('reference_number')]);
+
         $user = auth()->user();
 
         $validated = $request->validate([
