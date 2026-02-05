@@ -68,7 +68,7 @@ class User extends Authenticatable
     }
 
     public function quotations() {
-        return $this->hasMany(Quotation::class);
+        return $this->hasMany(Quotation::class, 'client_id');
     }
     
     public function conversations()
@@ -79,5 +79,9 @@ class User extends Authenticatable
 
     public function files() {
         return $this->hasMany(QuotationFile::class, 'uploaded_by');
+    }
+
+    public function shipments() {
+        return $this->hasMany(Shipment::class, 'client_id');
     }
 }
