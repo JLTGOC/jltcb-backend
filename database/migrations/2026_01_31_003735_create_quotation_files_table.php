@@ -21,9 +21,6 @@ return new class extends Migration
             $table->timestamps();
             $table->unique(['quotation_id', 'uploaded_by']);
         });
-
-        //shipment id
-        //quote file id
     }
 
     /**

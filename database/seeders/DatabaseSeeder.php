@@ -43,7 +43,8 @@ class DatabaseSeeder extends Seeder
             ArticleSeeder::class,
             ReelSeeder::class,
             ServiceOptionSeeder::class,
-            QuotationSeeder::class
+            QuotationSeeder::class,
+            QuotationFileSeeder::class,
         ]);
     }
 }
