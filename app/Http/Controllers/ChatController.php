@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Message;
 use App\Models\Quotation;
+use App\Models\Participant;
 use App\Models\Conversation;
 use Illuminate\Http\Request;
+use Spatie\Searchable\Search;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -18,11 +21,56 @@ class ChatController extends Controller
      * 
      * Inbox of the user's conversations
      */
-    public function index()
+    public function index(Request $request)
     {
         $userId = Auth::id();
+        $search = $request->input('search');
 
-        $conversations = Auth::user()->conversations()
+        $request->validate([
+            'search' => 'string|nullable',
+        ]);
+
+        $conversationIds = Auth::user()->conversations()->pluck('conversations.id');
+        
+        if ($search) {
+            // Search in Conversations, Messages, and Participants
+            $results = (new Search())
+                ->registerModel(Conversation::class, ['id', 'name'])
+                ->registerModel(Message::class, function ($modelSearchAspect) use ($search) {
+                    $modelSearchAspect->addSearchableAttribute('content')
+                        ->orWhereHas('sender', function ($senderQuery) use ($search) {
+                            $senderQuery->where('full_name', 'like', "%{$search}%");
+                        });
+                })
+                ->registerModel(Participant::class, function ($modelSearchAspect) use ($search) {
+                    $modelSearchAspect->addExactSearchableAttribute('user_id')
+                        ->orWhereHas('user', function ($userQuery) use ($search) {
+                            $userQuery->where('full_name', 'like', "%{$search}%");
+                        });
+                })
+                ->search($search);
+
+            $matchingConversationIds = collect();
+
+            foreach ($results as $result) {
+                $model = $result->searchable;
+
+                if ($model instanceof Conversation) {
+                    $matchingConversationIds->push($model->id);
+                } elseif ($model instanceof Message) {
+                    // If message matches, include its conversation
+                    $matchingConversationIds->push($model->conversation_id);
+                } elseif ($model instanceof Participant) {
+                    // If participant matches, include their conversation
+                    $matchingConversationIds->push($model->conversation_id);
+                }
+            }
+
+            // Filter to only conversations the user is in AND match the search
+            $conversationIds = $conversationIds->intersect($matchingConversationIds->unique());
+        }
+
+        $conversations = Conversation::whereIn('id', $conversationIds)
             ->with(['lastMessage', 'participants'])
             ->orderByDesc('last_message_at')
             ->get();
@@ -42,7 +90,7 @@ class ChatController extends Controller
 
             if ($chat->lastMessage) {
                 // Base query: Messages in this chat sent by OTHERS OR SYSTEM
-                $query = $chat->messages()->where(function ($q) use ($userId) {
+                $query = $chat->messages->where(function ($q) use ($userId) {
                     $q->where('sender_id', '!=', $userId)
                         ->orWhereNull('sender_id'); // <--- Include System Messages
                 });
