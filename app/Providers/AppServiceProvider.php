@@ -8,6 +8,9 @@ use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Gate;
+use App\Models\Conversation;
+use App\Policies\ChatPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -38,5 +41,8 @@ class AppServiceProvider extends ServiceProvider
         Scramble::configure()->withOperationTransformers(function (OperationTransformers $transformers) {
             $transformers->append(SanctumAuthOperationTransformer::class);
         });
+
+        // Tie ChatPolicy to Conversation model
+        Gate::policy(Conversation::class, ChatPolicy::class);
     }
 }

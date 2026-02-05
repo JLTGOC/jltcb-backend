@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\MessageResource;
+use Illuminate\Support\Facades\Gate;
 
 class ChatController extends Controller
 {
@@ -21,6 +22,11 @@ class ChatController extends Controller
      * 
      * Inbox of the user's conversations
      */
+    public function __construct()
+    {
+        $this->authorizeResource(Conversation::class, 'conversation');
+    }
+
     public function index(Request $request)
     {
         $userId = Auth::id();
@@ -139,7 +145,8 @@ class ChatController extends Controller
      */
     public function show(Conversation $conversation)
     {
-        abort_unless($conversation->participants()->where('user_id', Auth::id())->exists(), 403);
+        // Moved to ChatPolicy to handle authorization
+        // abort_unless($conversation->participants()->where('user_id', Auth::id())->exists(), 403);
 
         // Mark as read
         $conversation->participants()->updateExistingPivot(Auth::id(), ['last_read_at' => now()]);
@@ -164,6 +171,8 @@ class ChatController extends Controller
      */
     public function chatWithQuotation(Quotation $quotation)
     {
+        $this->authorize('chatWithQuotation', [Conversation::class, $quotation]);
+
         $clientId = auth()->id();
 
         // 1. Get the Lead (Receiver)
@@ -221,6 +230,8 @@ class ChatController extends Controller
      */
     public function sendMessageToGroup(Request $request, Conversation $conversation)
     {
+        $this->authorize('sendMessageToGroup', $conversation);
+
         // 1. Validation (Matched with User logic)
         $request->validate([
             'type' => 'required|in:TEXT,IMAGE,FILE',
@@ -229,7 +240,8 @@ class ChatController extends Controller
         ]);
 
         // 2. Authorization
-        abort_unless($conversation->participants()->where('user_id', Auth::id())->exists(), 403);
+        // Moved to ChatPolicy
+        // abort_unless($conversation->participants()->where('user_id', Auth::id())->exists(), 403);
 
         $senderId = Auth::id();
 
@@ -299,6 +311,10 @@ class ChatController extends Controller
      */
     public function sendMessageToUser(Request $request, User $user)
     {
+        // $response = Gate::inspect('sendMessageToUser', [Conversation::class, $user]);
+        // return $response;
+        $this->authorize('sendMessageToUser', [Conversation::class, $user]);
+
         // 1. Validation
         $request->validate([
             'type' => 'required|in:TEXT,IMAGE,FILE',
