@@ -13,12 +13,12 @@ class ClientDashboardService
                 'image_path' => $user->image_path,
             ],
             'shipments' => [
-                'ongoing_count' => 8,
-                'completed_count' => 25,
+                'ongoing_count' => $user->shipments()->where('status', 'ONGOING')->count(),
+                'completed_count' => $user->shipments()->where('status', 'DELIVERED')->count(),
             ],
             'quotations' => [
-                'requested_count' => 7,
-                'responded_count' => 4,
+                'requested_count' => $user->quotations()->where('status', 'REQUESTED')->count(),
+                'responded_count' => $user->quotations()->where('status', 'RESPONDED')->count(),
             ],
         ];
     }
