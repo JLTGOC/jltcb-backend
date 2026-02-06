@@ -29,6 +29,11 @@ class LeadAsDashboardService
                 'company' => $user->company_name,
                 'image_path' => $user->image_path,
             ],
+            'leads' => [
+                'queries_count' => 120,
+                'new_count' => 15,
+                'replied_count' => 10,
+            ],
             'shipments' => [
                 'ongoing_count' => $ongoingCount,
                 'delivered_count' => $deliveredCount,
