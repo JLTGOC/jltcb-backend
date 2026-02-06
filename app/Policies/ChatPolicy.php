@@ -11,18 +11,19 @@ use App\Models\{
 use Illuminate\Auth\Access\Response;
 use Illuminate\Support\Facades\Auth;
 
+//Policy for Conversation model
 class ChatPolicy
 {
     /**
-     * Determine whether the user can view any models.
+     * Determine whether the user can view their inbox.
      */
-    public function viewAny(?User $user): bool
+    public function viewAny(User $user): bool
     {
         return true;
     }
 
     /**
-     * Determine whether the user can view the model.
+     * Determine whether the user can view a conversation's history.
      */
     public function view(User $user, Conversation $conversation): bool
     {
@@ -69,19 +70,26 @@ class ChatPolicy
         return false;
     }
 
+    /**
+     * Determine whether the user can send message to a GROUP typed conversation.
+     */
     public function sendMessageToGroup(User $user, Conversation $conversation): bool {
         return $conversation->participants()->where('user_id', $user->id)->exists();
     }
 
-    public function sendMessageToUser(User $user, User $recipient) : bool {
-        // Deny message to self
-        // Allow only Client ↔ Account Specialist messaging
-        return ($user->hasRole('Client') && $recipient->hasRole('Account Specialist'))
-            || ($user->hasRole('Account Specialist') && $recipient->hasRole('Client'));
-    }
+    /**
+     * Determine whether the user can send message to another user.
+     */
+    // public function sendMessageToUser(User $user, User $recipient) : bool {
+    //     // Deny message to self and Allow only Client ↔ Account Specialist messaging
+    //     return ($user->hasRole('Client') && $recipient->hasRole('Account Specialist'))
+    //         || ($user->hasRole('Account Specialist') && $recipient->hasRole('Client'));
+    // }
 
-    public function chatWithQuotation(User $user, Quotation $quotation) {
-
-        return $user->id === $quotation->client_id;
-    }
+    /**
+     * Determine whether the user can initiate chat about their quotation.
+     */
+    // public function chatWithQuotation(User $user, Quotation $quotation) {
+    //     return $user->id === $quotation->client_id;
+    // }
 }

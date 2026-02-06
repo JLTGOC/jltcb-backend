@@ -102,4 +102,11 @@ class QuotationPolicy
         }
         return $user->id === $quotation->client_id || $user->id === $quotation->as_id;
     }
+
+    /**
+     * Determine whether the user can initiate chat about their quotation.
+     */
+    public function chatWithQuotation(User $user, Quotation $quotation) {
+        return $user->id === $quotation->client_id;
+    }
 }
