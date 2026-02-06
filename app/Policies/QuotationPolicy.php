@@ -16,7 +16,7 @@ class QuotationPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->hasRole(['Client', 'Account Specialist']);
     }
 
     /**
@@ -24,7 +24,7 @@ class QuotationPolicy
      */
     public function view(User $user, Quotation $quotation): bool
     {
-        return true;
+        return $user->id === $quotation->client_id || $user->id === $quotation->as_id;
     }
 
     /**
@@ -32,10 +32,7 @@ class QuotationPolicy
      */
     public function create(User $user): bool
     {
-        if ($user->hasRole(['Client'])) {
-            return true;
-        }
-        return false;
+        return $user->hasRole(['Client']);
     }
 
     /**
@@ -43,9 +40,6 @@ class QuotationPolicy
      */
     public function update(User $user, Quotation $quotation): bool
     {
-        if (!$user->hasRole(['Client', 'Account Specialist'])) {
-            return false;
-        }
         return $user->id === $quotation->client_id || $user->id === $quotation->as_id;
     }
 
@@ -86,9 +80,6 @@ class QuotationPolicy
      */
     public function upload(User $user, Quotation $quotation): bool
     {
-        if (!$user->hasRole(['Client', 'Account Specialist'])) {
-            return false;
-        }
         return $user->id === $quotation->client_id || $user->id === $quotation->as_id;
     }
 
@@ -97,9 +88,6 @@ class QuotationPolicy
      */
     public function showFile(User $user, Quotation $quotation): bool
     {
-        if (!$user->hasRole(['Client', 'Account Specialist'])) {
-            return false;
-        }
         return $user->id === $quotation->client_id || $user->id === $quotation->as_id;
     }
 }
