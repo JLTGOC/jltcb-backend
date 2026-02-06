@@ -19,7 +19,9 @@ class ShipmentController extends Controller
 {
     public function __construct()
     {
-        $this->authorizeResource(Shipment::class, 'shipment');
+        $this->authorizeResource(Shipment::class, 'shipment', [
+            'except' => ['store'],
+        ]);
     }
 
     /**
@@ -36,9 +38,8 @@ class ShipmentController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {
-
-        $this->authorize('create', [Shipment::class, (string) $request->input('reference_number')]);
+    {   
+        $this->authorize('create', [Shipment::class, $request->input('reference_number')]);
 
         $user = auth()->user();
 
