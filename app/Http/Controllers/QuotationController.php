@@ -63,9 +63,14 @@ class QuotationController extends Controller
             $search = $request->search;
             $searchResults = (new Search())
                 ->registerModel(Quotation::class, ['reference_number', 'id', 'contact_person', 'company_name', 'email', 'commodity', 'origin', 'destination', 'cargo_type'])
-                ->search($search);
+                ->search($search)
+                ->toArray();
 
-            return $this->success('Search results', $searchResults, 200);
+            $searchData = array_map(function ($result) use ($searchResults) {
+                return $result->searchable;
+            }, $searchResults);
+
+            return $this->success('Search results', QuotationResource::collection($searchData), 200);
         }
 
         return $this->success('All quotations fetched', $quotations->get(), 200);
