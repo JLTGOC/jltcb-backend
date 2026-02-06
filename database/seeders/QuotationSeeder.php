@@ -46,7 +46,7 @@ class QuotationSeeder extends Seeder
                 'email' => mb_strtolower($lastName) . '.' . mb_strtolower($firstName) . '@gmail.com',
                 'service_type' => fake()->randomElement(['IMPORT', 'EXPORT', 'BUSINESS SOLUTION']),
                 'transport_mode' => fake()->randomElement(['AIR', 'SEA']),
-                'service_options' => 'ALL IN',
+                'service_options' => 'PROJECT CARGO,POST CLEARANCE SERVICE',
                 'commodity' => 'CASTABLE 16 REFRACTOR',
                 'cargo_type' => fake()->randomElement(['CONTAINERIZED', 'LCL']),
                 'origin' => fake()->address(),

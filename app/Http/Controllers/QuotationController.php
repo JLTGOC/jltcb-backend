@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use Faker\Factory as Faker;
 use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
+use Spatie\Searchable\Search;
 
 class QuotationController extends Controller
 {
@@ -38,18 +39,38 @@ class QuotationController extends Controller
     public function index(Request $request) {
         $user = auth()->user();
         $query = Quotation::query();
+        if ($user->hasRole('Client')) {
+            $quotations = $query->where('client_id', $user->id);
+        } elseif ($user->hasRole('Account Specialist')) {
+            $quotations = $query->where('as_id', $user->id);
+        }
 
-        $quotations = $query->where('client_id', $user->id);
-        $requestedQuotations = $quotations->where('status', 'REQUESTED')->get();
-        $respondedQuotations = $quotations->where('status', 'RESPONDED')->get();
-
-        if ($request->has('status')) {
+        $request->validate([
+            'status' => 'sometimes|in:REQUESTED,RESPONDED',
+            'search' => 'sometimes|string'
+        ]);
+        
+        if ($request->status) {
             if ($request->status === 'REQUESTED') {
+                $requestedQuotations = $quotations->where('status', 'REQUESTED')->get();
                 return $this->success('Requested quotations fetched', QuotationResource::collection($requestedQuotations) ?? null, 200);
             } elseif ($request->status === 'RESPONDED') {
+                $respondedQuotations = $quotations->where('status', 'RESPONDED')->get();
                 return $this->success('Responded quotations fetched', QuotationResource::collection($respondedQuotations) ?? null, 200);
             }
         }
+        if ($request->search) {
+            $search = $request->search;
+            $searchResults = (new Search())
+                ->registerModel(Quotation::class, ['reference_number', 'id', 'contact_person', 'company_name', 'email', 'commodity', 'origin', 'destination', 'cargo_type'])
+                ->search($search)
+                ->collect()
+                ->pluck('searchable');
+
+            return $this->success('Search results', QuotationResource::collection($searchResults), 200);
+        }
+
+        return $this->success('All quotations fetched', QuotationResource::collection($quotations->all()), 200);
     }
 
     /**
