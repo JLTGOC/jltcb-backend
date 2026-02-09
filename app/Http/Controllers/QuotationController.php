@@ -397,15 +397,23 @@ class QuotationController extends Controller
      * 
      * Displays the quotation file details
      */
-    public function showFile(Quotation $quotation) {
-        $quotationFile = $quotation->files()->first();
+    public function showFile(Request $request, Quotation $quotation) {
+        $request->validate([
+            'filter.type' => 'required|in:REQUESTED,PROPOSAL'
+        ]);
+
+        $quotationFileQuery = QuotationFile::where('quotation_id', $quotation->id);
+
+        $quotationFile = QueryBuilder::for($quotationFileQuery)
+            ->allowedFilters(['type'])
+            ->first();
         
         if (! $quotationFile) {
-            return $this->success('No quotation file available.', []);
+            return $this->success('No file available.', []);
         }
 
         return $this->success(
-            'Quotation file retrieved successfully.', new QuotationFileResource($quotationFile)
+            'File retrieved successfully.', new QuotationFileResource($quotationFile)
         );
     }   
 }
