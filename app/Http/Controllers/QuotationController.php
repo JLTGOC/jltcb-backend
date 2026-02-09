@@ -49,14 +49,13 @@ class QuotationController extends Controller
 
         $request->validate([
             'filter.status' => 'sometimes|in:REQUESTED,RESPONDED',
-            'status' => 'sometimes|in:REQUESTED,RESPONDED',
             'search' => 'sometimes|string'
         ]);
 
         $quotations = QueryBuilder::for($query)
             ->allowedFilters([AllowedFilter::exact('status')]);
 
-        $status = $request->input('status');
+        $status = $request->input('filter.status');
         if ($status) {
             $quotations->where('status', $status);
         }
@@ -73,7 +72,7 @@ class QuotationController extends Controller
                 ->values();
 
             if ($searchIds->isEmpty()) {
-                return $this->success('No quotations found', QuotationResource::collection($searchIds), 200);
+                return $this->success('No quotations found', [], 200);
             }
 
             $quotations->whereIn('id', $searchIds);
@@ -81,7 +80,7 @@ class QuotationController extends Controller
 
         $results = $quotations->get();
 
-        if ($user->hasRole('Account Specialist') && $request->status === 'REQUESTED') {
+        if ($user->hasRole('Account Specialist') && $request->filter['status'] === 'REQUESTED') {
             $results = $quotations->with('client')->get();
             
             $results = $results->groupBy('client_id')->map(function ($userQuotations) {
@@ -103,7 +102,7 @@ class QuotationController extends Controller
             })->values();
         } else {
             $results = $results->map(function ($result) use ($user,$request) {
-                if ($user->hasRole('Client') && $request->status === 'RESPONDED') {
+                if ($user->hasRole('Client') && $request->filter['status'] === 'RESPONDED') {
                     $status = 'NEW';
                 }
                 return [
@@ -117,7 +116,7 @@ class QuotationController extends Controller
         }
 
         if ($results->isEmpty()) {
-            return $this->success('No quotations found', QuotationResource::collection($results), 200);
+            return $this->success('No quotations found', [], 200);
         }
 
         return $this->success('All quotations fetched', $results, 200);
