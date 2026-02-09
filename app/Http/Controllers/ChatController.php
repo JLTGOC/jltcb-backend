@@ -17,16 +17,25 @@ use Illuminate\Support\Facades\Gate;
 
 class ChatController extends Controller
 {
+
+    public function __construct()
+    {
+        // Policy methods located in ChatPolicy
+        $this->authorizeResource(Conversation::class, 'conversation');
+        $this->middleware('can:sendMessageToGroup,conversation')->only('sendMessageToGroup');
+        
+        // located in QuotationPolicy
+        $this->middleware('can:chatWithQuotation,quotation')->only('chatWithQuotation');
+
+        // located in UserPolicy
+        $this->middleware('can:sendMessageToUser,user')->only('sendMessageToUser');
+    }
+
     /**
      * Index Chats
      * 
      * Inbox of the user's conversations
      */
-    public function __construct()
-    {
-        $this->authorizeResource(Conversation::class, 'conversation');
-    }
-
     public function index(Request $request)
     {
         $userId = Auth::id();
@@ -171,7 +180,7 @@ class ChatController extends Controller
      */
     public function chatWithQuotation(Quotation $quotation)
     {
-        $this->authorize('chatWithQuotation', [Conversation::class, $quotation]);
+        // $this->authorize('chatWithQuotation', [Conversation::class, $quotation]);
 
         $clientId = auth()->id();
 
@@ -230,7 +239,7 @@ class ChatController extends Controller
      */
     public function sendMessageToGroup(Request $request, Conversation $conversation)
     {
-        $this->authorize('sendMessageToGroup', $conversation);
+        // $this->authorize('sendMessageToGroup', $conversation);
 
         // 1. Validation (Matched with User logic)
         $request->validate([
@@ -311,9 +320,7 @@ class ChatController extends Controller
      */
     public function sendMessageToUser(Request $request, User $user)
     {
-        // $response = Gate::inspect('sendMessageToUser', [Conversation::class, $user]);
-        // return $response;
-        $this->authorize('sendMessageToUser', [Conversation::class, $user]);
+        // $this->authorize('sendMessageToUser', [Conversation::class, $user]);
 
         // 1. Validation
         $request->validate([
