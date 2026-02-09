@@ -22,7 +22,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('articles')->group(function () {
-        Route::get('{article}', [ArticleController::class, 'show']);
         Route::post('{article}', [ArticleController::class, 'update']);
         Route::delete('{article}', [ArticleController::class, 'destroy']);
     });
