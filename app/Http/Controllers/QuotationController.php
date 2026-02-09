@@ -39,38 +39,35 @@ class QuotationController extends Controller
     public function index(Request $request) {
         $user = auth()->user();
         $query = Quotation::query();
+        
         if ($user->hasRole('Client')) {
-            $quotations = $query->where('client_id', $user->id);
+            $query->where('client_id', $user->id);
         } elseif ($user->hasRole('Account Specialist')) {
-            $quotations = $query->where('as_id', $user->id);
+            $query->where('as_id', $user->id);
         }
 
         $request->validate([
-            'status' => 'sometimes|in:REQUESTED,RESPONDED',
-            'search' => 'sometimes|string'
+            'status' => 'required|in:REQUESTED,RESPONDED',
+            'search' => 'sometimes|nullable|string'
         ]);
-        
-        if ($request->status) {
-            if ($request->status === 'REQUESTED') {
-                $requestedQuotations = $quotations->where('status', 'REQUESTED')->get();
-                return $this->success('Requested quotations fetched', QuotationResource::collection($requestedQuotations) ?? null, 200);
-            } elseif ($request->status === 'RESPONDED') {
-                $respondedQuotations = $quotations->where('status', 'RESPONDED')->get();
-                return $this->success('Responded quotations fetched', QuotationResource::collection($respondedQuotations) ?? null, 200);
-            }
-        }
-        if ($request->search) {
+
+        if ($request->filled('search')) {
             $search = $request->search;
-            $searchResults = (new Search())
-                ->registerModel(Quotation::class, ['reference_number', 'id', 'contact_person', 'company_name', 'email', 'commodity', 'origin', 'destination', 'cargo_type'])
-                ->search($search)
-                ->collect()
-                ->pluck('searchable');
 
-            return $this->success('Search results', QuotationResource::collection($searchResults), 200);
+            $query->where(function($q) use ($search) {
+                $q->where('reference_number', 'LIKE', "%{$search}%")
+                ->orWhere('company_name', 'LIKE', "%{$search}%")
+                ->orWhere('contact_person', 'LIKE', "%{$search}%")
+                ->orWhere('email', 'LIKE', "%{$search}%")
+                ->orWhere('commodity', 'LIKE', "%{$search}%")
+                ->orWhere('origin', 'LIKE', "%{$search}%")
+                ->orWhere('destination', 'LIKE', "%{$search}%");
+            });
         }
 
-        return $this->success('All quotations fetched', QuotationResource::collection($quotations->all()), 200);
+        $results = $query->latest()->get();
+
+        return $this->success('Quotations fetched', QuotationResource::collection($results), 200);
     }
 
     /**
