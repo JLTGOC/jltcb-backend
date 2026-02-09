@@ -80,11 +80,47 @@ class QuotationController extends Controller
         }
 
         $results = $quotations->get();
+
+        if ($user->hasRole('Account Specialist') && $request->status === 'REQUESTED') {
+            $results = $quotations->with('client')->get();
+            
+            $results = $results->groupBy('client_id')->map(function ($userQuotations) {
+                $firstQuotation = $userQuotations->first();
+                $client = User::where('id', $firstQuotation->client_id)->value('full_name');
+
+                return [
+                    'name' => $client,
+                    'request_count' => $userQuotations->count(),
+                    'quotations' => $userQuotations->map(function ($quotation) {
+                        return [
+                            'id' => $quotation->id,
+                            'date' => $quotation->created_at->format('Y/m/d'),
+                            'contact_person' => $quotation->contact_person,
+                            'commodity' => $quotation->commodity,
+                        ];
+                    })->values(),
+                ];
+            })->values();
+        } else {
+            $results = $results->map(function ($result) use ($user,$request) {
+                if ($user->hasRole('Client') && $request->status === 'RESPONDED') {
+                    $status = 'NEW';
+                }
+                return [
+                    'id' => $result->id,
+                    'reference_number' => $result->reference_number,
+                    'commodity' => $result->commodity,
+                    'date' => $result->created_at->format('Y/m/d'),
+                    'status' => $status ?? $result->status,
+                ];
+            });
+        }
+
         if ($results->isEmpty()) {
             return $this->success('No quotations found', QuotationResource::collection($results), 200);
         }
 
-        return $this->success('All quotations fetched', QuotationResource::collection($results), 200);
+        return $this->success('All quotations fetched', $results, 200);
     }
 
     /**
