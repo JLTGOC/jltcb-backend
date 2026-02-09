@@ -20,6 +20,8 @@ use Faker\Factory as Faker;
 use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
 use Spatie\Searchable\Search;
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedFilter;
 
 class QuotationController extends Controller
 {
@@ -39,7 +41,6 @@ class QuotationController extends Controller
     public function index(Request $request) {
         $user = auth()->user();
         $query = Quotation::query();
-        
         if ($user->hasRole('Client')) {
             $query->where('client_id', $user->id);
         } elseif ($user->hasRole('Account Specialist')) {
@@ -47,27 +48,43 @@ class QuotationController extends Controller
         }
 
         $request->validate([
-            'status' => 'required|in:REQUESTED,RESPONDED',
-            'search' => 'sometimes|nullable|string'
+            'filter.status' => 'sometimes|in:REQUESTED,RESPONDED',
+            'status' => 'sometimes|in:REQUESTED,RESPONDED',
+            'search' => 'sometimes|string'
         ]);
 
-        if ($request->filled('search')) {
-            $search = $request->search;
+        $quotations = QueryBuilder::for($query)
+            ->allowedFilters([AllowedFilter::exact('status')]);
 
-            $query->where(function($q) use ($search) {
-                $q->where('reference_number', 'LIKE', "%{$search}%")
-                ->orWhere('company_name', 'LIKE', "%{$search}%")
-                ->orWhere('contact_person', 'LIKE', "%{$search}%")
-                ->orWhere('email', 'LIKE', "%{$search}%")
-                ->orWhere('commodity', 'LIKE', "%{$search}%")
-                ->orWhere('origin', 'LIKE', "%{$search}%")
-                ->orWhere('destination', 'LIKE', "%{$search}%");
-            });
+        $status = $request->input('status');
+        if ($status) {
+            $quotations->where('status', $status);
         }
 
-        $results = $query->latest()->get();
+        if ($request->search) {
+            $search = $request->search;
+            $searchIds = (new Search())
+                ->registerModel(Quotation::class, ['reference_number', 'id', 'contact_person', 'company_name', 'email', 'commodity', 'origin', 'destination', 'cargo_type'])
+                ->search($search)
+                ->collect()
+                ->pluck('searchable')
+                ->map->id
+                ->filter()
+                ->values();
 
-        return $this->success('Quotations fetched', QuotationResource::collection($results), 200);
+            if ($searchIds->isEmpty()) {
+                return $this->success('No quotations found', QuotationResource::collection($searchIds), 200);
+            }
+
+            $quotations->whereIn('id', $searchIds);
+        }
+
+        $results = $quotations->get();
+        if ($results->isEmpty()) {
+            return $this->success('No quotations found', QuotationResource::collection($results), 200);
+        }
+
+        return $this->success('All quotations fetched', QuotationResource::collection($results), 200);
     }
 
     /**
