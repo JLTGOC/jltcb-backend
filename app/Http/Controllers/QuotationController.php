@@ -102,8 +102,10 @@ class QuotationController extends Controller
             })->values();
         } else {
             $results = $results->map(function ($result) use ($user,$request) {
-                if ($user->hasRole('Client') && $request->filter['status'] === 'RESPONDED') {
-                    $status = 'NEW';
+                if ($request->has('filter.status')) {
+                    if ($user->hasRole('Client') && $request->filter['status'] === 'RESPONDED') {
+                        $status = 'NEW';
+                    }
                 }
                 return [
                     'id' => $result->id,
