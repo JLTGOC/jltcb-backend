@@ -34,6 +34,7 @@ return new class extends Migration
             $table->string('container_size')->nullable();
             $table->string('origin');
             $table->string('destination');
+            $table->string('remarks')->nullable();
             $table->timestamps();
         });
     }

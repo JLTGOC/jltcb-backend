@@ -51,6 +51,7 @@ class QuotationSeeder extends Seeder
                 'cargo_type' => fake()->randomElement(['CONTAINERIZED', 'LCL']),
                 'origin' => fake()->address(),
                 'destination' => fake()->address(),
+                'remarks' => fake()->sentence(),
             ]);
 
             if ($quotation->cargo_type === 'CONTAINERIZED') {
@@ -84,6 +85,7 @@ class QuotationSeeder extends Seeder
                     'container_size' => $quotation->container_size ?? null,
                     'origin' => $quotation->origin,
                     'destination' => $quotation->destination,
+                    'remarks' => $quotation->remarks,
                 ]);
             }
 

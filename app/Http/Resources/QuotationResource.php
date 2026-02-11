@@ -23,7 +23,7 @@ class QuotationResource extends JsonResource
             'general_info' => [
                 'reference_number' => $this->reference_number,
                 'client_id' => $this->client_id,
-                'account_specialist_id' => $this->as_id,
+                'account_specialist' => $this->accountSpecialist->full_name,
                 'status' => $this->status,
             ],
             'consignee_details' => [
@@ -36,13 +36,24 @@ class QuotationResource extends JsonResource
             'shipment_details' => [
                 'service_type' => $this->service_type,
                 'transport_mode' => $this->transport_mode,
+                'service' => $this->service_options,
                 'commodity' => $this->commodity,
                 'volume' => $volume,
                 'origin' => $this->origin,
                 'destination' => $this->destination,
+                'details' => $this->remarks,
                 'created_at' => $this->created_at->format('d/m/Y'),
                 'updated_at' => $this->updated_at->format('d/m/Y'),
-            ]
+            ],
+            'documents' => $this->files()->exists()
+                ? $this->files()->get()->map(function($file) {
+                    return [
+                        'id' => $file->id,
+                        'file_name' => $file->original_file_name,
+                        'file_url' => asset($file->file_path),
+                    ];
+                })
+                : 'No documents available.',
         ];
     }
 }

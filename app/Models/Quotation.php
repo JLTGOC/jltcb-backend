@@ -26,7 +26,8 @@ class Quotation extends Model implements Searchable
         'cargo_volume',
         'container_size',
         'origin',
-        'destination'
+        'destination',
+        'remarks',
     ];
 
     protected $hidden = [
