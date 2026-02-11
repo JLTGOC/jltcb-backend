@@ -21,7 +21,8 @@ class Shipment extends Model
         'cargo_volume',
         'container_size',
         'origin',
-        'destination'
+        'destination',
+        'remarks',
     ];
 
     protected $hidden = [
