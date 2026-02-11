@@ -23,8 +23,8 @@ class ShipmentResource extends JsonResource
             'general_info' => [
                 'reference_number' => $this->reference_number,
                 'quotation_id' => $this->quotation_id,
-                'client_id' => $this->client_id,
-                'account_pecialist_id' => $this->as_id,
+                'client' => $this->client->full_name,
+                'account_specialist' => $this->accountSpecialist->full_name,
                 'status' => $this->status,
             ],
             'commodity_details' => [

@@ -22,7 +22,7 @@ class QuotationResource extends JsonResource
         return [
             'general_info' => [
                 'reference_number' => $this->reference_number,
-                'client_id' => $this->client_id,
+                'client' => $this->client->full_name,
                 'account_specialist' => $this->accountSpecialist->full_name,
                 'status' => $this->status,
             ],
