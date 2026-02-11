@@ -28,7 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('reels', ReelController::class)->only(['store', 'update', 'destroy']);
 
-    Route::apiResource('users', UserController::class)->only(['show']);
+    Route::apiResource('users', UserController::class)->only(['index', 'show']);
 
     Route::get('dashboard', [DashboardController::class, 'index']);
 

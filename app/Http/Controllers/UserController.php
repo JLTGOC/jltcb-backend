@@ -8,12 +8,21 @@ use App\Http\Resources\UserResource;
 
 class UserController extends Controller
 {
+    public function __construct() {
+        $this->authorizeResource(User::class, 'user');
+    }
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        if (strtoupper($request->role) === 'AS') {
+            $as = User::role('Account Specialist')
+                ->pluck('full_name');
+
+            return $this->success('Account specialists fetched', $as, 200);
+        }
     }
 
     /**
@@ -31,7 +40,6 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        $user = User::find(auth()->id());
         $userData = new UserResource($user);
 
         return $this->success('User details fetched successfully', $userData, 200);
