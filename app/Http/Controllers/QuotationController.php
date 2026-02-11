@@ -71,11 +71,19 @@ class QuotationController extends Controller
                 ->filter()
                 ->values();
 
-            if ($searchIds->isEmpty()) {
+            $clientSearchIds = Quotation::query()
+                ->leftJoin('users', 'quotations.client_id', '=', 'users.id')
+                ->where('users.full_name', 'like', "%{$search}%")
+                ->select('quotations.id')
+                ->pluck('id');
+
+            $mergedIds = $searchIds->merge($clientSearchIds)->unique()->values();
+
+            if ($mergedIds->isEmpty()) {
                 return $this->success('No quotations found', [], 200);
             }
 
-            $quotations->whereIn('id', $searchIds);
+            $quotations->whereIn('id', $mergedIds);
         }
 
         $results = $quotations->get();
@@ -102,8 +110,10 @@ class QuotationController extends Controller
             })->values();
         } else {
             $results = $results->map(function ($result) use ($user,$request) {
-                if ($user->hasRole('Client') && $request->filter['status'] === 'RESPONDED') {
-                    $status = 'NEW';
+                if ($request->has('filter.status')) {
+                    if ($user->hasRole('Client') && $request->filter['status'] === 'RESPONDED') {
+                        $status = 'NEW';
+                    }
                 }
                 return [
                     'id' => $result->id,
