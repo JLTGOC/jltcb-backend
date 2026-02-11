@@ -102,7 +102,7 @@ class QuotationController extends Controller
                         return [
                             'id' => $quotation->id,
                             'date' => $quotation->created_at->format('Y/m/d'),
-                            'contact_person' => $quotation->contact_person,
+                            'person_in_charge' => $quotation->accountSpecialist->full_name,
                             'commodity' => $quotation->commodity,
                         ];
                     })->values(),
