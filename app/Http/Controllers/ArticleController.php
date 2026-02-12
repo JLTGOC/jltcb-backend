@@ -105,6 +105,8 @@ class ArticleController extends Controller
 
             $article->refresh();
 
+            event(new ArticleEvent('updated'));
+
             return $this->success('Article updated successfully.', new ArticleResource($article), 200);
         });
     }
@@ -122,6 +124,8 @@ class ArticleController extends Controller
             }
 
             $article->delete();
+
+            event(new ArticleEvent('destroyed'));
 
             return $this->success('Article deleted successfully.', [], 200);
         });
