@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Reel;
+use App\Events\ReelEvent;
 use Illuminate\Http\Request;
 use App\Http\Resources\ReelResource;
 use Illuminate\Support\Facades\Storage;
@@ -119,6 +120,8 @@ class ReelController extends Controller
         $reel->generateThumbnail();
 
         $reel->refresh();
+
+        event(new ReelEvent('stored'));
 
         return $this->success('Reel uploaded successfully', new ReelResource($reel), 201);
     }
@@ -241,6 +244,8 @@ class ReelController extends Controller
                     }
                 }
 
+                event(new ReelEvent('updated'));
+                
                 return $this->success('Reel video updated successfully', new ReelResource($reel));
             }
 
@@ -282,6 +287,8 @@ class ReelController extends Controller
             }
 
             $reel->delete($reel);
+
+            event(new ReelEvent('destroyed'));
 
             return $this->success('Reel deleted successfully');
         } catch (\Exception $e) {
