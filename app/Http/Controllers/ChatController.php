@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Message;
+use App\Events\ChatEvent;
 use App\Models\Quotation;
 use App\Models\Participant;
 use App\Models\Conversation;
@@ -12,8 +13,8 @@ use Spatie\Searchable\Search;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Resources\MessageResource;
 use Illuminate\Support\Facades\Gate;
+use App\Http\Resources\MessageResource;
 
 class ChatController extends Controller
 {
@@ -224,6 +225,8 @@ class ChatController extends Controller
                 $conversation->update(['last_message_at' => now()]);
             }
 
+            event(new ChatEvent('chat-with-quotation'));
+
             return $this->success(
                 $alreadySent ? 'Navigating to chat' : 'Connected to Lead AS',
                 ["conversation_id" => $conversation->id],
@@ -309,6 +312,8 @@ class ChatController extends Controller
                 'image_path' => $message->sender->image_path ? asset($message->sender->image_path) : null,
             ],
         ];
+
+        event(new ChatEvent('chat-with-group'));
 
         return $this->success('Message sent successfully.', $formattedMessage, 201);
     }
@@ -409,6 +414,8 @@ class ChatController extends Controller
                 'image_path' => $message->sender->image_path ? asset($message->sender->image_path) : null,
             ],
         ];
+        
+        event(new ChatEvent('chat-with-user'));
 
         return $this->success('Message sent successfully.', $formattedMessage, 201);
     }
