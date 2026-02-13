@@ -10,6 +10,7 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QuotationController;
+use App\Http\Controllers\QuotationFileController;
 
 require __DIR__ . '/public_routes.php';
 
@@ -33,11 +34,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index']);
 
     Route::get('quotations/enum-options', [QuotationController::class, 'enumQuotationOptions']);
-    Route::apiResource('quotations', QuotationController::class)->except(['destroy']);
+    Route::apiResource('quotations', QuotationController::class)->except(['destroy', 'update']);
+    Route::post('/quotations/{quotation}', [QuotationController::class, 'update']);
+
     
     //Temporary routes for quotation files
     Route::post('/quotations/{quotation}/upload', [QuotationController::class, 'upload']);
-    Route::get('/quotations/{quotation}/show-file', [QuotationController::class, 'showFile']);
+    Route::get('/quotations/{quotation}/files', [QuotationFileController::class, 'index']);
+    Route::get('/quotations/{quotation}/files/{file}', [QuotationFileController::class, 'show'])
+        ->scopeBindings();
 
     Route::prefix('conversations')->group(function () {
         Route::get('', [ChatController::class, 'index']); // Inbox
