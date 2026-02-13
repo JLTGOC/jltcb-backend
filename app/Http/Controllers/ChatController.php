@@ -390,8 +390,6 @@ class ChatController extends Controller
             return $msg->load('sender');
         });
 
-        $updateQuotationStatus = $this->markQuotationAsResponded($conversation, $senderId);
-
         // 4. FORMAT RESPONSE
         // (Using manual array construction as requested, though Resource is better)
         $attachmentUrl = $message->attachment_path ? asset($message->attachment_path) : null;
@@ -413,40 +411,5 @@ class ChatController extends Controller
         ];
 
         return $this->success('Message sent successfully.', $formattedMessage, 201);
-    }
-
-    private function markQuotationAsResponded(Conversation $conversation, $senderId)
-    {
-        // Check if sender is an Account Specialist
-        $isAS = User::where('id', $senderId)
-            ->role('Account Specialist')
-            ->exists();
-
-        if (!$isAS) {
-            return;
-        }
-
-        // Find quotation card message in this conversation
-        $pastQuotationCards = $conversation->messages()
-            ->where('type', 'QUOTATION_CARD')
-            ->whereNotNull('reference_id')
-            ->where('reference_type', 'App\\Models\\Quotation')
-            ->get();
-
-        if (!$pastQuotationCards) {
-            return;
-        }
-
-        $quotations = [];
-
-        foreach ($pastQuotationCards as $card) {
-            $quotations[$card->reference_id] = Quotation::find($card->reference_id);
-
-            if ($quotations[$card->reference_id]->status !== 'RESPONDED') {
-                $quotations[$card->reference_id]->update([
-                    'status' => 'RESPONDED'
-                ]);
-            }
-        }
     }
 }
