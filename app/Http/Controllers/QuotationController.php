@@ -63,7 +63,17 @@ class QuotationController extends Controller
         if ($request->search) {
             $search = $request->search;
             $searchIds = (new Search())
-                ->registerModel(Quotation::class, ['reference_number', 'id', 'contact_person', 'company_name', 'email', 'commodity', 'origin', 'destination', 'cargo_type'])
+                ->registerModel(Quotation::class, [
+                    'reference_number',
+                    'id',
+                    // 'contact_person',
+                    // 'company_name',
+                    // 'email',
+                    'commodity',
+                    // 'origin',
+                    // 'destination',
+                    // 'cargo_type'
+                ])
                 ->search($search)
                 ->collect()
                 ->pluck('searchable')
@@ -231,18 +241,6 @@ class QuotationController extends Controller
                 $shipped = Shipment::where('quotation_id', $quotation->id)->first();
                 if ($shipped) {
                     return $this->error('Shipment already ongoing', 422);
-                }
-
-                if ($request->has('status')) {
-                    if (!$user->hasRole('Account Specialist')) {
-                        return $this->error('Unauthorized', 403);
-                    }
-                    $quotation->update([
-                        'status' => $request->status
-                    ]);
-
-                    DB::commit();
-                    return $this->success('Quotation status updated', new QuotationResource($quotation), 200);
                 }
 
                 $quotation->update([
