@@ -80,7 +80,7 @@ class QuotationPolicy
      */
     public function upload(User $user, Quotation $quotation): bool
     {
-        return $user->id === $quotation->client_id || $user->id === $quotation->as_id;
+        return $user->id === $quotation->as_id;
     }
 
     /**
