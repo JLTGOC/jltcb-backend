@@ -181,6 +181,12 @@ class QuotationController extends Controller
                 ]);
             }
 
+            // Upload client documents
+            $fileUploaded = $this->uploadClientDocuments($quotation, $request);
+            if ($fileUploaded !== true) {
+                return $this->error($fileUploaded->getMessage());
+            } 
+
             DB::commit();
 
             return $this->success('Quotation request submitted', new QuotationResource($quotation), 200);
@@ -260,6 +266,12 @@ class QuotationController extends Controller
                     ]);
                 }
 
+                 // Re-upload client documents
+                $fileUploaded = $this->uploadClientDocuments($quotation, $request);
+                if ($fileUploaded !== true) {
+                    return $this->error($fileUploaded->getMessage());
+                } 
+
                 DB::commit();
 
                 return $this->success('Quotation request updated', new QuotationResource($quotation), 200);
@@ -319,29 +331,15 @@ class QuotationController extends Controller
 
         $user = $request->user();
 
-        if ($user->hasRole('Client')) {
-            $type = 'REQUESTED';
-        } elseif($user->hasRole('Account Specialist')) {
-            $type = 'PROPOSAL';
-        } else {
-            return $this->error('Unauthorized', [], 404);
-        }
-
         $file = $request->file('file');
         $directory = 'files';
-
-        //store original file name with extension
-        // $originalFileName = $file->getClientOriginalName();
-
-        //store original file name without extension
         $originalFileName = str_replace('.' . $file->extension(), '', $file->getClientOriginalName());
+        $type = 'PROPOSAL';
 
-        $fileExists = $quotation->files()->where('type', $type)->exists();
+        $existingFile = $quotation->files()->where('type', $type)->first();
 
-        if ($fileExists) {
-            $existingFile = $quotation->files()->where('type', $type)->first();
-            $existingFileName = str_replace('/storage/files/', '', $existingFile->file_path);
-
+        if ($existingFile) {
+            $existingFileName = str_replace('/files/', '', $existingFile->file_path);
             $filename = $existingFileName;
         } else {
             $filename = $file->hashName();
@@ -351,7 +349,6 @@ class QuotationController extends Controller
         try {
 
             $path = $file->storeAs($directory, $filename, 'public');
-            $url = Storage::url($path);
 
             $quotationFile = QuotationFile::updateOrCreate(
                 [
@@ -359,22 +356,15 @@ class QuotationController extends Controller
                     'uploaded_by' => $user->id
                 ],
                 [
-                    'file_path' => $url,
+                    'file_path' => $path,
                     'type' => $type,
                     'original_file_name' => $originalFileName
                 ],
             );
-
-            //update uploaded quotation status
-            if ($type == 'PROPOSAL') {
-                $quotation->update([
-                    'status' => 'RESPONDED'
-                ]);
-            }
             
             $message = $quotationFile->wasRecentlyCreated 
-                ? 'File uploaded successfully' 
-                : 'File updated sucessfully';
+                ? 'Quotation file uploaded successfully' 
+                : 'Quotation file updated sucessfully';
 
             $status = $quotationFile->wasRecentlyCreated ? 201 : 200;
 
@@ -384,34 +374,68 @@ class QuotationController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return $this->error(
-                'Failed to upload file', 500, $e->getMessage()
+                'Failed to upload quotation file', 500, $e->getMessage()
             );
         }
-    }
-
+    } 
 
     /**
-     * Show Quotation File
+     * Upload Client Documents
      * 
-     * Displays the quotation file details
+     * Upload files for client documents
      */
-    public function showFile(Request $request, Quotation $quotation) {
+    private function uploadClientDocuments(Quotation $quotation, Request $request) {
         $request->validate([
-            'filter.type' => 'required|in:REQUESTED,PROPOSAL'
+            'files'   => ['required', 'array'],
+            'files.*' => ['file', 'mimes:pdf,png,jpg']
         ]);
 
-        $quotationFileQuery = QuotationFile::where('quotation_id', $quotation->id);
+        $user = $request->user();
+        $type = 'REQUESTED';
 
-        $quotationFile = QueryBuilder::for($quotationFileQuery)
-            ->allowedFilters(['type'])
-            ->first();
-        
-        if (! $quotationFile) {
-            return $this->success('No file available.', []);
+        DB::beginTransaction();
+        try {
+            //Delete existing files from storage and DB
+            $oldFiles = $quotation->files()->where('type', $type)->get();
+            
+            if (! $oldFiles->isEmpty()) {
+                foreach ($oldFiles as $oldFile) {
+                    Storage::disk('public')->delete($oldFile->file_path);
+                    $oldFile->delete();
+                }
+            }
+            
+            //Upload new files
+            $uploadedFiles = [];
+
+            foreach ($request->file('files') as $file) {
+
+                $filename = $file->hashName();
+                $path = $file->storeAs('files', $filename, 'public');
+                $originalFileName = str_replace(
+                    '.' . $file->extension(), '', 
+                    $file->getClientOriginalName()
+                );
+
+                $quotationFile = QuotationFile::create([
+                    'quotation_id' => $quotation->id,
+                    'file_path' => $path,
+                    'original_file_name' => $originalFileName,
+                    'uploaded_by' => $user->id,
+                    'type' => $type,
+                ]);
+
+                $uploadedFiles[] = $quotationFile;
+            }
+
+            DB::commit();
+
+            // For checking if file uploaded sucessfully
+            return true;
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $e;
         }
-
-        return $this->success(
-            'File retrieved successfully.', new QuotationFileResource($quotationFile)
-        );
-    }   
+    }
 }

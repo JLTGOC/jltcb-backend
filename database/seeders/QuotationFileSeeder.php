@@ -42,10 +42,12 @@ class QuotationFileSeeder extends Seeder
 
             // Attach files for this client’s quotation
             foreach ($files[$clientIndex] as $fileIndex => $file) {
+                $filePath = str_replace('storage/', '', $this->copySeederFile('files', $file));
+
                 QuotationFile::create([
                     'uploaded_by'        => $fileIndex ? $AS->id : $client->id,
                     'quotation_id'       => $quotation->id,
-                    'file_path'          => $this->copySeederFile('files', $file),
+                    'file_path'          => $filePath,
                     'type'               => $fileIndex ? 'PROPOSAL' : 'REQUESTED',
                     'original_file_name' => $fileIndex ? 'QUOTATION' : 'DOCUMENT',
                 ]);

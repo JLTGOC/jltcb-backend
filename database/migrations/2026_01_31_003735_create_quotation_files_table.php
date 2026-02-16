@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('uploaded_by')->constrained('users');
             $table->enum('type', ['REQUESTED', 'PROPOSAL'])->default('REQUESTED');
             $table->timestamps();
-            $table->unique(['quotation_id', 'uploaded_by']);
+            $table->unique(['quotation_id', 'file_path']);
         });
     }
 
