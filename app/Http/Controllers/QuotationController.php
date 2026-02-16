@@ -233,18 +233,6 @@ class QuotationController extends Controller
                     return $this->error('Shipment already ongoing', 422);
                 }
 
-                if ($request->has('status')) {
-                    if (!$user->hasRole('Account Specialist')) {
-                        return $this->error('Unauthorized', 403);
-                    }
-                    $quotation->update([
-                        'status' => $request->status
-                    ]);
-
-                    DB::commit();
-                    return $this->success('Quotation status updated', new QuotationResource($quotation), 200);
-                }
-
                 $quotation->update([
                     'company_name' => $request->company['name'] ?? $quotation->company_name,
                     'company_address' => $request->company['address'] ?? $quotation->company_address,
