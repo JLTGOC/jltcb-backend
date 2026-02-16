@@ -361,6 +361,10 @@ class QuotationController extends Controller
                     'original_file_name' => $originalFileName
                 ],
             );
+
+            $quotation->update([
+                'status' => 'RESPONDED'
+            ]);
             
             $message = $quotationFile->wasRecentlyCreated 
                 ? 'Quotation file uploaded successfully' 
