@@ -117,6 +117,7 @@ class QuotationController extends Controller
                 }
                 return [
                     'id' => $result->id,
+                    'client_name' => $result->client->full_name,
                     'reference_number' => $result->reference_number,
                     'commodity' => $result->commodity,
                     'date' => $result->created_at->format('Y/m/d'),
