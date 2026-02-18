@@ -38,6 +38,8 @@ class UpdateQuotationRequest extends FormRequest
             'commodity.container_size' => 'required_if:cargo_type,CONTAINERIZED|string',
             'shipment.origin' => 'sometimes|string',
             'shipment.destination' => 'sometimes|string',
+            'files' => ['required', 'array'],
+            'files.*' => ['required', 'file', 'mimes:pdf,png,jpg']
         ];
     }
 }

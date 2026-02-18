@@ -182,7 +182,10 @@ class QuotationController extends Controller
             }
 
             // Upload client documents
-            $fileUploaded = $this->uploadClientDocuments($quotation, $request);
+            $validatedFiles = $request->safe()->only(['files']);
+            $fileUploaded = $this->uploadClientDocuments(
+                $quotation, $request->user(), $validatedFiles
+            );
             if ($fileUploaded !== true) {
                 return $this->error($fileUploaded->getMessage());
             } 
@@ -267,7 +270,10 @@ class QuotationController extends Controller
                 }
 
                  // Re-upload client documents
-                $fileUploaded = $this->uploadClientDocuments($quotation, $request);
+                $validatedFiles = $request->safe()->only(['files']);
+                $fileUploaded = $this->uploadClientDocuments(
+                    $quotation, $request->user(), $validatedFiles
+                );
                 if ($fileUploaded !== true) {
                     return $this->error($fileUploaded->getMessage());
                 } 
@@ -388,13 +394,7 @@ class QuotationController extends Controller
      * 
      * Upload files for client documents
      */
-    private function uploadClientDocuments(Quotation $quotation, Request $request) {
-        $request->validate([
-            'files'   => ['required', 'array'],
-            'files.*' => ['file', 'mimes:pdf,png,jpg']
-        ]);
-
-        $user = $request->user();
+    private function uploadClientDocuments(Quotation $quotation,  User $user, array $validatedFiles) {
         $type = 'REQUESTED';
 
         DB::beginTransaction();
@@ -412,7 +412,7 @@ class QuotationController extends Controller
             //Upload new files
             $uploadedFiles = [];
 
-            foreach ($request->file('files') as $file) {
+            foreach ($validatedFiles['files'] as $file) {
 
                 $filename = $file->hashName();
                 $path = $file->storeAs('files', $filename, 'public');
