@@ -58,11 +58,12 @@ class QuotationSeeder extends Seeder
                 $quotation->update([
                     'container_size' => fake()->randomElement(['1x20', '1x40']),
                 ]);
-            } elseif ($quotation->cargo_type === 'LCL') {
-                $quotation->update([
-                    'cargo_volume' => fake()->numberBetween(1, 15)
-                ]);
-            }
+            } 
+            // elseif ($quotation->cargo_type === 'LCL') {
+            //     $quotation->update([
+            //         'cargo_volume' => fake()->numberBetween(1, 15)
+            //     ]);
+            // }
 
             if ($quotation->status === 'RESPONDED') {
                 $lastId = Shipment::max('id') ?? 0;
@@ -81,7 +82,7 @@ class QuotationSeeder extends Seeder
                     'email' => $quotation->email,
                     'commodity' => $quotation->commodity,
                     'cargo_type' => $quotation->cargo_type,
-                    'cargo_volume' => $quotation->cargo_volume ?? null,
+                    // 'cargo_volume' => $quotation->cargo_volume ?? null,
                     'container_size' => $quotation->container_size ?? null,
                     'origin' => $quotation->origin,
                     'destination' => $quotation->destination,

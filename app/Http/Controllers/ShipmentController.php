@@ -84,7 +84,7 @@ class ShipmentController extends Controller
                 'email' => $quotation->email,
                 'commodity' => $quotation->commodity,
                 'cargo_type' => $quotation->cargo_type,
-                'cargo_volume' => $quotation->cargo_volume ?? null,
+                // 'cargo_volume' => $quotation->cargo_volume ?? null,
                 'container_size' => $quotation->container_size ?? null,
                 'origin' => $quotation->origin,
                 'destination' => $quotation->destination,

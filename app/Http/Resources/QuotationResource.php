@@ -36,7 +36,6 @@ class QuotationResource extends JsonResource
             'commodity' => [
                 'commodity' => $this->commodity,
                 'cargo_type' => $this->cargo_type,
-                'cargo_volume' => "{$this->cargo_volume} m³" ?? null,
                 'container_size' => $this->container_size ?? null
             ],
             'shipment' => [

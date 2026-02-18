@@ -23,7 +23,7 @@ class Quotation extends Model implements Searchable
         'service_options',
         'commodity',
         'cargo_type',
-        'cargo_volume',
+        // 'cargo_volume',
         'container_size',
         'origin',
         'destination',

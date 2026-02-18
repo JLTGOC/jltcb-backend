@@ -18,7 +18,7 @@ class Shipment extends Model
         'company_name',
         'commodity',
         'cargo_type',
-        'cargo_volume',
+        // 'cargo_volume',
         'container_size',
         'origin',
         'destination',
