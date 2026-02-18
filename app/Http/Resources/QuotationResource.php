@@ -14,6 +14,7 @@ class QuotationResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $options = explode(',', $this->service_options);
         return [
             'reference_number' => $this->reference_number,
             'client' => $this->client->full_name,
@@ -31,7 +32,7 @@ class QuotationResource extends JsonResource
             'service' => [
                 'type' => $this->service_type,
                 'transport_mode' => $this->transport_mode,
-                'options' => $this->service_options,
+                'options' => $options,
             ],
             'commodity' => [
                 'commodity' => $this->commodity,
