@@ -117,6 +117,7 @@ class QuotationController extends Controller
                 }
                 return [
                     'id' => $result->id,
+                    'client_name' => $result->client->full_name,
                     'reference_number' => $result->reference_number,
                     'commodity' => $result->commodity,
                     'date' => $result->created_at->format('Y/m/d'),
@@ -165,17 +166,18 @@ class QuotationController extends Controller
                 'service_options' => $stringifiedServiceOptions,
                 'commodity' => $request->commodity['commodity'],
                 'cargo_type' => $request->commodity['cargo_type'],
-                'cargo_volume' => $request->commodity['cargo_volume'] ?? null,
+                // 'cargo_volume' => $request->commodity['cargo_volume'] ?? null,
                 'container_size' => $request->commodity['container_size'] ?? null,
                 'origin' => $request->shipment['origin'],
                 'destination' => $request->shipment['destination'],
             ]);
 
-            if ($quotation->cargo_type === 'CONTAINERIZED' && isset($quotation->cargo_volume)) {
-                $quotation->update([
-                    'cargo_volume' => null
-                ]);
-            } elseif ($quotation->cargo_type === 'LCL' && isset($quotation->container_size)) {
+            // if ($quotation->cargo_type === 'CONTAINERIZED' && isset($quotation->cargo_volume)) {
+            //     $quotation->update([
+            //         'cargo_volume' => null
+            //     ]);
+            // } else
+            if ($quotation->cargo_type === 'LCL' && isset($quotation->container_size)) {
                 $quotation->update([
                     'container_size' => null
                 ]);
@@ -253,17 +255,18 @@ class QuotationController extends Controller
                     'service_options' => $stringifiedServiceOptions ?? $quotation->service_options,
                     'commodity' => $request->commodity['commodity'] ?? $quotation->commodity,
                     'cargo_type' => $request->commodity['cargo_type'],
-                    'cargo_volume' => $request->commodity['cargo_volume'] ?? $quotation->cargoVolume,
+                    // 'cargo_volume' => $request->commodity['cargo_volume'] ?? $quotation->cargoVolume,
                     'container_size' => $request->commodity['container_size'] ?? $quotation->container_size,
                     'origin' => $request->shipment['origin'] ?? $quotation->origin,
                     'destination' => $request->shipment['destination'] ?? $quotation->destination,
                 ]);
 
-                if ($quotation->cargo_type === 'CONTAINERIZED' && isset($quotation->cargo_volume)) {
-                    $quotation->update([
-                        'cargo_volume' => null
-                    ]);
-                } elseif ($quotation->cargo_type === 'LCL' && isset($quotation->container_size)) {
+                // if ($quotation->cargo_type === 'CONTAINERIZED' && isset($quotation->cargo_volume)) {
+                //     $quotation->update([
+                //         'cargo_volume' => null
+                //     ]);
+                // } else
+                if ($quotation->cargo_type === 'LCL' && isset($quotation->container_size)) {
                     $quotation->update([
                         'container_size' => null
                     ]);

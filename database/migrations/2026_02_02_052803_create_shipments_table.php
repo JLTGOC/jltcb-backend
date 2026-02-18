@@ -27,7 +27,7 @@ return new class extends Migration
             $table->string('company_name');
             $table->string('commodity');
             $table->enum('cargo_type', ['CONTAINERIZED', 'LCL'])->default('CONTAINERIZED');
-            $table->unsignedBigInteger('cargo_volume')->nullable();
+            // $table->unsignedBigInteger('cargo_volume')->nullable();
             $table->string('container_size')->nullable();
             $table->string('origin');
             $table->string('destination');
