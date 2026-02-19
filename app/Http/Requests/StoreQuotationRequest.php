@@ -37,8 +37,8 @@ class StoreQuotationRequest extends FormRequest
             'commodity.container_size' => 'required_if:cargo_type,CONTAINERIZED|string',
             'shipment.origin' => 'required|string',
             'shipment.destination' => 'required|string',
-            'files' => ['required', 'array'],
-            'files.*' => ['required', 'file', 'mimes:pdf,png,jpg']
+            'documents' => ['required', 'array'],
+            'documents.*' => ['required', 'file', 'mimes:pdf,png,jpg']
         ];
     }
 }

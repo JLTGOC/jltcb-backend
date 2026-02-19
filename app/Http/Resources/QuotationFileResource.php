@@ -20,9 +20,9 @@ class QuotationFileResource extends JsonResource
             'uploaded_by' => $this->uploaded_by,
             'quotation_id' => $this->quotation_id,
             // 'file_path' => asset($this->file_path),
-            'file_path' => asset(Storage::url($this->file_path)),
+            'file_url' => asset(Storage::url($this->file_path)),
             'type' => $this->type,
-            'original_file_name' => $this->original_file_name,
+            'file_name' => $this->original_file_name,
             'created_at' => $this->created_at?->toDateTimeString(),
             'updated_at' => $this->updated_at?->toDateTimeString(),
         ];

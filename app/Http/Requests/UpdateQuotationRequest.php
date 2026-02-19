@@ -23,6 +23,8 @@ class UpdateQuotationRequest extends FormRequest
      */
     public function rules(): array
     {
+        $quotation = $this->route('quotation');
+
         return [
             'company.name' => 'sometimes|string',
             'company.address' => 'sometimes|string',
@@ -38,8 +40,22 @@ class UpdateQuotationRequest extends FormRequest
             'commodity.container_size' => 'required_if:cargo_type,CONTAINERIZED|string',
             'shipment.origin' => 'sometimes|string',
             'shipment.destination' => 'sometimes|string',
-            'files' => ['required', 'array'],
-            'files.*' => ['required', 'file', 'mimes:pdf,png,jpg']
+            'documents' => ['nullable','array'],
+            'documents.*' => ['file', 'mimes:pdf,png,jpg'],
+            'removed_documents' => ['nullable', 'array'],
+            'removed_documents.*' => [
+                'integer',
+                Rule::exists('quotation_files', 'id')->where(function($query) use ($quotation) {
+                    $query->where('quotation_id', $quotation->id);
+                })
+            ]
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'removed_documents.*.exists' => 'The Quotation File ID does not belong to this quotation OR does not exist'
         ];
     }
 }

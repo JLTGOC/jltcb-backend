@@ -184,13 +184,17 @@ class QuotationController extends Controller
             }
 
             // Upload client documents
-            $validatedFiles = $request->safe()->only(['files']);
+            $newFiles = $request->file('documents');
+
             $fileUploaded = $this->uploadClientDocuments(
-                $quotation, $request->user(), $validatedFiles
+                $quotation,
+                $request->user(), 
+                $newFiles =  $newFiles
             );
+
             if ($fileUploaded !== true) {
                 return $this->error($fileUploaded->getMessage());
-            } 
+            }
 
             DB::commit();
 
@@ -273,13 +277,19 @@ class QuotationController extends Controller
                 }
 
                  // Re-upload client documents
-                $validatedFiles = $request->safe()->only(['files']);
+                $removedFileIds = $request->input('removed_documents', []);
+                $newFiles = $request->file('documents', []);
+
                 $fileUploaded = $this->uploadClientDocuments(
-                    $quotation, $request->user(), $validatedFiles
+                    $quotation,
+                    $request->user(), 
+                    $newFiles = $newFiles, 
+                    $removedFileIds = $removedFileIds
                 );
+
                 if ($fileUploaded !== true) {
                     return $this->error($fileUploaded->getMessage());
-                } 
+                }
 
                 DB::commit();
 
@@ -397,52 +407,47 @@ class QuotationController extends Controller
      * 
      * Upload files for client documents
      */
-    private function uploadClientDocuments(Quotation $quotation,  User $user, array $validatedFiles) {
+    private function uploadClientDocuments(
+        Quotation $quotation,
+        User $user,
+        array $newFiles = [],
+        array $removedFileIds = []
+    ) {
         $type = 'REQUESTED';
 
         DB::beginTransaction();
         try {
-            //Delete existing files from storage and DB
-            $oldFiles = $quotation->files()->where('type', $type)->get();
-            
-            if (! $oldFiles->isEmpty()) {
-                foreach ($oldFiles as $oldFile) {
-                    Storage::disk('public')->delete($oldFile->file_path);
-                    $oldFile->delete();
+            // Delete only the files explicitly marked for removal
+            if (!empty($removedFileIds)) {
+                $filesToRemove = $quotation->files()->whereIn('id', $removedFileIds)->get();
+                foreach ($filesToRemove as $file) {
+                    Storage::disk('public')->delete($file->file_path);
+                    $file->delete();
                 }
             }
-            
-            //Upload new files
-            $uploadedFiles = [];
 
-            foreach ($validatedFiles['files'] as $file) {
+            // Upload new files if provided
+            if (!empty($newFiles)) {
+                foreach ($newFiles as $file) {
+                    $filename = $file->hashName();
+                    $path = $file->storeAs('files', $filename, 'public');
+                    $originalFileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
 
-                $filename = $file->hashName();
-                $path = $file->storeAs('files', $filename, 'public');
-                $originalFileName = str_replace(
-                    '.' . $file->extension(), '', 
-                    $file->getClientOriginalName()
-                );
-
-                $quotationFile = QuotationFile::create([
-                    'quotation_id' => $quotation->id,
-                    'file_path' => $path,
-                    'original_file_name' => $originalFileName,
-                    'uploaded_by' => $user->id,
-                    'type' => $type,
-                ]);
-
-                $uploadedFiles[] = $quotationFile;
+                    QuotationFile::create([
+                        'quotation_id' => $quotation->id,
+                        'file_path' => $path,
+                        'original_file_name' => $originalFileName,
+                        'uploaded_by' => $user->id,
+                        'type' => $type,
+                    ]);
+                }
             }
 
             DB::commit();
-
-            // For checking if file uploaded sucessfully
-            return true;
-
+            return true; // success
         } catch (\Exception $e) {
             DB::rollBack();
-            return $e;
+            return $e; // return exception for error handling
         }
     }
 }

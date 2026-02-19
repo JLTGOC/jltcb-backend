@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class QuotationResource extends JsonResource
 {
@@ -43,12 +44,12 @@ class QuotationResource extends JsonResource
                 'origin' => $this->origin,
                 'destination' => $this->destination,
             ],
-            'documents' => $this->files()->exists()
+            'documents' => $this->files()->where('type', 'REQUESTED')->exists()
                 ? $this->files()->get()->map(function($file) {
                     return [
                         'id' => $file->id,
                         'file_name' => $file->original_file_name,
-                        'file_url' => asset($file->file_path),
+                        'file_url' => asset(Storage::url($file->file_path)),
                     ];
                 })
                 : 'No documents available.',
