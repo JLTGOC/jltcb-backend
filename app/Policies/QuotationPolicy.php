@@ -48,7 +48,7 @@ class QuotationPolicy
      */
     public function delete(User $user, Quotation $quotation): bool
     {
-        return false;
+        return $user->id === $quotation->client_id;
     }
 
     /**

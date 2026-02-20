@@ -34,7 +34,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index']);
 
     Route::get('quotations/enum-options', [QuotationController::class, 'enumQuotationOptions']);
-    Route::apiResource('quotations', QuotationController::class)->except(['destroy', 'update']);
+    Route::apiResource('quotations', QuotationController::class)->except(['update']);
     Route::post('/quotations/{quotation}', [QuotationController::class, 'update']);
 
     

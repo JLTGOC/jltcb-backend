@@ -310,9 +310,11 @@ class QuotationController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Quotation $quotation)
     {
-        //
+        $quotation->delete();
+
+        return $this->success('Quotation deleted', [], 200);
     }
 
     /**
