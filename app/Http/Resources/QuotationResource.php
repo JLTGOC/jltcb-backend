@@ -5,6 +5,10 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
+use App\Models\{
+    Message,
+    Conversation
+};
 
 class QuotationResource extends JsonResource
 {
@@ -15,7 +19,16 @@ class QuotationResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $message = Message::where('reference_id', $this->id)->first();
+        
+        if (!$message) {
+            $conversationId = null;
+        } else {
+            $conversationId = Conversation::find($message->conversation_id)->value('id');
+        }
+        
         $options = explode(',', $this->service_options);
+
         return [
             'reference_number' => $this->reference_number,
             'client' => $this->client->full_name,
@@ -53,6 +66,7 @@ class QuotationResource extends JsonResource
                     ];
                 })
                 : 'No documents available.',
+            'conversation_id' => $conversationId
         ];
     }
 }
