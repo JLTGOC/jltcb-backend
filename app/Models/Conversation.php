@@ -58,7 +58,7 @@ class Conversation extends Model implements Searchable
 
     public function getUnreadCountFor($user) {
         
-        $lastRead = $this->participants()->where('user_id', $user->id)->first()->pivot->last_read_at;
+        $lastRead = $this->participants()->where('user_id', $user->id)->first()?->pivot->last_read_at;
 
         // Base query for messages not sent by the user
         $query = $this->messages()
