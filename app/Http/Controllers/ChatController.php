@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Message;
 use App\Events\ChatEvent;
+use App\Events\InboxUpdatedEvent;
 use App\Models\Quotation;
 use App\Models\Participant;
 use App\Models\Conversation;
@@ -12,6 +13,7 @@ use Illuminate\Http\Request;
 use Spatie\Searchable\Search;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ConversationResource;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use App\Http\Resources\MessageResource;
@@ -23,13 +25,11 @@ class ChatController extends Controller
     {
         // Policy methods located in ChatPolicy
         $this->authorizeResource(Conversation::class, 'conversation');
-        $this->middleware('can:sendMessageToGroup,conversation')->only('sendMessageToGroup');
+        $this->middleware('can:sendMessage,conversation')->only('sendMessage');
+        $this->middleware('can:indexMessages,conversation')->only('indexMessages');
         
         // located in QuotationPolicy
         $this->middleware('can:chatWithQuotation,quotation')->only('chatWithQuotation');
-
-        // located in UserPolicy
-        $this->middleware('can:sendMessageToUser,user')->only('sendMessageToUser');
     }
 
     /**
@@ -39,7 +39,6 @@ class ChatController extends Controller
      */
     public function index(Request $request)
     {
-        $userId = Auth::id();
         $search = $request->input('search');
 
         $request->validate([
@@ -97,69 +96,19 @@ class ChatController extends Controller
             return $this->success('No conversations found.');
         }
 
-        $formatted = $conversations->map(function ($chat) use ($userId) {
-            // Find "Other" participant for avatar/name
-            $other = $chat->participants->firstWhere('id', '!=', $userId);
-            $me = $chat->participants->firstWhere('id', $userId);
-
-            // Calculate Unread Count
-            $lastRead = $me?->pivot->last_read_at;
-            $unread = 0;
-
-            if ($chat->lastMessage) {
-                // Base query: Messages in this chat sent by OTHERS OR SYSTEM
-                $query = $chat->messages->where(function ($q) use ($userId) {
-                    $q->where('sender_id', '!=', $userId)
-                        ->orWhereNull('sender_id'); // <--- Include System Messages
-                });
-
-                if (!$lastRead) {
-                    // If I've never read the chat, count all messages from others/system
-                    $unread = $query->count();
-                } else {
-                    // Count messages from others/system created AFTER my last read time
-                    $unread = $query->where('created_at', '>', $lastRead)->count();
-                }
-            }
-
-            if ($chat->lastMessage->type === 'TEXT') {
-                $lastMessage = $chat->lastMessage->content;
-            } else if ($chat->lastMessage->type === 'IMAGE') {
-                $lastMessage = '[Image]';
-            } else if ($chat->lastMessage->type === 'FILE') {
-                $lastMessage = '[File]';
-            } else if ($chat->lastMessage->type === 'QUOTATION_CARD') {
-                $lastMessage = '[Quotation Card]';
-            } else if ($chat->lastMessage->type === 'SHIPMENT_CARD') {
-                $lastMessage = '[Shipment Card]';
-            } else {
-                $lastMessage = 'No message';
-            }
-
-            return [
-                'id' => $chat->id,
-                'type' => $chat->type,
-                'title' => $chat->type === 'GROUP' ? $chat->name : ($other->full_name ?? 'User'),
-                'image_path' => $chat->type === 'GROUP' ? null : asset($other->image_path),
-                'last_message' => $lastMessage,
-                'time' => $chat->lastMessage?->created_at?->format('h:iA'),
-                'unread_count' => $unread,
-            ];
-        });
-
-        return $this->success('Conversations retrieved successfully.', $formatted, 200);
+        return $this->success(
+            'Conversations retrieved sucessfully.', 
+            ConversationResource::collection($conversations)    
+        );
     }
 
     /**
-     * Show Converstion
+     * Index Conversation Messages
      * 
      * Fetch messages in a conversation
      */
-    public function show(Conversation $conversation)
+    public function indexMessages(Conversation $conversation)
     {
-        // Moved to ChatPolicy to handle authorization
-        // abort_unless($conversation->participants()->where('user_id', Auth::id())->exists(), 403);
-
         // Mark as read
         $conversation->participants()->updateExistingPivot(Auth::id(), ['last_read_at' => now()]);
 
@@ -183,8 +132,6 @@ class ChatController extends Controller
      */
     public function chatWithQuotation(Quotation $quotation)
     {
-        // $this->authorize('chatWithQuotation', [Conversation::class, $quotation]);
-
         $clientId = auth()->id();
 
         // 1. Get the Lead (Receiver)
@@ -227,8 +174,6 @@ class ChatController extends Controller
                 $conversation->update(['last_message_at' => now()]);
             }
 
-            event(new ChatEvent('chat-with-quotation'));
-
             return $this->success(
                 $alreadySent ? 'Navigating to chat' : 'Connected to Lead AS',
                 ["conversation_id" => $conversation->id],
@@ -238,28 +183,38 @@ class ChatController extends Controller
     }
 
     /**
-     * Send Message to Group
+     * Send Message 
      * 
-     * Reply to a group conversation
+     * Send message to either GROUP or DIRECT
      */
-    public function sendMessageToGroup(Request $request, Conversation $conversation)
-    {
-        // $this->authorize('sendMessageToGroup', $conversation);
-
-        // 1. Validation (Matched with User logic)
+    public function sendMessage(Request $request, Conversation $conversation) {
         $request->validate([
             'type' => 'required|in:TEXT,IMAGE,FILE',
             'content' => 'required_if:type,TEXT|nullable|string',
             'file' => 'required_if:type,IMAGE,FILE|max:5120', // Max 5MB
         ]);
 
-        // 2. Authorization
-        // Moved to ChatPolicy
-        // abort_unless($conversation->participants()->where('user_id', Auth::id())->exists(), 403);
+        // Set user's last_read_at pivot to now as they send a message
+        $conversation->participants()->updateExistingPivot(Auth::id(), ['last_read_at' => now()]);
 
+        $conversationType = $conversation->type;
+        if ($conversationType === 'DIRECT') {
+            return $this->sendMessageToUser($request, $conversation);
+        } else if ($conversationType === 'GROUP') {
+            return $this->sendMessageToGroup($request, $conversation);
+        }
+    }
+
+    /**
+     * Send Message to Group
+     * 
+     * Reply to a group conversation
+     */
+    private function sendMessageToGroup(Request $request, Conversation $conversation)
+    {
         $senderId = Auth::id();
 
-        // 3. HANDLE FILE UPLOADS (Same logic as sendMessageToUser)
+        // 1. HANDLE FILE UPLOADS (Same logic as sendMessageToUser)
         $attachmentPath = null;
 
         // CASE A: IMAGE (Use the Helper)
@@ -281,7 +236,7 @@ class ChatController extends Controller
             }
         }
 
-        // 4. CREATE MESSAGE
+        // 2. CREATE MESSAGE
         $message = DB::transaction(function () use ($conversation, $request, $senderId, $attachmentPath) {
             $msg = $conversation->messages()->create([
                 'sender_id' => $senderId,
@@ -296,7 +251,7 @@ class ChatController extends Controller
             return $msg->load('sender');
         });
 
-        // 5. FORMAT RESPONSE (Matched with User logic)
+        // 3. FORMAT RESPONSE (Matched with User logic)
         $attachmentUrl = $message->attachment_path ? asset($message->attachment_path) : null;
         $fileName = $message->attachment_path ? basename($message->attachment_path) : null;
 
@@ -315,7 +270,7 @@ class ChatController extends Controller
             ],
         ];
 
-        event(new ChatEvent('chat-with-group'));
+        $this->broadcastChatEvents($conversation, $formattedMessage);
 
         return $this->success('Message sent successfully.', $formattedMessage, 201);
     }
@@ -325,26 +280,11 @@ class ChatController extends Controller
      * 
      * Reply to a user
      */
-    public function sendMessageToUser(Request $request, User $user)
+    private function sendMessageToUser(Request $request, Conversation $conversation)
     {
-        // $this->authorize('sendMessageToUser', [Conversation::class, $user]);
-
-        // 1. Validation
-        $request->validate([
-            'type' => 'required|in:TEXT,IMAGE,FILE',
-            'content' => 'required_if:type,TEXT|nullable|string',
-            'file' => 'required_if:type,IMAGE,FILE|max:5120',
-        ]);
-
+        // Direct message to other participant in the conversation
         $senderId = Auth::id();
-
-        // Direct message to LeadAS logic...
-        $leadAsId = 2;
-        if (!Auth::user()->conversations()->exists()) {
-            $receiverId = $leadAsId;
-        } else {
-            $receiverId = $user->id;
-        }
+        $receiverId = $conversation->participants()->whereNot('user_id', $senderId)->pluck('user_id');
 
         // Find or Create Conversation logic...
         $conversation = Conversation::where('type', 'DIRECT')
@@ -416,9 +356,19 @@ class ChatController extends Controller
                 'image_path' => $message->sender->image_path ? asset($message->sender->image_path) : null,
             ],
         ];
-        
-        event(new ChatEvent('chat-with-user'));
+
+        $this->broadcastChatEvents($conversation, $formattedMessage);
 
         return $this->success('Message sent successfully.', $formattedMessage, 201);
+    }
+
+    private function broadcastChatEvents(Conversation $conversation, array $formattedMessage) {
+        $participants = $conversation->participants()->get();
+
+        foreach($participants as $participant) {
+            broadcast(new InboxUpdatedEvent($participant->id, $conversation));
+        }
+
+        broadcast(new ChatEvent($formattedMessage));
     }
 }

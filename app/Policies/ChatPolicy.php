@@ -27,7 +27,7 @@ class ChatPolicy
      */
     public function view(User $user, Conversation $conversation): bool
     {
-        return $conversation->participants()->where('user_id', $user->id)->exists();
+        return false;
     }
 
     /**
@@ -71,25 +71,16 @@ class ChatPolicy
     }
 
     /**
-     * Determine whether the user can send message to a GROUP typed conversation.
+     * Determine whether the user can permanently message a conversation.
      */
-    public function sendMessageToGroup(User $user, Conversation $conversation): bool {
+    public function sendMessage(User $user, Conversation $conversation) {
         return $conversation->participants()->where('user_id', $user->id)->exists();
     }
 
     /**
-     * Determine whether the user can send message to another user.
+     * Determine whether the user can view a chat's history
      */
-    // public function sendMessageToUser(User $user, User $recipient) : bool {
-    //     // Deny message to self and Allow only Client ↔ Account Specialist messaging
-    //     return ($user->hasRole('Client') && $recipient->hasRole('Account Specialist'))
-    //         || ($user->hasRole('Account Specialist') && $recipient->hasRole('Client'));
-    // }
-
-    /**
-     * Determine whether the user can initiate chat about their quotation.
-     */
-    // public function chatWithQuotation(User $user, Quotation $quotation) {
-    //     return $user->id === $quotation->client_id;
-    // }
+    public function indexMessages(User $user, Conversation $conversation) {
+        return $conversation->participants()->where('user_id', $user->id)->exists();
+    }
 }

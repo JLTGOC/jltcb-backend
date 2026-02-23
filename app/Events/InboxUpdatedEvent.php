@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Http\Resources\ConversationResource;
 use App\Models\Conversation;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
@@ -11,21 +12,19 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class ChatEvent implements ShouldBroadcast
+class InboxUpdatedEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $message; 
-    private $conversation_id;
+    private $inboxData;
 
     /**
      * Create a new event instance.
      */
-    public function __construct($message = [])
+    public function __construct(public $user_id, public $conversation)
     {
-        $this->message = $message;
-        $this->conversation_id = $this->message['conversation_id'];
-
+        $this->conversation = $conversation;
+        $this->inboxData = new ConversationResource($this->conversation, $user_id);
     }
 
     /**
@@ -36,21 +35,17 @@ class ChatEvent implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('chat.' . $this->conversation_id)
+            new PrivateChannel('user.' . $this->user_id)
         ];
     }
 
-    public function broadcastAs(): string
-    {
-        // chat.stored, chat.updated, chat.deleted
-        return 'message.sent';
+    public function broadcastAs() {
+        return 'inbox.updated';
     }
 
-    public function broadcastWith()
-    {
+    public function broadcastWith() {
         return [
-            'message' => $this->message
+            "inbox" => $this->inboxData
         ];
     }
-
 }
