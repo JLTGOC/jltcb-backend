@@ -52,16 +52,18 @@ class ChatController extends Controller
             // Search in Conversations, Messages, and Participants
             $results = (new Search())
                 ->registerModel(Conversation::class, ['id', 'name'])
-                ->registerModel(Message::class, function ($modelSearchAspect) use ($search) {
+                ->registerModel(Message::class, function ($modelSearchAspect) use ($search, $userId) {
                     $modelSearchAspect->addSearchableAttribute('content')
-                        ->orWhereHas('sender', function ($senderQuery) use ($search) {
-                            $senderQuery->where('full_name', 'like', "%{$search}%");
+                        ->orWhereHas('sender', function ($senderQuery) use ($search, $userId) {
+                            $senderQuery->where('full_name', 'like', "%{$search}%")
+                                        ->where('id', '!=', $userId);
                         });
                 })
-                ->registerModel(Participant::class, function ($modelSearchAspect) use ($search) {
+                ->registerModel(Participant::class, function ($modelSearchAspect) use ($search, $userId) {
                     $modelSearchAspect->addExactSearchableAttribute('user_id')
-                        ->orWhereHas('user', function ($userQuery) use ($search) {
-                            $userQuery->where('full_name', 'like', "%{$search}%");
+                        ->orWhereHas('user', function ($userQuery) use ($search, $userId) {
+                            $userQuery->where('full_name', 'like', "%{$search}%")
+                                      ->where('id', '!=', $userId);
                         });
                 })
                 ->search($search);
