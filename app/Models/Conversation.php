@@ -6,6 +6,7 @@ use Spatie\Searchable\Searchable;
 use Spatie\Searchable\SearchResult;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 
 class Conversation extends Model implements Searchable
 {
@@ -40,5 +41,36 @@ class Conversation extends Model implements Searchable
     public function lastMessage()
     {
         return $this->hasOne(Message::class)->latestOfMany();
+    }
+
+    public function getLastMessageType() {
+        $lastMessageType = match ($this->lastMessage->type) {
+            'TEXT' => $this->lastMessage->content,
+            'IMAGE' => '[Image]',
+            'FILE' => '[File]',
+            'QUOTATION_CARD' => '[Quotation Card]',
+            'SHIPMENT_CARD' => '[Shipment Card]',
+            default => 'No message'
+        };  
+
+        return $lastMessageType;
+    }
+
+    public function getUnreadCountFor($user) {
+        
+        $lastRead = $this->participants()->where('user_id', $user->id)->first()->pivot->last_read_at;
+
+        // Base query for messages not sent by the user
+        $query = $this->messages()
+            ->where(function ($q) use ($user) {
+                $q->where('sender_id', '!=', $user->id)
+                ->orWhereNull('sender_id');
+            });
+
+        if ($lastRead) {
+            $query->where('created_at', '>', $lastRead);
+        }
+
+        return $query->count();
     }
 }

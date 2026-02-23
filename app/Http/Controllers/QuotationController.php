@@ -308,6 +308,8 @@ class QuotationController extends Controller
     }
 
     /**
+     * Destroy Quotation
+     * 
      * Remove the specified resource from storage.
      */
     public function destroy(Quotation $quotation)
