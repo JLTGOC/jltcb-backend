@@ -41,9 +41,12 @@ class ChatController extends Controller
     {
         $search = $request->input('search');
 
+
         $request->validate([
             'search' => 'string|nullable',
         ]);
+
+        $userId = Auth::id();
 
         $conversationIds = Auth::user()->conversations()->pluck('conversations.id');
         
