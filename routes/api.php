@@ -23,6 +23,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('articles')->group(function () {
+        Route::post('/', [ArticleController::class, 'store']);
         Route::post('{article}', [ArticleController::class, 'update']);
         Route::delete('{article}', [ArticleController::class, 'destroy']);
     });
@@ -34,7 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index']);
 
     Route::get('quotations/enum-options', [QuotationController::class, 'enumQuotationOptions']);
-    Route::apiResource('quotations', QuotationController::class)->except(['update']);
+    Route::apiResource('quotations', QuotationController::class)->except(['destroy', 'update']);
     Route::post('/quotations/{quotation}', [QuotationController::class, 'update']);
 
     
@@ -46,12 +47,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('conversations')->group(function () {
         Route::get('', [ChatController::class, 'index']); // Inbox
-        Route::get('{conversation}', [ChatController::class, 'show']); // History
-        Route::post('{conversation}/messages', [ChatController::class, 'sendMessageToGroup']); // Message a conversation
+        Route::get('{conversation}/messages', [ChatController::class, 'indexMessages']); // History
+        Route::post('{conversation}', [ChatController::class, 'sendMessage']); // Message a conversation
     });
-
-    // Message a user
-    Route::post('users/{user}/messages', [ChatController::class, 'sendMessageToUser']);
 
     // Quotation Chat
     Route::post('quotations/{quotation}/chat', [ChatController::class, 'chatWithQuotation']);
