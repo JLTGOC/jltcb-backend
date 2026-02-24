@@ -14,6 +14,10 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $imagePath = $this->image_path
+            ? ltrim(preg_replace('#^storage/#', '', $this->image_path), '/')
+            : null;
+
         return [
             'id' => $this->id,
             'first_name' => $this->first_name,
@@ -25,7 +29,7 @@ class UserResource extends JsonResource
             'address' => $this->address,
             'contact_number' => $this->contact_number,
             'company_name' => $this->company_name,
-            'image_path' => $this->image_path,
+            'image_path' => $imagePath ? asset('storage/' . $imagePath) : null,
             'created_at' => $this->created_at?->toDateTimeString(),
             'updated_at' => $this->updated_at?->toDateTimeString(),
         ];
