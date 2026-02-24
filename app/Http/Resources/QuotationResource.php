@@ -57,8 +57,17 @@ class QuotationResource extends JsonResource
                 'origin' => $this->origin,
                 'destination' => $this->destination,
             ],
+            'quotation_file' => $this->files()->where('type', 'PROPOSAL')->exists()
+                ? $this->files()->where('type', 'PROPOSAL')->get()->map(function($file) {
+                    return [
+                        'id' => $file->id,
+                        'file_name' => $file->original_file_name,
+                        'file_url' => asset(Storage::url($file->file_path)),
+                    ];
+                })
+                : 'No file available.',
             'documents' => $this->files()->where('type', 'REQUESTED')->exists()
-                ? $this->files()->get()->map(function($file) {
+                ? $this->files()->where('type', 'REQUESTED')->get()->map(function($file) {
                     return [
                         'id' => $file->id,
                         'file_name' => $file->original_file_name,

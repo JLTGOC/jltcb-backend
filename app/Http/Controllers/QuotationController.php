@@ -220,21 +220,8 @@ class QuotationController extends Controller
         }
 
         $quotationCollection = new QuotationResource($quotation);
-        $quotationFile = QuotationFile::where('quotation_id', $quotation->id)
-            ->where('type', 'PROPOSAL')
-            ->first();
-        if ($quotationFile) {
-            $file = [
-                'id' => $quotationFile->id,
-                'file_name' => $quotationFile->original_file_name,
-                'file_url' => asset(Storage::url($quotationFile->file_path)),
-            ];
-        }
 
-        return $this->success('Quotation details fetched successfully', [
-            'quotation' => $quotationCollection, 
-            'quotation_file' => $file ?? null
-        ], 200);
+        return $this->success('Quotation details fetched successfully', $quotationCollection, 200);
     }
 
     /**
