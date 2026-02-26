@@ -233,7 +233,7 @@ class QuotationController extends Controller
     {
         $user = User::find(auth()->id());
 
-        if (($user->id === $quotation->client_id) || ($user->id === $quotation->as_id)) {
+        if (((int) $user->id === (int) $quotation->client_id) || ((int) $user->id === (int) $quotation->as_id)) {
             if ($request->service_options) {
                 $stringifiedServiceOptions = implode(',', $request->service['options']);
             } else {
