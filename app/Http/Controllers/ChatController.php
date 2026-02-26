@@ -39,6 +39,8 @@ class ChatController extends Controller
      */
     public function index(Request $request)
     {
+        // return $request->header('Platform', 'mobile');
+
         $search = $request->input('search');
 
 
@@ -104,6 +106,18 @@ class ChatController extends Controller
             ConversationResource::collection($conversations)    
         );
     }
+
+    /**
+     * Show Conversation
+     * 
+     * Show conversation data
+     */
+    public function show(Conversation $conversation) {
+        return $this->success(
+            'Conversation fetched sucessfully', new ConversationResource($conversation)
+        );
+    }
+    
 
     /**
      * Index Conversation Messages
@@ -175,6 +189,10 @@ class ChatController extends Controller
                 ]);
 
                 $conversation->update(['last_message_at' => now()]);
+                // To update user unread count
+                $conversation->participants()->updateExistingPivot(
+                    $clientId, ['last_read_at' => now()]
+                );
             }
 
             return $this->success(
