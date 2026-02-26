@@ -11,10 +11,13 @@ use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\QuotationFileController;
+use Illuminate\Support\Facades\Broadcast;
 
 require __DIR__ . '/public_routes.php';
 
 Route::post('auth/login', [AuthController::class, 'login']);
+
+Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -49,6 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('conversations')->group(function () {
         Route::get('', [ChatController::class, 'index']); // Inbox
+        Route::get('/{conversation}', [ChatController::class, 'show']);
         Route::get('{conversation}/messages', [ChatController::class, 'indexMessages']); // History
         Route::post('{conversation}', [ChatController::class, 'sendMessage']); // Message a conversation
     });
@@ -57,5 +61,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('quotations/{quotation}/chat', [ChatController::class, 'chatWithQuotation']);
 
     // Shipment Routes
-    Route::apiResource('shipments', ShipmentController::class)->only(['store', 'show', 'update']);
+    Route::apiResource('shipments', ShipmentController::class)->only(['store', 'show', 'update', 'index']);
 });
