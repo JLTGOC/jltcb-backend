@@ -14,6 +14,7 @@ use App\Models\{
 use App\Http\Resources\ShipmentResource;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Spatie\Searchable\Search;
 
 class ShipmentController extends Controller
 {
@@ -25,11 +26,57 @@ class ShipmentController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
-     */
-    public function index()
+     * Index Shipments
+     * 
+     * Fetch all shipments.
+     */     
+    public function index(Request $request)
     {
-        //
+        $perPage = $request->input('perPage', 10);
+        $search = $request->input('search');    
+        $statusFilter = $request->input('status');
+        $platform = $request->header('Platform', 'mobile');
+
+        $shipmentsQuery = Shipment::query();
+
+        if (in_array($statusFilter, ['ONGOING', 'DELIVERED'])) {
+            $shipmentsQuery->where('status', $statusFilter);
+        };
+
+        if ($search) {
+            if ($platform === 'mobile') {
+                // Search query for mobile
+                $shipmentsQuery->where('reference_number', 'LIKE', '%' . $search . '%');
+            } else {
+                // Search query for web
+                $searchResults = (new Search())
+                    ->registerModel(Shipment::class, [
+                        'reference_number',
+                        'status',
+                        'commodity',
+                    ])
+                    ->search($search)
+                    ->pluck('searchable.id'); // Get only shipment ids
+
+                $shipmentsQuery->whereIn('id', $searchResults);
+            }
+        } 
+        
+        $paginated = $shipmentsQuery->paginate($perPage);
+
+        return $this->success(
+            'Shipments fetched sucessfully', 
+            [
+                'shipments' => ShipmentResource::collection($paginated),
+                'pagination' => [
+                    'current_page' => $paginated->currentPage(),
+                    'last_page' => $paginated->lastPage(),
+                    'per_page' => $paginated->perPage(),
+                    'total' => $paginated->total(),
+                ]
+            ]
+        );
+
     }
 
     /**

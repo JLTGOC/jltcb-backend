@@ -15,6 +15,10 @@ class ShipmentPolicy
      */
     public function viewAny(User $user): bool
     {
+        if ($user->hasRole(['Client', 'Account Specialist'])) {
+            return true;
+        }
+        
         return false;
     }
 

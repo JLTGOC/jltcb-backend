@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Searchable\Searchable;
+use Spatie\Searchable\SearchResult;
 
-class Shipment extends Model
+class Shipment extends Model implements Searchable
 {
     protected $fillable = [
         'reference_number',
@@ -29,6 +31,15 @@ class Shipment extends Model
         'created_at',
         'updated_at'
     ];
+
+    public function getSearchResult(): SearchResult
+    {
+        return new SearchResult(
+            $this,
+            $this->reference_number,
+         );
+    }
+
 
     public function client() {
         return $this->belongsTo(User::class, 'client_id');
