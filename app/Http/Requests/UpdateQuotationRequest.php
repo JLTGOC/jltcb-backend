@@ -48,7 +48,8 @@ class UpdateQuotationRequest extends FormRequest
                 Rule::exists('quotation_files', 'id')->where(function($query) use ($quotation) {
                     $query->where('quotation_id', $quotation->id);
                 })
-            ]
+            ],
+            'remarks' => ['nullable', 'string']
         ];
     }
 

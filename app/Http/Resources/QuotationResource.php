@@ -75,6 +75,7 @@ class QuotationResource extends JsonResource
                     ];
                 })
                 : 'No documents available.',
+            'remarks' => $this->remarks,
             'conversation_id' => $conversationId
         ];
     }
