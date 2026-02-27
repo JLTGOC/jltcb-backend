@@ -33,8 +33,10 @@ class LeadAsDashboardService
                     ->where('id', $id)
                     ->get();
 
+                $id = 'C' . str_pad($id + 1, 3, '0', STR_PAD_LEFT) . - $client->value('created_at')->format('Y');
+
                 $clients[] = [
-                    'id' => $client->value('id'),
+                    'id' => $id,
                     'full_name' => $client->value('full_name'),
                     'total_shipment' => Shipment::where('client_id', $id)->count()
                 ];
