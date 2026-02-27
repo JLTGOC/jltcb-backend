@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Message extends Model implements Searchable
 {
     protected $fillable = [
-        'conversation_id', 'sender_id', 'content', 'type', 
+        'conversation_id', 'sender_id', 'content', 'type', 'file_name',
         'attachment_path', 'reference_id', 'reference_type'
     ];
 

@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class MessageResource extends JsonResource
 {
@@ -35,47 +36,51 @@ class MessageResource extends JsonResource
         ];
 
         // 3. Add Type-Specific Data
-        return array_merge($data, match ($this->type) {
-            
-            'QUOTATION_CARD' => [
-                'quotation' => $this->reference ? [
+        switch ($this->type) {
+            case 'QUOTATION_CARD':
+                $data['quotation'] = $this->reference ? [
                     'id' => $this->reference->id,
-                    'reference_number' => $this->reference->reference_number, // Ensure this matches your DB column
+                    'reference_number' => $this->reference->reference_number,
                     'commodity' => $this->reference->commodity,
                     'volume' => $this->reference->volume,
                     'date_created' => $this->reference->created_at->format('m/d/Y'),
-                ] : null,
-            ],
+                ] : null;
+                break;
 
-            'SHIPMENT_CARD' => [
-                'shipment' => $this->reference ? [
+            case 'SHIPMENT_CARD':
+                $data['shipment'] = $this->reference ? [
                     'id' => $this->reference->id,
                     'reference_number' => $this->reference->reference_number,
                     'commodity' => $this->reference->commodity,
                     'cargo_type' => $this->reference->cargo_type,
-                    'volume' => "{$this->reference->cargo_volume} m³" ?? $this->reference->container_size,
+                    'volume' => $this->reference->cargo_volume 
+                        ? "{$this->reference->cargo_volume} m³" 
+                        : $this->reference->container_size,
                     'date_created' => $this->reference->created_at->format('m/d/Y'),
-                ] : null,
-            ],
+                ] : null;
+                break;
 
-            'TEXT' => [
-                'content' => $this->content,
-            ],
+            case 'TEXT':
+                $data['content'] = $this->content;
+                break;
 
-            'IMAGE' => [
-                'content' => $this->content,
-                'attachment_url' => asset($this->attachment_path),
-            ],
+            case 'IMAGE':
+                $data['content'] = $this->content;
+                $data['file_name'] = $this->file_name;
+                $data['file_url'] = asset(Storage::url($this->attachment_path));
+                break;
 
-            'FILE' => [
-                'content' => $this->content,
-                'file_name' => basename($this->attachment_path),
-                'download_url' => asset($this->attachment_path),
-            ],
+            case 'FILE':
+                $data['content'] = $this->content;
+                $data['file_name'] = $this->file_name;
+                $data['file_url'] = asset(Storage::url($this->attachment_path));
+                break;
 
-            default => [
-                'content' => $this->content,
-            ],
-        });
+            default:
+                $data['content'] = $this->content;
+                break;
+        }
+
+        return $data;
     }
 }

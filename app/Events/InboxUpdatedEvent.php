@@ -21,10 +21,9 @@ class InboxUpdatedEvent implements ShouldBroadcast
     /**
      * Create a new event instance.
      */
-    public function __construct(public $user_id, public $conversation)
+    public function __construct(private $user_id, Conversation $conversation)
     {
-        $this->conversation = $conversation;
-        $this->inboxData = new ConversationResource($this->conversation, $user_id);
+        $this->inboxData = new ConversationResource($conversation, $user_id);
     }
 
     /**

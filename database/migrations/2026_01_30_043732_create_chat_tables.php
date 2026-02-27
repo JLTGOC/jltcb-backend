@@ -41,7 +41,8 @@ return new class extends Migration
             
             // Types: TEXT, IMAGE, FILE, SYSTEM, QUOTATION_CARD
             $table->string('type')->default('TEXT'); 
-            
+
+            $table->string('file_name')->nullable();
             $table->string('attachment_path')->nullable();
             
             // This links to your Quotation model (reference_id, reference_type)

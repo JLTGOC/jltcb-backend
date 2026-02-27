@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Http\Resources\MessageResource;
 use App\Models\Conversation;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
@@ -10,22 +11,22 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use App\Models\Message;
 
 class ChatEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $message; 
+    private MessageResource $messageData; 
     private $conversation_id;
 
     /**
      * Create a new event instance.
      */
-    public function __construct($message = [])
+    public function __construct(Message $message, private string $clientId)
     {
-        $this->message = $message;
-        $this->conversation_id = $this->message['conversation_id'];
-
+        $this->messageData = new MessageResource($message);
+        $this->conversation_id = $message->conversation_id;
     }
 
     /**
@@ -49,7 +50,8 @@ class ChatEvent implements ShouldBroadcast
     public function broadcastWith()
     {
         return [
-            'message' => $this->message
+            'message' => $this->messageData,
+            'client_id' => $this->clientId
         ];
     }
 

@@ -212,144 +212,34 @@ class ChatController extends Controller
         $request->validate([
             'type' => 'required|in:TEXT,IMAGE,FILE',
             'content' => 'required_if:type,TEXT|nullable|string',
-            'file' => 'required_if:type,IMAGE,FILE|max:5120', // Max 5MB
+            'file' => 'required_if:type,IMAGE,FILE|file|max:5120', // Max 5MB
+            'client_id' => 'sometimes|string' // For frontend's optimistic message update (sabe ni vince)
         ]);
-
-        // Set user's last_read_at pivot to now as they send a message
+ 
+        // Set user's unread count to 0 as they send a message
         $conversation->participants()->updateExistingPivot(Auth::id(), ['last_read_at' => now()]);
 
-        $conversationType = $conversation->type;
-        if ($conversationType === 'DIRECT') {
-            return $this->sendMessageToUser($request, $conversation);
-        } else if ($conversationType === 'GROUP') {
-            return $this->sendMessageToGroup($request, $conversation);
-        }
-    }
-
-    /**
-     * Send Message to Group
-     * 
-     * Reply to a group conversation
-     */
-    private function sendMessageToGroup(Request $request, Conversation $conversation)
-    {
         $senderId = Auth::id();
 
-        // 1. HANDLE FILE UPLOADS (Same logic as sendMessageToUser)
         $attachmentPath = null;
+        $fileName = null;
 
-        // CASE A: IMAGE (Use the Helper)
-        if ($request['type'] === 'IMAGE') {
-            // 'file' is the key name, 'chat_images' is the folder
-            $path = upload_image($request, 'file', 'chat_images');
+        if ($request->type !== 'TEXT') {
+            $fileName = $request->file('file')->getClientOriginalName();
 
-            if ($path) {
-                // Prepend 'storage/' to match symlink structure
-                $attachmentPath = 'storage/' . $path;
-            }
-        }
-        // CASE B: FILE (PDF, Docs - Standard Upload)
-        elseif ($request['type'] === 'FILE') {
-            if ($request->hasFile('file')) {
-                // Store in 'chat_files' folder
-                $path = $request->file('file')->store('chat_files', 'public');
-                $attachmentPath = 'storage/' . $path;
-            }
+            $attachmentPath = match($request->type) {
+                'IMAGE' => upload_image($request, 'file', 'chat_images'),
+                'FILE' => $request->file('file')->store('chat_files', 'public')
+            };
         }
 
-        // 2. CREATE MESSAGE
-        $message = DB::transaction(function () use ($conversation, $request, $senderId, $attachmentPath) {
+        // CREATE MESSAGE
+        $message = DB::transaction(function () use ($conversation, $request, $senderId, $attachmentPath, $fileName) {
             $msg = $conversation->messages()->create([
                 'sender_id' => $senderId,
                 'content' => $request['content'],
                 'type' => $request['type'],
-                'attachment_path' => $attachmentPath,
-            ]);
-
-            // Update timestamp to bump conversation to top
-            $conversation->update(['last_message_at' => now()]);
-
-            return $msg->load('sender');
-        });
-
-        // 3. FORMAT RESPONSE (Matched with User logic)
-        $attachmentUrl = $message->attachment_path ? asset($message->attachment_path) : null;
-        $fileName = $message->attachment_path ? basename($message->attachment_path) : null;
-
-        $formattedMessage = [
-            'id' => $message->id,
-            'type' => $message->type,
-            'content' => $message->content,
-            'attachment_url' => $attachmentUrl,
-            'file_name' => $fileName,
-            'conversation_id' => $message->conversation_id,
-            'created_at' => $message->created_at->toDateTimeString(),
-            'sender' => [
-                'id' => $message->sender->id,
-                'full_name' => $message->sender->full_name,
-                'image_path' => $message->sender->image_path ? asset($message->sender->image_path) : null,
-            ],
-        ];
-
-        $this->broadcastChatEvents($conversation, $formattedMessage);
-
-        return $this->success('Message sent successfully.', $formattedMessage, 201);
-    }
-
-    /**
-     * Send Message to User
-     * 
-     * Reply to a user
-     */
-    private function sendMessageToUser(Request $request, Conversation $conversation)
-    {
-        // Direct message to other participant in the conversation
-        $senderId = Auth::id();
-        $receiverId = $conversation->participants()->whereNot('user_id', $senderId)->pluck('user_id');
-
-        // Find or Create Conversation logic...
-        $conversation = Conversation::where('type', 'DIRECT')
-            ->whereHas('participants', fn($q) => $q->where('user_id', $senderId))
-            ->whereHas('participants', fn($q) => $q->where('user_id', $receiverId))
-            ->first();
-
-        if (!$conversation) {
-            $conversation = DB::transaction(function () use ($senderId, $receiverId) {
-                $c = Conversation::create(['type' => 'DIRECT']);
-                $c->participants()->attach([$senderId, $receiverId]);
-                return $c;
-            });
-        }
-
-        // 2. HANDLE FILE UPLOADS (Separated Logic)
-        $attachmentPath = null;
-
-        // CASE A: IMAGE (Use the Helper)
-        if ($request->type === 'IMAGE') {
-            // 'file' is the key name in the request
-            // 'chat_images' is the folder name inside storage/app/public/
-            $path = upload_image($request, 'file', 'chat_images');
-
-            if ($path) {
-                // Prepend 'storage/' so it matches your symlink structure
-                $attachmentPath = 'storage/' . $path;
-            }
-        }
-        // CASE B: FILE (PDF, Docs - Standard Upload)
-        elseif ($request->type === 'FILE') {
-            if ($request->hasFile('file')) {
-                // Store in 'chat_files' folder
-                $path = $request->file('file')->store('chat_files', 'public');
-                $attachmentPath = 'storage/' . $path;
-            }
-        }
-
-        // 3. CREATE MESSAGE
-        $message = DB::transaction(function () use ($conversation, $request, $senderId, $attachmentPath) {
-            $msg = $conversation->messages()->create([
-                'sender_id' => $senderId,
-                'content' => $request['content'],
-                'type' => $request['type'],
+                'file_name' => $fileName,
                 'attachment_path' => $attachmentPath,
             ]);
 
@@ -357,39 +247,19 @@ class ChatController extends Controller
 
             return $msg->load('sender');
         });
+        
+        $this->broadcastChatEvents($conversation, $message, $request->client_id);
 
-        // 4. FORMAT RESPONSE
-        // (Using manual array construction as requested, though Resource is better)
-        $attachmentUrl = $message->attachment_path ? asset($message->attachment_path) : null;
-        $fileName = $message->attachment_path ? basename($message->attachment_path) : null;
-
-        $formattedMessage = [
-            'id' => $message->id,
-            'type' => $message->type,
-            'content' => $message->content,
-            'attachment_url' => $attachmentUrl,
-            'file_name' => $fileName,
-            'conversation_id' => $message->conversation_id,
-            'created_at' => $message->created_at->toDateTimeString(),
-            'sender' => [
-                'id' => $message->sender->id,
-                'full_name' => $message->sender->full_name,
-                'image_path' => $message->sender->image_path ? asset($message->sender->image_path) : null,
-            ],
-        ];
-
-        $this->broadcastChatEvents($conversation, $formattedMessage);
-
-        return $this->success('Message sent successfully.', $formattedMessage, 201);
+        return $this->success('Message sent successfully.', new MessageResource($message), 201);
     }
 
-    private function broadcastChatEvents(Conversation $conversation, array $formattedMessage) {
+    private function broadcastChatEvents(Conversation $conversation, Message $message, string $clientId) {
         $participants = $conversation->participants()->get();
 
         foreach($participants as $participant) {
             broadcast(new InboxUpdatedEvent($participant->id, $conversation));
         }
 
-        broadcast(new ChatEvent($formattedMessage));
+        broadcast(new ChatEvent($message, $clientId));
     }
 }
