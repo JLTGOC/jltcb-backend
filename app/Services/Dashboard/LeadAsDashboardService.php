@@ -5,10 +5,11 @@ namespace App\Services\Dashboard;
 use App\Models\User;
 use App\Models\Quotation;
 use App\Models\Shipment;
+use Illuminate\Http\Request;
 
 class LeadAsDashboardService
 {
-    public function getStats($user): array
+    public function getStats($request, $user): array
     {
         // Get all clients (other users with Client role)
         $clientsCount = User::role('Client')->count();
@@ -22,6 +23,39 @@ class LeadAsDashboardService
         $respondedCount = Quotation::where('as_id', $user->id)->where('status', 'RESPONDED')->count();
         $acceptedCount = Quotation::where('as_id', $user->id)->where('status', 'ACCEPTED')->count();
         $discardedCount = Quotation::where('as_id', $user->id)->where('status', 'DISCARDED')->count();
+
+        if (strtolower($request->header('Platform', 'mobile') === 'web')) {
+            $clientIds = Shipment::where('as_id', $user->id)->distinct()->pluck('client_id');
+            $clients = [];
+
+            foreach ($clientIds as $id) {
+                $client = User::role('Client')
+                    ->where('id', $id)
+                    ->get();
+
+                $clients[] = [
+                    'id' => $client->value('id'),
+                    'full_name' => $client->value('full_name'),
+                    'total_shipment' => Shipment::where('client_id', $id)->count()
+                ];
+            }
+            return [
+                'quotations' => [
+                    'responded_count' => $respondedCount,
+                    'requested_count' => $newCount,
+                    'total_count' => $respondedCount + $newCount
+                ],
+                'shipments' => [
+                    'ongoing_count' => $ongoingCount,
+                    'delivered_count' => $deliveredCount,
+                    'total_count' => $ongoingCount + $deliveredCount
+                ],
+                'clients' => [
+                    'total_count' => collect($clients)->count(),
+                    'clients' => $clients
+                ]
+            ];
+        }
         
         return [
             'user' => [
