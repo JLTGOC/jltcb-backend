@@ -24,7 +24,7 @@ class QuotationPolicy
      */
     public function view(User $user, Quotation $quotation): bool
     {
-        return $user->id === $quotation->client_id || $user->id === $quotation->as_id;
+        return (int) $user->id === (int) $quotation->client_id || (int) $user->id === (int) $quotation->as_id;
     }
 
     /**
@@ -40,7 +40,7 @@ class QuotationPolicy
      */
     public function update(User $user, Quotation $quotation): bool
     {
-        return $user->id === $quotation->client_id || $user->id === $quotation->as_id;
+        return (int) $user->id === (int) $quotation->client_id || (int) $user->id === (int) $quotation->as_id;
     }
 
     /**
@@ -48,7 +48,7 @@ class QuotationPolicy
      */
     public function delete(User $user, Quotation $quotation): bool
     {
-        return $user->id === $quotation->client_id;
+        return (int) $user->id === (int) $quotation->client_id;
     }
 
     /**
@@ -80,7 +80,7 @@ class QuotationPolicy
      */
     public function upload(User $user, Quotation $quotation): bool
     {
-        return $user->id === $quotation->as_id;
+        return (int) $user->id === (int) $quotation->as_id;
     }
 
     /**
@@ -88,13 +88,13 @@ class QuotationPolicy
      */
     public function showFile(User $user, Quotation $quotation): bool
     {
-        return $user->id === $quotation->client_id || $user->id === $quotation->as_id;
+        return (int) $user->id === (int) $quotation->client_id || (int) $user->id === (int) $quotation->as_id;
     }
 
     /**
      * Determine whether the user can initiate chat about their quotation.
      */
     public function chatWithQuotation(User $user, Quotation $quotation) {
-        return $user->id === $quotation->client_id;
+        return (int) $user->id === (int) $quotation->client_id;
     }
 }

@@ -28,7 +28,7 @@ class ShipmentPolicy
     public function view(User $user, Shipment $shipment): bool
     {
         if (
-             $shipment->client_id === $user->id || $shipment->as_id === $user->id
+            (int) $shipment->client_id === (int) $user->id || (int) $shipment->as_id === (int) $user->id
         ) {
             return true;
         }
