@@ -115,12 +115,19 @@ class ShipmentController extends Controller
         try {
             DB::beginTransaction();
 
+            if ($quotation->service_type === 'IMPORT') {
+                $prefix = 'IM';
+            } elseif ($quotation->service_type === 'EXPORT') {
+                $prefix = 'EX';
+            } elseif ( $quotation->service_type === 'BUSINESS SOLUTION') {
+                $prefix = 'BS';
+            }
             $lastId = Shipment::max('id') ?? 0;
             $dateSection = Carbon::now()->format('m-Y');
             $idSection = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
 
             $shipment = Shipment::create([
-                'reference_number' => "IM-{$dateSection}-{$idSection}",
+                'reference_number' => "{$prefix}-{$dateSection}-{$idSection}",
                 'quotation_id' => $quotation->id,
                 'client_id' => $user->id,
                 'as_id' => $quotation->as_id,
