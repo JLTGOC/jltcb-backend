@@ -24,7 +24,7 @@ class DashboardController extends Controller
 
         $data = match ($primaryRole) {
             RoleType::CLIENT->value => (new ClientDashboardService())->getStats($user),
-            RoleType::ACCOUNT_SPECIALIST->value => (new LeadAsDashboardService())->getStats($user),
+            RoleType::ACCOUNT_SPECIALIST->value => (new LeadAsDashboardService())->getStats($request, $user),
             RoleType::MARKETING->value => (new MarketingDashboardService())->getStats($user),
             default => ['message' => 'Generic dashboard data'],
         };
