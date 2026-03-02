@@ -113,6 +113,9 @@ class QuotationController extends Controller
                 if ($request->has('filter.status')) {
                     if ($user->hasRole('Client') && $request->filter['status'] === 'RESPONDED') {
                         $status = 'NEW';
+                        if (Shipment::where('quotation_id', $result->id)->exists()) {
+                            $status = 'ACCEPTED';
+                        }
                     }
                 }
                 return [

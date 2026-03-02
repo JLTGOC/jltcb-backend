@@ -7,7 +7,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
 use App\Models\{
     Message,
-    Conversation
+    Conversation,
+    Shipment
 };
 
 class QuotationResource extends JsonResource
@@ -29,11 +30,18 @@ class QuotationResource extends JsonResource
         
         $options = explode(',', $this->service_options);
 
+        $shipmentStatus = 'NEW';
+
+        if (Shipment::where('quotation_id', $this->id)->exists()) {
+            $shipmentStatus = 'ACCEPTED';
+        }
+
         return [
             'reference_number' => $this->reference_number,
             'client' => $this->client->full_name,
             'account_specialist' => $this->accountSpecialist->full_name,
             'status' => $this->status,
+            'shipment_status' => $shipmentStatus,
             'created_at' => $this->created_at->format('m/d/Y'),
             'updated_at' => $this->updated_at->format('m/d/Y'),
             'company' => [
