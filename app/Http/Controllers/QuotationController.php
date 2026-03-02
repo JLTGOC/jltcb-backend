@@ -173,6 +173,7 @@ class QuotationController extends Controller
                 'container_size' => $request->commodity['container_size'] ?? null,
                 'origin' => $request->shipment['origin'],
                 'destination' => $request->shipment['destination'],
+                'remarks' => $request->remarks,
             ]);
 
             // if ($quotation->cargo_type === 'CONTAINERIZED' && isset($quotation->cargo_volume)) {
@@ -266,6 +267,7 @@ class QuotationController extends Controller
                     'container_size' => $request->commodity['container_size'] ?? $quotation->container_size,
                     'origin' => $request->shipment['origin'] ?? $quotation->origin,
                     'destination' => $request->shipment['destination'] ?? $quotation->destination,
+                    'remarks' => $request->remarks,
                 ]);
 
                 // if ($quotation->cargo_type === 'CONTAINERIZED' && isset($quotation->cargo_volume)) {
