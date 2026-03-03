@@ -39,23 +39,24 @@ class MessageResource extends JsonResource
         switch ($this->type) {
             case 'QUOTATION_CARD':
                 $data['quotation'] = $this->reference ? [
+                    'as_full_name' => $this->reference->accountSpecialist->full_name,
                     'id' => $this->reference->id,
                     'reference_number' => $this->reference->reference_number,
                     'commodity' => $this->reference->commodity,
-                    'volume' => $this->reference->volume,
+                    'cargo_type' => $this->reference->cargo_type,
+                    'volume' => $this->reference->container_size,
                     'date_created' => $this->reference->created_at->format('m/d/Y'),
                 ] : null;
                 break;
 
             case 'SHIPMENT_CARD':
                 $data['shipment'] = $this->reference ? [
+                    'as_full_name' => $this->reference->accountSpecialist->full_name,
                     'id' => $this->reference->id,
                     'reference_number' => $this->reference->reference_number,
                     'commodity' => $this->reference->commodity,
                     'cargo_type' => $this->reference->cargo_type,
-                    'volume' => $this->reference->cargo_volume 
-                        ? "{$this->reference->cargo_volume} m³" 
-                        : $this->reference->container_size,
+                    'volume' => $this->reference->container_size,
                     'date_created' => $this->reference->created_at->format('m/d/Y'),
                 ] : null;
                 break;
