@@ -12,7 +12,8 @@ use App\Models\{
     User,
     ServiceOption,
     QuotationFile,
-    Shipment
+    Shipment,
+    Message,
 };
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -99,11 +100,19 @@ class QuotationController extends Controller
                     'name' => $client,
                     'request_count' => $userQuotations->count(),
                     'quotations' => $userQuotations->map(function ($quotation) {
+                        $card = Message::where('reference_id', $quotation->id)
+                            ->where('type', 'QUOTATION_CARD')
+                            ->first();
+                        if ($card) {
+                            $conversationId = $card->conversation_id;
+                        }
+
                         return [
                             'id' => $quotation->id,
                             'date' => $quotation->created_at->format('Y/m/d'),
                             'person_in_charge' => $quotation->accountSpecialist->full_name,
                             'commodity' => $quotation->commodity,
+                            'conversation_id' => $conversationId ?? null
                         ];
                     })->values(),
                 ];
@@ -117,6 +126,12 @@ class QuotationController extends Controller
                             $status = 'ACCEPTED';
                         }
                     }
+                    $card = Message::where('reference_id', $result->id)
+                        ->where('type', 'QUOTATION_CARD')
+                        ->first();
+                    if ($card) {
+                        $conversationId = $card->conversation_id;
+                    }
                 }
                 return [
                     'id' => $result->id,
@@ -125,6 +140,7 @@ class QuotationController extends Controller
                     'commodity' => $result->commodity,
                     'date' => $result->created_at->format('Y/m/d'),
                     'status' => $status ?? $result->status,
+                    'conversation_id' => $conversationId ?? null
                 ];
             });
         }
