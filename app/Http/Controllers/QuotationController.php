@@ -86,7 +86,7 @@ class QuotationController extends Controller
             $quotations->whereIn('id', $mergedIds);
         }
 
-        $results = $quotations->get();
+        $results = $quotations->orderBy('created_at', 'desc')->get();
 
         if ($user->hasRole('Account Specialist') && $request->filter['status'] === 'REQUESTED') {
             $results = $quotations->with('client')->get();

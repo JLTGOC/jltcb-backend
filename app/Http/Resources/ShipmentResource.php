@@ -22,7 +22,7 @@ class ShipmentResource extends JsonResource
                 'client' => $this->client->full_name,
                 'account_specialist' => $this->accountSpecialist->full_name,
                 'status' => $this->status,
-                'date' => $this->created_at->format('d/m/Y'),
+                'date' => $this->created_at->format('m/d/Y'),
             ],
         ];
         
@@ -44,8 +44,8 @@ class ShipmentResource extends JsonResource
             $data['shipment_information'] = [
                 'origin' => $this->origin,
                 'destination' => $this->destination,
-                'created_at' => $this->created_at->format('d/m/Y'),
-                'updated_at' => $this->updated_at->format('d/m/Y'),
+                'created_at' => $this->created_at->format('m/d/Y'),
+                'updated_at' => $this->updated_at->format('m/d/Y'),
             ];
         }
 

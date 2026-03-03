@@ -62,7 +62,7 @@ class ShipmentController extends Controller
             }
         } 
         
-        $paginated = $shipmentsQuery->paginate($perPage);
+        $paginated = $shipmentsQuery->orderBy('created_at', 'desc')->paginate($perPage);
 
         return $this->success(
             'Shipments fetched sucessfully', 
