@@ -5,12 +5,16 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class ConversationResource extends JsonResource
 {
-    public function __construct($resource, public $userId = null)
+    protected $userId;
+
+    public function __construct($resource, $userId = null)
     {
-        return parent::__construct($resource);
+        // Allow custom user id input to be used when event instantiates this resource
+        parent::__construct($resource);
         $this->userId = $userId;
     }
     /**
@@ -20,10 +24,12 @@ class ConversationResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // Allow custom user id input to be used when event calls the resource
-        $user = $this->userId 
-                    ? User::find($this->userId) 
-                    : $request->user();
+        // If this resource is used by the index method, set user manually 
+        $user = Auth::user(); 
+
+        if (!$request->from_index && $this->userId) {
+            $user = User::find($this->userId);
+        }
 
         $other = $this->participants->firstWhere('id', '!=', $user->id);
 

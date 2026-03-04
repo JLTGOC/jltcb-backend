@@ -101,6 +101,11 @@ class ChatController extends Controller
             return $this->success('No conversations found.');
         }
 
+        // Used for custom logic in Conversation Resource
+        $request->merge([
+            'from_index' => true
+        ]);
+
         return $this->success(
             'Conversations retrieved sucessfully.', 
             ConversationResource::collection($conversations)    
@@ -124,7 +129,7 @@ class ChatController extends Controller
      * 
      * Fetch messages in a conversation
      */
-    public function indexMessages(Conversation $conversation)
+    public function indexMessages(Request $request, Conversation $conversation)
     {
         // Mark as read
         $conversation->participants()->updateExistingPivot(Auth::id(), ['last_read_at' => now()]);

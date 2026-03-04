@@ -19,16 +19,16 @@ class ShipmentResource extends JsonResource
             'general_info' => [
                 'id' => $this->id,
                 'reference_number' => $this->reference_number,
-                'quotation_id' => $this->quotation_id,
-                'client' => $this->client->full_name,
-                'account_specialist' => $this->accountSpecialist->full_name,
+                // 'quotation_id' => $this->quotation_id,
+                // 'client' => $this->client->full_name,
                 'status' => $this->status,
+                'commodity' => $this->commodity,
                 'date' => $this->created_at->format('m/d/Y'),
             ],
         ];
         
-        // Only include full details if mobile OR if this is a show route
-        if ($request->header('Platform', 'mobile') === 'mobile' || $request->routeIs('shipments.show')) {
+        // Only include full details for mobile OR if this is a show route
+        if ($request->routeIs('shipments.show')) {
             $data['commodity_details'] = [
                 'commodity' => $this->commodity,
                 'consignee_name' => $this->company_name,
@@ -45,6 +45,7 @@ class ShipmentResource extends JsonResource
             $data['shipment_information'] = [
                 'origin' => $this->origin,
                 'destination' => $this->destination,
+                'account_handler' => $this->accountSpecialist->full_name,
                 'created_at' => $this->created_at->format('m/d/Y'),
                 'updated_at' => $this->updated_at->format('m/d/Y'),
             ];
