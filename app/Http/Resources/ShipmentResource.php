@@ -17,6 +17,7 @@ class ShipmentResource extends JsonResource
 
         $data = [
             'general_info' => [
+                'id' => $this->id,
                 'reference_number' => $this->reference_number,
                 'quotation_id' => $this->quotation_id,
                 'client' => $this->client->full_name,
