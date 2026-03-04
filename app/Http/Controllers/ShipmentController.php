@@ -32,6 +32,7 @@ class ShipmentController extends Controller
      */     
     public function index(Request $request)
     {
+        $sortOrder = $request->input('sortOrder', 'desc');
         $perPage = $request->input('perPage', 10);
         $search = $request->input('search');    
         $statusFilter = $request->input('status');
@@ -61,19 +62,35 @@ class ShipmentController extends Controller
                 $shipmentsQuery->whereIn('id', $searchResults);
             }
         } 
+
+        $shipmentsQuery->orderBy('created_at', $sortOrder)->orderBy('id', $sortOrder);
         
-        $paginated = $shipmentsQuery->orderBy('created_at', 'desc')->paginate($perPage);
+        // Simple pagination for web platform
+        if ($request->header('Platform', 'mobile') === 'web') {
+            $paginated = $shipmentsQuery->paginate($perPage);
+            $pagination = [
+                    'current_page' => $paginated->currentPage(),
+                    'last_page' => $paginated->lastPage(),
+                    'items_per_page' => $paginated->perPage(),
+                    'total_items' => $paginated->total(),
+            ];
+        } else {
+            // Cursor pagination for mobile platform
+            $paginated = $shipmentsQuery->cursorPaginate($perPage);
+            $pagination = [
+                'prev_cursor' => $paginated->previousCursor()?->encode(),
+                'next_cursor' => $paginated->nextCursor()?->encode(),
+                'prev_page_url' => $paginated->previousPageUrl(),
+                'next_page_url' => $paginated->nextPageUrl()
+            ];
+        }
+        
 
         return $this->success(
             'Shipments fetched sucessfully', 
             [
                 'shipments' => ShipmentResource::collection($paginated),
-                'pagination' => [
-                    'current_page' => $paginated->currentPage(),
-                    'last_page' => $paginated->lastPage(),
-                    'per_page' => $paginated->perPage(),
-                    'total' => $paginated->total(),
-                ]
+                'pagination' => $pagination
             ]
         );
 

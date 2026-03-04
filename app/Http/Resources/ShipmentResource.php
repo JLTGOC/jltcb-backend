@@ -22,11 +22,11 @@ class ShipmentResource extends JsonResource
                 'client' => $this->client->full_name,
                 'account_specialist' => $this->accountSpecialist->full_name,
                 'status' => $this->status,
-                'date' => $this->created_at->format('m/d/Y'),
+                'commodity' => $this->commodity
             ],
         ];
         
-        // Only include full details if mobile OR if this is a show route
+        // Only include full details for mobile OR if this is a show route
         if ($request->header('Platform', 'mobile') === 'mobile' || $request->routeIs('shipments.show')) {
             $data['commodity_details'] = [
                 'commodity' => $this->commodity,

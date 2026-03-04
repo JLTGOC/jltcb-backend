@@ -101,6 +101,7 @@ class ChatController extends Controller
             return $this->success('No conversations found.');
         }
 
+        // Used for custom logic in Conversation Resource
         $request->merge([
             'from_index' => true
         ]);
