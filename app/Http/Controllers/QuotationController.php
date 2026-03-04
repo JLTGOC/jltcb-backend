@@ -49,7 +49,7 @@ class QuotationController extends Controller
         }
 
         $request->validate([
-            'filter.status' => 'sometimes|in:REQUESTED,RESPONDED',
+            'filter.status' => 'required|in:REQUESTED,RESPONDED',
             'search' => 'sometimes|string'
         ]);
 
