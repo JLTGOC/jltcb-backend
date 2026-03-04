@@ -40,6 +40,12 @@ class ShipmentController extends Controller
 
         $shipmentsQuery = Shipment::query();
 
+        if ($platform === 'mobile') {
+            $request->validate([
+                'status' => 'required|in:ONGOING,DELIVERED'
+            ]);
+        }
+
         if (in_array($statusFilter, ['ONGOING', 'DELIVERED'])) {
             $shipmentsQuery->where('status', $statusFilter);
         };
@@ -65,7 +71,7 @@ class ShipmentController extends Controller
 
         $shipmentsQuery->orderBy('created_at', $sortOrder)->orderBy('id', $sortOrder);
         
-        // Simple pagination for web platform
+        // Normal pagination for web platform
         if ($request->header('Platform', 'mobile') === 'web') {
             $paginated = $shipmentsQuery->paginate($perPage);
             $pagination = [
