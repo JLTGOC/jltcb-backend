@@ -120,28 +120,44 @@ class QuotationController extends Controller
         } else {
             $results = $results->map(function ($result) use ($user,$request) {
                 if ($request->has('filter.status')) {
+                    // dd([$result, $result->id, $result->shipment]);
+                    $status = null;
+
                     if ($user->hasRole('Client') && $request->filter['status'] === 'RESPONDED') {
                         $status = 'NEW';
-                        if (Shipment::where('quotation_id', $result->id)->exists()) {
+                        
+                        $shipment = Shipment::where('quotation_id', $result->id)->first();
+
+                        if ($shipment) {
                             $status = 'ACCEPTED';
                         }
                     }
-                    $card = Message::where('reference_id', $result->id)
+                    $quotationCard = Message::where('reference_id', $result->id)
                         ->where('type', 'QUOTATION_CARD')
                         ->first();
-                    if ($card) {
-                        $conversationId = $card->conversation_id;
+                    if ($quotationCard) {
+                        $conversationId = $quotationCard->conversation_id;
                     }
+
+                    if ($status === 'ACCEPTED') {
+                        $shipmentCard = Message::where('reference_id', $shipment->id)
+                            ->where('type', 'SHIPMENT_CARD')
+                            ->first();
+                        if ($shipmentCard) {
+                            $conversationId = $shipmentCard->conversation_id;
+                        }
+                    }
+
+                    return [
+                        'id' => $result->id,
+                        'client_name' => $result->client->full_name,
+                        'reference_number' => $result->reference_number,
+                        'commodity' => $result->commodity,
+                        'date' => $result->created_at->format('Y/m/d'),
+                        'status' => $status ?? $result->status,
+                        'conversation_id' => $conversationId ?? null,
+                    ];
                 }
-                return [
-                    'id' => $result->id,
-                    'client_name' => $result->client->full_name,
-                    'reference_number' => $result->reference_number,
-                    'commodity' => $result->commodity,
-                    'date' => $result->created_at->format('Y/m/d'),
-                    'status' => $status ?? $result->status,
-                    'conversation_id' => $conversationId ?? null
-                ];
             });
         }
 
