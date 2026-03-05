@@ -19,8 +19,6 @@ class QuotationSeeder extends Seeder
      */
     public function run(): void
     {
-        // $faker = Faker::create();
-
         $clients = User::role('Client')->pluck('id');
         $specialists = User::role('Account Specialist')->pluck('id');
 
@@ -59,11 +57,6 @@ class QuotationSeeder extends Seeder
                     'container_size' => fake()->randomElement(['1x20', '1x40']),
                 ]);
             } 
-            // elseif ($quotation->cargo_type === 'LCL') {
-            //     $quotation->update([
-            //         'cargo_volume' => fake()->numberBetween(1, 15)
-            //     ]);
-            // }
 
             if ($quotation->status === 'RESPONDED') {
                 if ($quotation->service_type === 'IMPORT') {
@@ -77,27 +70,30 @@ class QuotationSeeder extends Seeder
                 $dateSection = Carbon::now()->format('m-Y');
                 $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
 
-                Shipment::create([
-                    'reference_number' => "{$prefix}-{$dateSection}-{$idSection}",
-                    'quotation_id' => $quotation->id,
-                    'client_id' => $quotation->client_id,
-                    'as_id' => $quotation->as_id,
-                    'status' => fake()->randomElement(['ONGOING', 'DELIVERED']),
-                    'company_name' => $quotation->company_name,
-                    'contact_person' => $quotation->contact_person,
-                    'contact_number' => $quotation->contact_number,
-                    'email' => $quotation->email,
-                    'commodity' => $quotation->commodity,
-                    'cargo_type' => $quotation->cargo_type,
-                    // 'cargo_volume' => $quotation->cargo_volume ?? null,
-                    'container_size' => $quotation->container_size ?? null,
-                    'origin' => $quotation->origin,
-                    'destination' => $quotation->destination,
-                    'remarks' => $quotation->remarks,
-                ]);
+                $isAccepted = fake()->boolean();
+
+                if ($isAccepted) {
+                    Shipment::create([
+                        'reference_number' => "{$prefix}-{$dateSection}-{$idSection}",
+                        'quotation_id' => $quotation->id,
+                        'client_id' => $quotation->client_id,
+                        'as_id' => $quotation->as_id,
+                        'status' => fake()->randomElement(['ONGOING', 'DELIVERED']),
+                        'company_name' => $quotation->company_name,
+                        'contact_person' => $quotation->contact_person,
+                        'contact_number' => $quotation->contact_number,
+                        'email' => $quotation->email,
+                        'commodity' => $quotation->commodity,
+                        'cargo_type' => $quotation->cargo_type,
+                        'container_size' => $quotation->container_size ?? null,
+                        'origin' => $quotation->origin,
+                        'destination' => $quotation->destination,
+                        'remarks' => $quotation->remarks,
+                    ]);
+                }
             }
 
             $i+=1;
-        } while ($i<10);
+        } while ($i<20);
     }
 }
