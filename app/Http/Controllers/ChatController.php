@@ -131,19 +131,30 @@ class ChatController extends Controller
      */
     public function indexMessages(Request $request, Conversation $conversation)
     {
+        $sortOrder = $request->input('sortOrder', 'asc');
+        $perPage = $request->input('perPage', 30);
+        
         // Mark as read
         $conversation->participants()->updateExistingPivot(Auth::id(), ['last_read_at' => now()]);
 
         // Fetch messages
-        $messages = $conversation->messages()
+        $paginated = $conversation->messages()
             ->with(['sender:id,full_name,image_path', 'reference'])
-            ->orderBy('created_at', 'asc') // Oldest first (Standard Chat UI)
-            ->get();
+            ->orderBy('created_at', $sortOrder) 
+            ->orderBy('id', $sortOrder) // Fallback ordering for cursor pagination 
+            ->cursorPaginate($perPage);
 
-        // Use the Resource
         return $this->success(
-            'Messages retrieved successfully.',
-            MessageResource::collection($messages)
+            'Messages retrieved successfully.', 
+            [
+                'messages' => MessageResource::collection($paginated),
+                'pagination' => [
+                    'prev_cursor' => $paginated->previousCursor()?->encode(),
+                    'next_cursor' => $paginated->nextCursor()?->encode(),
+                    'prev_page_url' => $paginated->previousPageUrl(),
+                    'next_page_url' => $paginated->nextPageUrl()
+                ]
+            ]
         );
     }
 
