@@ -39,7 +39,7 @@ class ConversationResource extends JsonResource
             'title' => $this->type === 'GROUP' ? $this->name : ($other->full_name ?? 'User'),
             'image_path' => $this->type === 'GROUP' ? null : asset($other->image_path),
             'last_message' => $this->getLastMessageType(),
-            'time' => $this->lastMessage?->created_at?->format('h:iA'),
+            'time' => $this->lastMessage?->created_at,
             'unread_count' => $this->getUnreadCountFor($user),
         ];
     }

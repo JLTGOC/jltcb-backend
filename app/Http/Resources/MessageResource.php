@@ -31,7 +31,7 @@ class MessageResource extends JsonResource
         $data = [
             'id' => $this->id,
             'type' => $this->type, 
-            'created_at' => $this->created_at->format('m/d/Y'), 
+            'created_at' => $this->created_at, 
             'sender' => $senderData, // Use the logic above
         ];
 
@@ -45,7 +45,7 @@ class MessageResource extends JsonResource
                     'commodity' => $this->reference->commodity,
                     'cargo_type' => $this->reference->cargo_type,
                     'volume' => $this->reference->container_size,
-                    'date_created' => $this->reference->created_at->format('m/d/Y'),
+                    'date_created' => $this->reference->created_at,
                 ] : null;
                 break;
 
@@ -57,7 +57,7 @@ class MessageResource extends JsonResource
                     'commodity' => $this->reference->commodity,
                     'cargo_type' => $this->reference->cargo_type,
                     'volume' => $this->reference->container_size,
-                    'date_created' => $this->reference->created_at->format('m/d/Y'),
+                    'date_created' => $this->reference->created_at,
                 ] : null;
                 break;
 
