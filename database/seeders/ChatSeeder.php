@@ -30,18 +30,19 @@ class ChatSeeder extends Seeder
                 ->get();
             
             if (! $quotations->isEmpty()) {
-                $date = Carbon::now();
+                $date = Carbon::now()->subDays($quotations->count());
 
                 foreach($quotations as $quotation) {
                     $conversation = $this->generateConversation($quotation, 'DIRECT');
-                    $this->generateMessageCard($conversation, $quotation);
+                    $this->generateMessageCard($conversation, $quotation, $date);
 
                     $hasChatsAlready = fake()->boolean(75);
 
                     if ($hasChatsAlready) {
                         $this->generateRandomMessages($conversation, $date);
                     }
-                    $date = $date->addMinutes(120);
+
+                    $date = $date->addDays();
                 }
             }   
 
@@ -51,8 +52,9 @@ class ChatSeeder extends Seeder
                 ->get();
 
             foreach($shipments as $shipment) {
-                $date = Carbon::now()->subDays(rand(0, 30));
+                $date = Carbon::now()->subDays(rand(5, 30));
                 $conversation = $this->generateConversation($shipment, 'GROUP');
+                $this->generateMessageCard($conversation, $shipment, $date);
                 $this->generateRandomMessages($conversation, $date);
             }
         }
@@ -78,18 +80,22 @@ class ChatSeeder extends Seeder
         return $conversation;
     }
 
-    private function generateMessageCard(Conversation $conversation, $model) {
-        $conversation->messages()->create([
+    private function generateMessageCard(Conversation $conversation, $model, $date) {
+        $message = $conversation->messages()->create([
             'sender_id' => null, // <--- FIX: SET TO NULL (System)
-            'type' => $model instanceof Quotation ? 'QUOTATION_CARD' : 'SHIPMENT_CART',
+            'type' => $model instanceof Quotation ? 'QUOTATION_CARD' : 'SHIPMENT_CARD',
             'content' => null,
             'reference_id' => $model->id,
             'reference_type' => $model instanceof Quotation ? Quotation::class : Shipment::class,
         ]);
+
+        $message->update([
+            'created_at' => $date
+        ]);
     }
 
     private function generateRandomMessages(Conversation $conversation, Carbon $date) {
-        $messageCount = fake()->numberBetween(3, 10);
+        $messageCount = fake()->numberBetween(3, 20);
         $participants = $conversation->participants()->get()->pluck('id');
         
         // $messageType = fake()->randomElement(['TEXT', 'FILE', 'IMAGE']);
