@@ -41,6 +41,11 @@ class QuotationController extends Controller
      */
     public function index(Request $request) {
         $user = auth()->user();
+        $platform = strtolower((string) $request->header('Platform', 'mobile'));
+        $isWeb = $platform === 'web';
+        $perPage = (int) $request->input('perPage', 10);
+        $selectedClientId = $request->input('client_id');
+        $dateFormat = $isWeb ? 'm/d/y' : 'Y/m/d';
         $query = Quotation::query();
         if ($user->hasRole('Client')) {
             $query->where('client_id', $user->id);
@@ -50,7 +55,20 @@ class QuotationController extends Controller
 
         $request->validate([
             'filter.status' => 'required|in:REQUESTED,RESPONDED',
-            'search' => 'sometimes|string'
+            'search' => 'sometimes|string',
+            'perPage' => 'sometimes|integer|min:1|max:100',
+            'client_id' => [
+                'sometimes',
+                'integer',
+                'exists:users,id',
+                function ($attribute, $value, $fail) {
+                    $isClient = User::role('Client')->where('id', $value)->exists();
+
+                    if (!$isClient) {
+                        $fail('The selected client must have a Client role.');
+                    }
+                },
+            ],
         ]);
 
         $quotations = QueryBuilder::for($query)
@@ -87,19 +105,20 @@ class QuotationController extends Controller
             $quotations->whereIn('id', $mergedIds);
         }
 
-        $results = $quotations->orderBy('created_at', 'desc')->get();
+        $pagination = null;
 
         if ($user->hasRole('Account Specialist') && $request->filter['status'] === 'REQUESTED') {
-            $results = $quotations->with('client')->get();
-            
-            $results = $results->groupBy('client_id')->map(function ($userQuotations) {
-                $firstQuotation = $userQuotations->first();
-                $client = User::where('id', $firstQuotation->client_id)->value('full_name');
+            if ($isWeb) {
+                if ($selectedClientId) {
+                    $resultsQuery = (clone $quotations)
+                        ->with(['client', 'accountSpecialist'])
+                        ->where('client_id', $selectedClientId)
+                        ->orderBy('created_at', 'desc');
 
-                return [
-                    'name' => $client,
-                    'request_count' => $userQuotations->count(),
-                    'quotations' => $userQuotations->map(function ($quotation) {
+                    $paginated = $resultsQuery->paginate($perPage);
+                    $pagination = $this->pagePaginationData($paginated);
+
+                    $quotationsForClient = $paginated->getCollection()->map(function ($quotation) use ($dateFormat) {
                         $card = Message::where('reference_id', $quotation->id)
                             ->where('type', 'QUOTATION_CARD')
                             ->first();
@@ -109,16 +128,128 @@ class QuotationController extends Controller
 
                         return [
                             'id' => $quotation->id,
-                            'date' => $quotation->created_at->format('Y/m/d'),
+                            'date' => $quotation->created_at->format($dateFormat),
                             'person_in_charge' => $quotation->accountSpecialist->full_name,
                             'commodity' => $quotation->commodity,
-                            'conversation_id' => $conversationId ?? null
+                            'conversation_id' => $conversationId ?? null,
                         ];
-                    })->values(),
-                ];
-            })->values();
+                    })->values();
+
+                    $clientName = $paginated->getCollection()->first()?->client?->full_name
+                        ?? User::where('id', $selectedClientId)->value('full_name');
+
+                    $results = [[
+                        'client_id' => (int) $selectedClientId,
+                        'name' => $clientName,
+                        'request_count' => $paginated->total(),
+                        'quotations' => $quotationsForClient,
+                    ]];
+
+                    return $this->success('All quotations fetched', [
+                        'quotations' => $results,
+                        'pagination' => $pagination,
+                    ], 200);
+                }
+
+                $paginatedClients = (clone $quotations)
+                    ->select('client_id', DB::raw('MAX(created_at) as latest_created_at'))
+                    ->groupBy('client_id')
+                    ->orderBy('latest_created_at', 'desc')
+                    ->paginate($perPage);
+
+                $pagination = $this->pagePaginationData($paginatedClients);
+                $clientIds = $paginatedClients->getCollection()->pluck('client_id')->values();
+
+                if ($clientIds->isEmpty()) {
+                    $results = collect();
+                } else {
+                    $groupedByClient = (clone $quotations)
+                        ->with(['client', 'accountSpecialist'])
+                        ->whereIn('client_id', $clientIds)
+                        ->orderBy('created_at', 'desc')
+                        ->get()
+                        ->groupBy('client_id');
+
+                    $results = $clientIds->map(function ($clientId) use ($groupedByClient, $dateFormat) {
+                        $userQuotations = $groupedByClient->get($clientId, collect());
+
+                        if ($userQuotations->isEmpty()) {
+                            return null;
+                        }
+
+                        $firstQuotation = $userQuotations->first();
+
+                        return [
+                            'client_id' => $firstQuotation->client_id,
+                            'name' => $firstQuotation->client->full_name,
+                            'request_count' => $userQuotations->count(),
+                            'quotations' => $userQuotations->map(function ($quotation) use ($dateFormat) {
+                                $card = Message::where('reference_id', $quotation->id)
+                                    ->where('type', 'QUOTATION_CARD')
+                                    ->first();
+                                if ($card) {
+                                    $conversationId = $card->conversation_id;
+                                }
+
+                                return [
+                                    'id' => $quotation->id,
+                                    'date' => $quotation->created_at->format($dateFormat),
+                                    'person_in_charge' => $quotation->accountSpecialist->full_name,
+                                    'commodity' => $quotation->commodity,
+                                    'conversation_id' => $conversationId ?? null
+                                ];
+                            })->values(),
+                        ];
+                    })->filter()->values();
+                }
+
+                return $this->success('All quotations fetched', [
+                    'quotations' => $results,
+                    'pagination' => $pagination,
+                ], 200);
+            } else {
+                $resultsQuery = (clone $quotations)->with('client')->orderBy('created_at', 'desc');
+                $results = $resultsQuery->get();
+
+                $results = $results->groupBy('client_id')->map(function ($userQuotations) use ($dateFormat) {
+                    $firstQuotation = $userQuotations->first();
+                    // $client = User::where('id', $firstQuotation->client_id)->value('full_name');
+
+                    return [
+                        'client_id' => $firstQuotation->client_id,
+                        'name' => $firstQuotation->client->full_name,
+                        'request_count' => $userQuotations->count(),
+                        'quotations' => $userQuotations->map(function ($quotation) use ($dateFormat) {
+                            $card = Message::where('reference_id', $quotation->id)
+                                ->where('type', 'QUOTATION_CARD')
+                                ->first();
+                            if ($card) {
+                                $conversationId = $card->conversation_id;
+                            }
+
+                            return [
+                                'id' => $quotation->id,
+                                'date' => $quotation->created_at->format($dateFormat),
+                                'person_in_charge' => $quotation->accountSpecialist->full_name,
+                                'commodity' => $quotation->commodity,
+                                'conversation_id' => $conversationId ?? null
+                            ];
+                        })->values(),
+                    ];
+                })->values();
+            }
         } else {
-            $results = $results->map(function ($result) use ($user,$request) {
+            $resultsQuery = $quotations->with('client')->orderBy('created_at', 'desc');
+
+            if ($isWeb) {
+                $paginated = $resultsQuery->paginate($perPage);
+                $pagination = $this->pagePaginationData($paginated);
+                $results = $paginated->getCollection();
+            } else {
+                $results = $resultsQuery->get();
+            }
+
+            $results = $results->map(function ($result) use ($user,$request, $dateFormat) {
                 if ($request->has('filter.status')) {
                     $status = null;
 
@@ -152,7 +283,7 @@ class QuotationController extends Controller
                         'client_name' => $result->client->full_name,
                         'reference_number' => $result->reference_number,
                         'commodity' => $result->commodity,
-                        'date' => $result->created_at->format('Y/m/d'),
+                        'date' => $result->created_at->format($dateFormat),
                         'status' => $status ?? $result->status,
                         'conversation_id' => $conversationId ?? null,
                     ];
@@ -164,7 +295,14 @@ class QuotationController extends Controller
             return $this->success('No quotations found', [], 200);
         }
 
-        return $this->success('All quotations fetched', $results, 200);
+        if ($isWeb) {
+            return $this->success('All quotations fetched', [
+                'quotations' => $results->values(),
+                'pagination' => $pagination,
+            ], 200);
+        }
+
+        return $this->success('All quotations fetched', $results->values(), 200);
     }
 
     /**
