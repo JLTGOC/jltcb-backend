@@ -82,7 +82,7 @@ class QuotationController extends Controller
         if ($request->search) {
             $search = $request->search;
             $searchIds = (new Search())
-                ->registerModel(Quotation::class, ['reference_number', 'id', 'contact_person', 'company_name', 'email', 'commodity', 'origin', 'destination', 'cargo_type'])
+                ->registerModel(Quotation::class, ['reference_number', 'commodity'])
                 ->search($search)
                 ->collect()
                 ->pluck('searchable')
