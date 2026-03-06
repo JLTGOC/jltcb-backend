@@ -74,21 +74,11 @@ class ShipmentController extends Controller
         // Normal pagination for web platform
         if ($request->header('Platform', 'mobile') === 'web') {
             $paginated = $shipmentsQuery->paginate($perPage);
-            $pagination = [
-                    'current_page' => $paginated->currentPage(),
-                    'last_page' => $paginated->lastPage(),
-                    'items_per_page' => $paginated->perPage(),
-                    'total_items' => $paginated->total(),
-            ];
+            $pagination = $this->pagePaginationData($paginated);
         } else {
             // Cursor pagination for mobile platform
             $paginated = $shipmentsQuery->cursorPaginate($perPage);
-            $pagination = [
-                'prev_cursor' => $paginated->previousCursor()?->encode(),
-                'next_cursor' => $paginated->nextCursor()?->encode(),
-                'prev_page_url' => $paginated->previousPageUrl(),
-                'next_page_url' => $paginated->nextPageUrl()
-            ];
+            $pagination = $this->cursorPaginationData($paginated);
         }
         
 
