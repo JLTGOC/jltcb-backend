@@ -25,14 +25,12 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
-        if (strtoupper($request->role) === 'AS') {
-            $as = User::role('Account Specialist')
-                ->pluck('full_name');
+        $as = User::role('Account Specialist')
+            ->pluck('full_name');
 
-            return $this->success('Account specialists fetched', $as, 200);
-        }
+        return $this->success('Account specialists fetched', $as, 200);
     }
 
     /**

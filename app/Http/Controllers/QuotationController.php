@@ -120,7 +120,6 @@ class QuotationController extends Controller
         } else {
             $results = $results->map(function ($result) use ($user,$request) {
                 if ($request->has('filter.status')) {
-                    // dd([$result, $result->id, $result->shipment]);
                     $status = null;
 
                     if ($user->hasRole('Client') && $request->filter['status'] === 'RESPONDED') {
