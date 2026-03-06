@@ -55,6 +55,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{conversation}', [ChatController::class, 'show']);
         Route::get('{conversation}/messages', [ChatController::class, 'indexMessages']); // History
         Route::post('{conversation}', [ChatController::class, 'sendMessage']); // Message a conversation
+        Route::post('/{conversation}/read', [ChatController::class, 'markAsRead']); // For chat viewer's unread count update
     });
 
     // Quotation Chat
