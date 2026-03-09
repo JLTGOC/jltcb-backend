@@ -38,7 +38,7 @@ class ShipmentController extends Controller
         $statusFilter = $request->input('status');
         $platform = $request->header('Platform', 'mobile');
 
-        $shipmentsQuery = Shipment::query();
+        $shipmentsQuery = Shipment::where('client_id', $request->user()->id);
 
         if ($platform === 'mobile') {
             $request->validate([
