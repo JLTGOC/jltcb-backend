@@ -135,7 +135,7 @@ class ChatController extends Controller
         $perPage = $request->input('perPage', 30);
         
         // Mark as read
-        $conversation->participants()->updateExistingPivot(Auth::id(), ['last_read_at' => now()]);
+        $this->markAsRead($conversation);
 
         // Fetch messages
         $paginated = $conversation->messages()
@@ -206,9 +206,7 @@ class ChatController extends Controller
 
                 $conversation->update(['last_message_at' => now()]);
                 // To update user unread count
-                $conversation->participants()->updateExistingPivot(
-                    $clientId, ['last_read_at' => now()]
-                );
+                $this->markAsRead($conversation);
             }
 
             return $this->success(
@@ -233,7 +231,7 @@ class ChatController extends Controller
         ]);
  
         // Set user's unread count to 0 as they send a message
-        $conversation->participants()->updateExistingPivot(Auth::id(), ['last_read_at' => now()]);
+        $this->markAsRead($conversation);
 
         $senderId = Auth::id();
 
@@ -267,6 +265,12 @@ class ChatController extends Controller
         $this->broadcastChatEvents($conversation, $message, $request->client_id);
 
         return $this->success('Message sent successfully.', new MessageResource($message), 201);
+    }
+
+    public function markAsRead(Conversation $conversation) {
+        $conversation->participants()->updateExistingPivot(Auth::id(), ['last_read_at' => now()]);
+
+        return $this->success('Message marked as read', ['success' => true]);
     }
 
     private function broadcastChatEvents(Conversation $conversation, Message $message, string $clientId) {

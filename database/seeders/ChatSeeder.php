@@ -8,12 +8,14 @@ use App\Models\Quotation;
 use App\Models\Shipment;
 use App\Models\User;
 use Carbon\Carbon;
+use Database\Seeders\Traits\SeederFileTrait;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
 class ChatSeeder extends Seeder
 {
+    use SeederFileTrait;
     /**
      * Run the database seeds.
      */
@@ -97,16 +99,57 @@ class ChatSeeder extends Seeder
     private function generateRandomMessages(Conversation $conversation, Carbon $date) {
         $messageCount = fake()->numberBetween(3, 20);
         $participants = $conversation->participants()->get()->pluck('id');
-        
-        // $messageType = fake()->randomElement(['TEXT', 'FILE', 'IMAGE']);
 
         for($i=1; $i<$messageCount; $i++) {
             $senderId = fake()->randomElement($participants);
 
+            $fileName = null;
+            $filePath = null;
+
+            $messageType = fake()->randomElement(['TEXT', 'FILE', 'IMAGE']);
+
+            if ($messageType !== 'TEXT') {
+
+                $attachments = [
+                    'IMAGE' => [
+                        'location' => 'articles',
+                        'items' => [
+                            'sample1.jpg',
+                            'sample2.jpg',
+                            'sample3.jpg',
+                            'sample4.jpg',
+                            'sample5.jpg',
+                            'sample6.jpg',
+                            'sample7.jpg',
+                            'sample8.jpg',
+                        ],
+                    ],
+                    'FILE' => [
+                        'location' => 'files',
+                        'items' => [
+                            'clientDoc.pdf',
+                            'QuotationFile.pdf',
+                            'clientDoc1.pdf',
+                        ],
+                    ],
+                ];
+
+                $type = $messageType === 'IMAGE' ? 'IMAGE' : 'FILE';
+
+                $fileName = fake()->randomElement($attachments[$type]['items']);
+                $filePath = str_replace(
+                    'storage/',
+                    '',
+                    $this->copySeederFile($attachments[$type]['location'], $fileName)
+                );
+            }
+
             $message = $conversation->messages()->create([
                 'sender_id' => $senderId,
-                'content' => fake()->sentence(),
-                'type' => 'TEXT'
+                'content' => $messageType === 'TEXT' ? fake()->sentence() : null,
+                'type' => $messageType,
+                'file_name' => $fileName,
+                'attachment_path' => $filePath
             ]);
 
             $newDate = $date->addMinutes($i);
