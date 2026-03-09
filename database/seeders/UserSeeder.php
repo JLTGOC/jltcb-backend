@@ -24,6 +24,7 @@ class UserSeeder extends Seeder
             ['role' => 'Client', 'email' => 'client@gmail.com'],
             ['role' => 'Client', 'email' => 'client2@gmail.com'],
             ['role' => 'Account Specialist', 'email' => 'accountspecialist@gmail.com'],
+            ['role' => 'Operations', 'email' => 'operations@gmail.com'],
             ['role' => 'Marketing', 'email' => 'marketing@gmail.com'],
             ['role' => 'Human Resource', 'email' => 'humanresource@gmail.com'],
         ];
