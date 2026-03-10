@@ -69,6 +69,12 @@ class MessageResource extends JsonResource
                 $data['content'] = $this->content;
                 $data['file_name'] = $this->file_name;
                 $data['file_url'] = asset(Storage::url($this->attachment_path));
+
+                $absolutePath = Storage::disk('public')->path($this->attachment_path);
+                [$width, $height] = getimagesize($absolutePath); 
+
+                $data['width'] = $width;  
+                $data['height'] = $height;  
                 break;
 
             case 'FILE':
