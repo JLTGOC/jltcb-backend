@@ -20,6 +20,9 @@ class QuotationResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $platform = strtolower((string) $request->header('Platform', 'mobile'));
+        $isWeb = $platform === 'web';
+
         $message = Message::where('reference_id', $this->id)->first();
         
         if (!$message) {
@@ -36,7 +39,7 @@ class QuotationResource extends JsonResource
             $shipmentStatus = 'ACCEPTED';
         }
 
-        return [
+        $response = [
             'reference_number' => $this->reference_number,
             'client' => $this->client->full_name,
             'account_specialist' => $this->accountSpecialist->full_name,
@@ -86,5 +89,16 @@ class QuotationResource extends JsonResource
             'remarks' => $this->remarks,
             'conversation_id' => $conversationId
         ];
+
+        if ($isWeb) {
+            $response['client'] = [
+                'full_name' => $this->client->full_name,
+                'company_name' => $this->client->company_name,
+                'contact_number' => $this->client->contact_number,
+                'email' => $this->client->email,
+            ];
+        }
+
+        return $response;
     }
 }
