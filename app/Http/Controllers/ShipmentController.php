@@ -14,6 +14,8 @@ use App\Models\{
 use App\Http\Resources\ShipmentResource;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\Searchable\Search;
 
 class ShipmentController extends Controller
@@ -32,23 +34,24 @@ class ShipmentController extends Controller
      */     
     public function index(Request $request)
     {
-        $sortOrder = $request->input('sortOrder', 'desc');
         $perPage = $request->input('perPage', 10);
         $search = $request->input('search');    
-        $statusFilter = $request->input('status');
         $platform = $request->header('Platform', 'mobile');
-
-        $shipmentsQuery = Shipment::where('client_id', $request->user()->id);
 
         if ($platform === 'mobile') {
             $request->validate([
-                'status' => 'required|in:ONGOING,DELIVERED'
+                'filter.status' => 'required|in:ONGOING,DELIVERED'
             ]);
         }
 
-        if (in_array($statusFilter, ['ONGOING', 'DELIVERED'])) {
-            $shipmentsQuery->where('status', $statusFilter);
-        };
+        $user = $request->user();
+
+        // Allows conditional base query depending on role
+        $baseQuery = $user->hasRole('Client') ? Shipment::where('client_id', $user->id) : Shipment::class;
+
+        $shipmentsQuery = QueryBuilder::for($baseQuery)
+            ->allowedFilters(AllowedFilter::exact('status'))
+            ->defaultSort('-created_at', '-id');
 
         if ($search) {
             if ($platform === 'mobile') {
@@ -69,10 +72,8 @@ class ShipmentController extends Controller
             }
         } 
 
-        $shipmentsQuery->orderBy('created_at', $sortOrder)->orderBy('id', $sortOrder);
-        
         // Normal pagination for web platform
-        if ($request->header('Platform', 'mobile') === 'web') {
+        if ($platform === 'web') {
             $paginated = $shipmentsQuery->paginate($perPage);
             $pagination = $this->pagePaginationData($paginated);
         } else {
@@ -80,10 +81,11 @@ class ShipmentController extends Controller
             $paginated = $shipmentsQuery->cursorPaginate($perPage);
             $pagination = $this->cursorPaginationData($paginated);
         }
-        
+
+        $message = $paginated->count() ? 'Shipments fetched successfully' : 'No Shipments available';
 
         return $this->success(
-            'Shipments fetched sucessfully', 
+            $message, 
             [
                 'shipments' => ShipmentResource::collection($paginated),
                 'pagination' => $pagination
