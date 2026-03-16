@@ -133,9 +133,6 @@ class ChatController extends Controller
     {
         $sortOrder = $request->input('sortOrder', 'asc');
         $perPage = $request->input('perPage', 30);
-        
-        // Mark as read
-        $this->markAsRead($conversation);
 
         // Fetch messages
         $paginated = $conversation->messages()
