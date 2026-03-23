@@ -16,7 +16,7 @@ class QuotationPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(['Client', 'Account Specialist']);
+        return $user->hasRole(['Client', 'Account Specialist', 'Lead Account Specialist']);
     }
 
     /**
@@ -24,7 +24,7 @@ class QuotationPolicy
      */
     public function view(User $user, Quotation $quotation): bool
     {
-        return (int) $user->id === (int) $quotation->client_id || (int) $user->id === (int) $quotation->as_id;
+        return (int) $user->id === (int) $quotation->client_id || (int) $user->id === (int) $quotation->as_id || $user->hasRole(['Lead Account Specialist']);
     }
 
     /**
@@ -40,7 +40,7 @@ class QuotationPolicy
      */
     public function update(User $user, Quotation $quotation): bool
     {
-        return (int) $user->id === (int) $quotation->client_id || (int) $user->id === (int) $quotation->as_id;
+        return (int) $user->id === (int) $quotation->client_id || (int) $user->id === (int) $quotation->as_id || $user->hasRole(['Lead Account Specialist']);
     }
 
     /**
@@ -48,7 +48,7 @@ class QuotationPolicy
      */
     public function delete(User $user, Quotation $quotation): bool
     {
-        return (int) $user->id === (int) $quotation->client_id;
+        return (int) $user->id === (int) $quotation->client_id || $user->hasRole(['Lead Account Specialist']);
     }
 
     /**
@@ -80,7 +80,7 @@ class QuotationPolicy
      */
     public function upload(User $user, Quotation $quotation): bool
     {
-        return (int) $user->id === (int) $quotation->as_id;
+        return (int) $user->id === (int) $quotation->as_id || $user->hasRole(['Lead Account Specialist']);
     }
 
     /**
@@ -88,7 +88,7 @@ class QuotationPolicy
      */
     public function showFile(User $user, Quotation $quotation): bool
     {
-        return (int) $user->id === (int) $quotation->client_id || (int) $user->id === (int) $quotation->as_id;
+        return (int) $user->id === (int) $quotation->client_id || (int) $user->id === (int) $quotation->as_id || $user->hasRole(['Lead Account Specialist']);
     }
 
     /**

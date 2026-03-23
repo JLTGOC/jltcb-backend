@@ -15,7 +15,7 @@ class ShipmentPolicy
      */
     public function viewAny(User $user): bool
     {
-        if ($user->hasRole(['Client', 'Account Specialist'])) {
+        if ($user->hasRole(['Client', 'Account Specialist', 'Lead Account Specialist'])) {
             return true;
         }
         
@@ -28,7 +28,7 @@ class ShipmentPolicy
     public function view(User $user, Shipment $shipment): bool
     {
         if (
-            (int) $shipment->client_id === (int) $user->id || (int) $shipment->as_id === (int) $user->id
+            (int) $shipment->client_id === (int) $user->id || (int) $shipment->as_id === (int) $user->id || $user->hasRole(['Lead Account Specialist'])
         ) {
             return true;
         }
