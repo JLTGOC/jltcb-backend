@@ -82,7 +82,7 @@ class QuotationController extends Controller
         if ($request->search) {
             $search = $request->search;
             $searchIds = (new Search())
-                ->registerModel(Quotation::class, ['reference_number', 'id', 'contact_person', 'company_name', 'email', 'commodity', 'origin', 'destination', 'cargo_type'])
+                ->registerModel(Quotation::class, ['reference_number', 'commodity'])
                 ->search($search)
                 ->collect()
                 ->pluck('searchable')
@@ -324,10 +324,32 @@ class QuotationController extends Controller
             $dateSection = Carbon::now()->format('m-Y');
             $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
 
+            $previousQuotation = Quotation::where('client_id', $user->id)->latest()->first();
+            if ($previousQuotation) {
+                $assignedSpecialist = $previousQuotation->accountSpecialist;
+            } else {
+                $specialists = User::role('Account Specialist')->get();
+                foreach ($specialists as $specialist) {
+                    $quotationsCount = Quotation::where('as_id', $specialist->id)->count();
+                    $specialist->quotations_count = $quotationsCount;
+                }
+
+                $minCount = $specialists->min('quotations_count');
+
+                if ($specialists->where('quotations_count', $minCount)->count() > 1) {
+                    foreach ($specialists->where('quotations_count', $minCount) as $specialist) {
+                        $specialist->lastest_quotation = Quotation::where('as_id', $specialist->id)->latest()->first()?->created_at ?? Carbon::createFromTimestamp(0);
+                    }
+                    $assignedSpecialist = $specialists->where('quotations_count', $minCount)->sortBy('lastest_quotation')->first();
+                } else {
+                    $assignedSpecialist = $specialists->where('quotations_count', $minCount)->first();
+                }
+            }
+
             $quotation = Quotation::create([
                 'reference_number' => "QT-{$dateSection}-{$idSection}",
                 'client_id' => $user->id,
-                'as_id' => Faker::create()->randomElement($specialists),
+                'as_id' => $assignedSpecialist->id,
                 'company_name' => $request->company['name'],
                 'company_address' => $request->company['address'],
                 'contact_person' => $request->company['contact_person'],
@@ -405,6 +427,14 @@ class QuotationController extends Controller
     public function update(UpdateQuotationRequest $request, Quotation $quotation)
     {
         $user = User::find(auth()->id());
+
+        if ($user->hasRole('Lead Account Specialist')) {
+            if (isset($request->as_id)) {
+                $quotation->update([
+                    'as_id' => $request->as_id
+                ]);
+            }
+        }
 
         if (((int) $user->id === (int) $quotation->client_id) || ((int) $user->id === (int) $quotation->as_id)) {
             if ($request->service_options) {
