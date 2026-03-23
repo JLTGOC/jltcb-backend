@@ -51,6 +51,10 @@ class QuotationController extends Controller
             $query->where('client_id', $user->id);
         } elseif ($user->hasRole('Account Specialist')) {
             $query->where('as_id', $user->id);
+        } elseif ($user->hasRole('Lead Account Specialist')) {
+            // No additional query constraints for Lead Account Specialist
+        } else {
+            return $this->error('Unauthorized', 403);
         }
 
         $request->validate([
@@ -107,7 +111,7 @@ class QuotationController extends Controller
 
         $pagination = null;
 
-        if ($user->hasRole('Account Specialist') && $request->filter['status'] === 'REQUESTED') {
+        if (($user->hasRole('Account Specialist') || $user->hasRole('Lead Account Specialist')) && $request->filter['status'] === 'REQUESTED') {
             if ($isWeb) {
                 if ($selectedClientId) {
                     $resultsQuery = (clone $quotations)
@@ -590,7 +594,8 @@ class QuotationController extends Controller
             );
 
             $quotation->update([
-                'status' => 'RESPONDED'
+                'status' => 'RESPONDED',
+                'created_by' => $user->id
             ]);
             
             $message = $quotationFile->wasRecentlyCreated 

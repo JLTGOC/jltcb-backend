@@ -35,6 +35,7 @@ return new class extends Migration
             $table->string('origin');
             $table->string('destination');
             $table->string('remarks')->nullable();
+            $table->foreignId('created_by')->nullable()->constrained('users')->cascadeOnDelete();
             $table->timestamps();
         });
     }
