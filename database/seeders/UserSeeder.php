@@ -48,7 +48,7 @@ class UserSeeder extends Seeder
                     'middle_name' => fake()->boolean() ? fake()->firstName() : null,
                     'last_name' =>  fake()->lastName(),
                     'email' => $account['email'],
-                    'password' => Hash::make('jltcb25'),
+                    'password' => Hash::make('jltcb2025'),
                     'address' => fake()->address(),
                     'contact_number' => fake()->numerify('09#########'),
                     'company_name' => ($account['role'] === 'Client') ? fake()->company() : 'JLTCB',
