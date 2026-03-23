@@ -40,6 +40,7 @@ class QuotationResource extends JsonResource
         }
 
         $response = [
+            'id' => $this->id,   
             'reference_number' => $this->reference_number,
             'client' => $this->client->full_name,
             'account_specialist' => $this->accountSpecialist->full_name,
