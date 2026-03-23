@@ -33,6 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('reels', ReelController::class)->only(['store', 'update', 'destroy']);
 
+    Route::get('/users/account-specialists', [UserController::class, 'indexAccountSpecialists']);
     Route::apiResource('users', UserController::class)->only(['index', 'show', 'update']);
     Route::put('/users/{user}/change-password', [UserController::class, 'changePassword']);
     Route::post('/users/{user}/change-profile', [UserController::class, 'changeProfile']);
