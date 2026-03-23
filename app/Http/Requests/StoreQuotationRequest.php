@@ -34,7 +34,11 @@ class StoreQuotationRequest extends FormRequest
             'commodity.commodity' => 'required|string',
             'commodity.cargo_type' => ['required', 'string', Rule::in(['CONTAINERIZED', 'LCL'])],
             // 'commodity.cargo_volume' => 'required_if:cargo_type,LCL|numeric|min:1',
-            'commodity.container_size' => 'required_if:cargo_type,CONTAINERIZED|string',
+            'commodity.container_size' => ['required_if:cargo_type,CONTAINERIZED', function ($attribute, $value, $fail) {
+                if ($this->input('commodity.cargo_type') === 'CONTAINERIZED' && empty($value)) {
+                    $fail('The container size is required when cargo type is CONTAINERIZED.');
+                }
+            }],
             'shipment.origin' => 'required|string',
             'shipment.destination' => 'required|string',
             'documents' => ['required', 'array'],
