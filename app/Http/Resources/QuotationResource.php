@@ -28,7 +28,7 @@ class QuotationResource extends JsonResource
         if (!$message) {
             $conversationId = null;
         } else {
-            $conversationId = Conversation::find($message->conversation_id)->value('id');
+            $conversationId = Conversation::where('id', $message->conversation_id)->value('id');
         }
         
         $options = explode(',', $this->service_options);
