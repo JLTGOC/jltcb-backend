@@ -43,7 +43,7 @@ class QuotationController extends Controller
         $user = auth()->user();
         $platform = strtolower((string) $request->header('Platform', 'mobile'));
         $isWeb = $platform === 'web';
-        $perPage = (int) $request->input('perPage', 10);
+        $perPage = $request->input('perPage', 10);
         $selectedClientId = $request->input('client_id');
         $dateFormat = $isWeb ? 'm/d/y' : 'Y/m/d';
         $query = Quotation::query();
@@ -139,7 +139,7 @@ class QuotationController extends Controller
                         ?? User::where('id', $selectedClientId)->value('full_name');
 
                     $results = [[
-                        'client_id' => (int) $selectedClientId,
+                        'client_id' => $selectedClientId,
                         'name' => $clientName,
                         'request_count' => $paginated->total(),
                         'quotations' => $quotationsForClient,
@@ -406,7 +406,7 @@ class QuotationController extends Controller
     {
         $user = User::find(auth()->id());
 
-        if (((int) $user->id === (int) $quotation->client_id) || ((int) $user->id === (int) $quotation->as_id)) {
+        if (($user->id === $quotation->client_id) || ($user->id === $quotation->as_id)) {
             if ($request->service_options) {
                 $stringifiedServiceOptions = implode(',', $request->service['options']);
             } else {

@@ -24,7 +24,7 @@ class QuotationPolicy
      */
     public function view(User $user, Quotation $quotation): bool
     {
-        return (int) $user->id === (int) $quotation->client_id || (int) $user->id === (int) $quotation->as_id || $user->hasRole(['Lead Account Specialist']);
+        return $user->id === $quotation->client_id || $user->id === $quotation->as_id || $user->hasRole(['Lead Account Specialist']);
     }
 
     /**
@@ -40,7 +40,7 @@ class QuotationPolicy
      */
     public function update(User $user, Quotation $quotation): bool
     {
-        return (int) $user->id === (int) $quotation->client_id || (int) $user->id === (int) $quotation->as_id || $user->hasRole(['Lead Account Specialist']);
+        return $user->id === $quotation->client_id || $user->id === $quotation->as_id || $user->hasRole(['Lead Account Specialist']);
     }
 
     /**
@@ -48,7 +48,7 @@ class QuotationPolicy
      */
     public function delete(User $user, Quotation $quotation): bool
     {
-        return (int) $user->id === (int) $quotation->client_id || $user->hasRole(['Lead Account Specialist']);
+        return $user->id === $quotation->client_id || $user->hasRole(['Lead Account Specialist']);
     }
 
     /**
@@ -80,7 +80,7 @@ class QuotationPolicy
      */
     public function upload(User $user, Quotation $quotation): bool
     {
-        return (int) $user->id === (int) $quotation->as_id || $user->hasRole(['Lead Account Specialist']);
+        return $user->id === $quotation->as_id || $user->hasRole(['Lead Account Specialist']);
     }
 
     /**
@@ -88,13 +88,13 @@ class QuotationPolicy
      */
     public function showFile(User $user, Quotation $quotation): bool
     {
-        return (int) $user->id === (int) $quotation->client_id || (int) $user->id === (int) $quotation->as_id || $user->hasRole(['Lead Account Specialist']);
+        return $user->id === $quotation->client_id || $user->id === $quotation->as_id || $user->hasRole(['Lead Account Specialist']);
     }
 
     /**
      * Determine whether the user can initiate chat about their quotation.
      */
     public function chatWithQuotation(User $user, Quotation $quotation) {
-        return (int) $user->id === (int) $quotation->client_id;
+        return $user->id === $quotation->client_id;
     }
 }

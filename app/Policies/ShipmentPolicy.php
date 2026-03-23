@@ -28,7 +28,7 @@ class ShipmentPolicy
     public function view(User $user, Shipment $shipment): bool
     {
         if (
-            (int) $shipment->client_id === (int) $user->id || (int) $shipment->as_id === (int) $user->id || $user->hasRole(['Lead Account Specialist'])
+            $shipment->client_id === $user->id || $shipment->as_id === $user->id || $user->hasRole(['Lead Account Specialist'])
         ) {
             return true;
         }
