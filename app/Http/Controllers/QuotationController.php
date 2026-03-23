@@ -365,7 +365,7 @@ class QuotationController extends Controller
                 'commodity' => $request->commodity['commodity'],
                 'cargo_type' => $request->commodity['cargo_type'],
                 // 'cargo_volume' => $request->commodity['cargo_volume'] ?? null,
-                'container_size' => $request->commodity['container_size'] ?? null,
+                'container_size' => $request->commodity['container_size'],
                 'origin' => $request->shipment['origin'],
                 'destination' => $request->shipment['destination'],
                 'remarks' => $request->remarks,
