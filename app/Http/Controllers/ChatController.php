@@ -264,6 +264,11 @@ class ChatController extends Controller
         return $this->success('Message sent successfully.', new MessageResource($message), 201);
     }
 
+    /**
+     * Mark Chats As Read 
+     * 
+     * Set chat participant's unread count to 0
+     */
     public function markAsRead(Conversation $conversation) {
         $conversation->participants()->updateExistingPivot(Auth::id(), ['last_read_at' => now()]);
 
