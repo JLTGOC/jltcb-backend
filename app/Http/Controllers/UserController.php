@@ -27,10 +27,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        $as = User::role('Account Specialist')
-            ->pluck('full_name');
-
-        return $this->success('Account specialists fetched', $as, 200);
+        //
     }
 
     /**
@@ -128,5 +125,25 @@ class UserController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Index Account Specialists
+     * 
+     * Display a listing of account specialists.
+     */
+    public function indexAccountSpecialists()
+    {
+        $this->authorize('indexAccountSpecialists', User::class);
+
+        $accountSpecialists = User::role('Account Specialist')->get();
+        $accountSpecialists = $accountSpecialists->map(function ($s) {
+            return [
+                'id' => $s->id,
+                'full_name' => $s->full_name,
+            ];
+        });
+
+        return $this->success('Account specialists fetched successfully', $accountSpecialists, 200);
     }
 }

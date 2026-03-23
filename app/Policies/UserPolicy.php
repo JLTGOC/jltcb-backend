@@ -80,4 +80,9 @@ class UserPolicy
         // Allow if user is updating their own profile or if they are an Account Specialist
         return (int) $user->id === (int) $model->id || $user->hasRole('Account Specialist');
     }
+
+    public function indexAccountSpecialists(User $user): bool
+    {
+        return $user->hasRole('Lead Account Specialist');
+    }
 }
