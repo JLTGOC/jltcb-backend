@@ -5,9 +5,8 @@ namespace App\Services\Dashboard;
 use App\Models\User;
 use App\Models\Quotation;
 use App\Models\Shipment;
-use Illuminate\Http\Request;
 
-class LeadAsDashboardService
+class AsDashboardService
 {
     public function getStats($request, $user): array
     {
@@ -15,15 +14,17 @@ class LeadAsDashboardService
         $clientsCount = User::role('Client')->count();
         
         // Get shipments where this lead is the as_id
-        $ongoingCount = Shipment::where('status', 'ONGOING')->count();
-        $deliveredCount = Shipment::where('status', 'DELIVERED')->count();
+        $ongoingCount = Shipment::where('as_id', $user->id)->where('status', 'ONGOING')->count();
+        $deliveredCount = Shipment::where('as_id', $user->id)->where('status', 'DELIVERED')->count();
         
         // Get quotations where this lead is the as_id
-        $newCount = Quotation::where('status', 'REQUESTED')->count();
-        $respondedCount = Quotation::where('status', 'RESPONDED')->count();
+        $newCount = Quotation::where('as_id', $user->id)->where('status', 'REQUESTED')->count();
+        $respondedCount = Quotation::where('as_id', $user->id)->where('status', 'RESPONDED')->count();
+        $acceptedCount = Quotation::where('as_id', $user->id)->where('status', 'ACCEPTED')->count();
+        $discardedCount = Quotation::where('as_id', $user->id)->where('status', 'DISCARDED')->count();
 
         if (strtolower($request->header('Platform', 'mobile') === 'web')) {
-            $clientIds = Shipment::distinct()->pluck('client_id');
+            $clientIds = Shipment::where('as_id', $user->id)->distinct()->pluck('client_id');
             $clients = [];
 
             foreach ($clientIds as $id) {
@@ -75,8 +76,8 @@ class LeadAsDashboardService
             'quotations' => [
                 'new_count' => $newCount,
                 'responded_count' => $respondedCount,
-                'accepted_count' => $ongoingCount + $deliveredCount,
-                'discarded_count' => 50,
+                'accepted_count' => $deliveredCount,
+                'discarded_count' => $discardedCount,
             ],
             'accounts' => [
                 'clients_count' => $clientsCount,
