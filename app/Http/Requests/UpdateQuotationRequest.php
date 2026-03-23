@@ -26,6 +26,7 @@ class UpdateQuotationRequest extends FormRequest
         $quotation = $this->route('quotation');
 
         return [
+            'as_id' => 'sometimes|integer|exists:users,id',
             'company.name' => 'sometimes|string',
             'company.address' => 'sometimes|string',
             'company.contact_person' => 'sometimes|string',
