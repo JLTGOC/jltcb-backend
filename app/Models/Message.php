@@ -37,4 +37,10 @@ class Message extends Model implements Searchable
     {
         return $this->morphTo();
     }
+
+    protected $casts = [
+        'conversation_id' => 'integer',
+        'sender_id' => 'integer',
+        'reference_id' => 'integer',
+    ];
 }

@@ -60,4 +60,9 @@ class Quotation extends Model implements Searchable
     public function files() {
         return $this->hasMany(QuotationFile::class);
     }
+
+    protected $casts = [
+        'client_id' => 'integer',
+        'as_id' => 'integer',
+    ];
 }

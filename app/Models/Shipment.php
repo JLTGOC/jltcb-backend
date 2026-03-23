@@ -56,4 +56,10 @@ class Shipment extends Model implements Searchable
     public function shipmentFile() {
         return $this->hasMany(ShipmentFile::class, 'shipment_id');
     }
+
+    protected $casts = [
+        'quotation_id' => 'integer',
+        'client_id' => 'integer',
+        'as_id' => 'integer',
+    ];
 }
