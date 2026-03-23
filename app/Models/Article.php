@@ -17,4 +17,8 @@ class Article extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    protected $casts = [
+        'user_id' => 'integer',
+    ];
 }

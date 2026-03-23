@@ -14,7 +14,7 @@ class QuotationFilePolicy
      */
     public function viewAny(User $user, Quotation $quotation): bool
     {
-        return (int) $user->id === (int) $quotation->client_id || (int) $user->id === (int) $quotation->as_id;
+        return $user->id === $quotation->client_id || $user->id === $quotation->as_id;
     }
 
     /**
@@ -22,7 +22,7 @@ class QuotationFilePolicy
      */
     public function view(User $user, Quotation $quotation, QuotationFile $quotationFile): bool
     {
-        return (int) $user->id === (int) $quotation->client_id || (int) $user->id === (int) $quotation->as_id;
+        return $user->id === $quotation->client_id || $user->id === $quotation->as_id;
     }
 
     /**

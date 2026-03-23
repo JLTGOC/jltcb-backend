@@ -15,11 +15,18 @@ class UpdateUserRequest extends FormRequest
     public function rules()
     {
         $userId = $this->route('user') ? $this->route('user')->id : null;
+        $authUser = $this->user();
 
         return [
             'first_name' => ['sometimes', 'string'],
             'last_name' => ['sometimes', 'string'],
-            'position' => ['sometimes', 'nullable', 'string', 'exists:roles,name'],
+            'position' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'exists:roles,name',
+                Rule::prohibitedIf(! $authUser || ! $authUser->hasRole('IT')),
+            ],
             'contact_number' => ['sometimes', 'nullable', 'string', 'size:11', 'regex:/^09\d{9}$/'],
             'email' => ['sometimes', 'email', Rule::unique('users', 'email')->ignore($userId)],
         ];

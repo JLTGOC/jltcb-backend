@@ -18,4 +18,7 @@ class QuotationFile extends Model
         return $this->belongsTo(User::class, 'uploaded_by');
     }
     
+    protected $casts = [
+        'quotation_id' => 'integer',
+    ];
 }

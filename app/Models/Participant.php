@@ -16,6 +16,8 @@ class Participant extends Model implements Searchable
     protected $casts = [
         'last_read_at' => 'datetime',
         'joined_at' => 'datetime',
+        'conversation_id' => 'integer',
+        'user_id' => 'integer',
     ];
 
     public function getSearchResult(): SearchResult
