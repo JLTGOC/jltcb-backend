@@ -557,15 +557,17 @@ class QuotationController extends Controller
      */
     public function upload(Quotation $quotation, Request $request) {
         $request->validate([
-            'file' => ['required', 'file', 'mimes:pdf']
+            'file' => ['required', 'file', 'mimes:pdf,xls,xlsx']
         ]);
 
         $user = $request->user();
 
         $file = $request->file('file');
         $directory = 'files';
-        $originalFileName = str_replace('.' . $file->extension(), '', $file->getClientOriginalName());
+        $originalFileName = $file->getClientOriginalName();
         $type = 'PROPOSAL';
+        $fileType = $file->getClientOriginalExtension();
+  
 
         $existingFile = $quotation->files()->where('type', $type)->first();
 
@@ -589,7 +591,8 @@ class QuotationController extends Controller
                 [
                     'file_path' => $path,
                     'type' => $type,
-                    'original_file_name' => $originalFileName
+                    'original_file_name' => $originalFileName,
+                    'file_type' => $fileType
                 ],
             );
 
@@ -644,7 +647,7 @@ class QuotationController extends Controller
                 foreach ($newFiles as $file) {
                     $filename = $file->hashName();
                     $path = $file->storeAs('files', $filename, 'public');
-                    $originalFileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                    $originalFileName = $file->getClientOriginalName();
 
                     QuotationFile::create([
                         'quotation_id' => $quotation->id,
@@ -652,6 +655,7 @@ class QuotationController extends Controller
                         'original_file_name' => $originalFileName,
                         'uploaded_by' => $user->id,
                         'type' => $type,
+                        'file_type' => $file->getClientOriginalExtension()
                     ]);
                 }
             }

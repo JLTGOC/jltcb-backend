@@ -84,6 +84,7 @@ class QuotationResource extends JsonResource
                         'id' => $file->id,
                         'file_name' => $file->original_file_name,
                         'file_url' => asset(Storage::url($file->file_path)),
+                        'file_type' => $file->file_type
                     ];
                 })
                 : 'No documents available.',

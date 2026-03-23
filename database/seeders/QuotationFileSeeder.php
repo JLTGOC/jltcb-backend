@@ -49,7 +49,8 @@ class QuotationFileSeeder extends Seeder
                     'quotation_id'       => $quotation->id,
                     'file_path'          => $filePath,
                     'type'               => $fileIndex ? 'PROPOSAL' : 'REQUESTED',
-                    'original_file_name' => $fileIndex ? 'QUOTATION' : 'DOCUMENT',
+                    'original_file_name' => $fileIndex ? 'QUOTATION.pdf' : 'DOCUMENT.pdf',
+                    'file_type' => 'pdf'
                 ]);
             }
         }

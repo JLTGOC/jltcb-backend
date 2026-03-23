@@ -21,6 +21,7 @@ class QuotationFileResource extends JsonResource
             'quotation_id' => $this->quotation_id,
             // 'file_path' => asset($this->file_path),
             'file_url' => asset(Storage::url($this->file_path)),
+            'file_type' => $this->file_type,
             'type' => $this->type,
             'file_name' => $this->original_file_name,
             'created_at' => $this->created_at?->toDateTimeString(),

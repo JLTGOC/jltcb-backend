@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class QuotationFile extends Model
 {
 
-    protected $fillable = ['quotation_id', 'file_path', 'uploaded_by', 'type', 'original_file_name'];
+    protected $fillable = ['quotation_id', 'file_path', 'uploaded_by', 'type', 'original_file_name', 'file_type'];
 
 
     public function quotation() {

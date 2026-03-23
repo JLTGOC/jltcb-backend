@@ -67,7 +67,7 @@ class QuotationFileController extends Controller
         ]);
 
         $file->update([
-            'original_file_name' => $request->file_name
+            'original_file_name' => $request->file_name . '.' . $file->file_type
         ]);
         
         return $this->success('File updated successfully', new QuotationFileResource($file));
