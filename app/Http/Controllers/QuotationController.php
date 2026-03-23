@@ -590,7 +590,8 @@ class QuotationController extends Controller
             );
 
             $quotation->update([
-                'status' => 'RESPONDED'
+                'status' => 'RESPONDED',
+                'created_by' => $user->id
             ]);
             
             $message = $quotationFile->wasRecentlyCreated 

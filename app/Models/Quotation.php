@@ -28,6 +28,7 @@ class Quotation extends Model implements Searchable
         'origin',
         'destination',
         'remarks',
+        'created_by'
     ];
 
     protected $hidden = [
@@ -59,5 +60,9 @@ class Quotation extends Model implements Searchable
     
     public function files() {
         return $this->hasMany(QuotationFile::class);
+    }
+
+    public function creator() {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }
