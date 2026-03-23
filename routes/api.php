@@ -46,9 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     //Temporary routes for quotation files
     Route::post('/quotations/{quotation}/upload', [QuotationController::class, 'upload']);
-    Route::get('/quotations/{quotation}/files', [QuotationFileController::class, 'index']);
-    Route::get('/quotations/{quotation}/files/{file}', [QuotationFileController::class, 'show'])
-        ->scopeBindings();
+    Route::apiResource('quotations.files', QuotationFileController::class)->only(['index', 'show', 'update'])->scoped();
 
     Route::prefix('conversations')->group(function () {
         Route::get('', [ChatController::class, 'index']); // Inbox
