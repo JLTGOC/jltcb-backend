@@ -440,7 +440,7 @@ class QuotationController extends Controller
             }
         }
 
-        if (((int) $user->id === (int) $quotation->client_id) || ((int) $user->id === (int) $quotation->as_id)) {
+        if (((int) $user->id === (int) $quotation->client_id) || ((int) $user->id === (int) $quotation->as_id) || $user->hasRole('Lead Account Specialist')) {
             if ($request->service_options) {
                 $stringifiedServiceOptions = implode(',', $request->service['options']);
             } else {
@@ -465,7 +465,7 @@ class QuotationController extends Controller
                     'transport_mode' => $request->service['transport_mode'] ?? $quotation->transport_mode,
                     'service_options' => $stringifiedServiceOptions ?? $quotation->service_options,
                     'commodity' => $request->commodity['commodity'] ?? $quotation->commodity,
-                    'cargo_type' => $request->commodity['cargo_type'],
+                    'cargo_type' => $request->commodity['cargo_type'] ?? $quotation->cargo_type,
                     // 'cargo_volume' => $request->commodity['cargo_volume'] ?? $quotation->cargoVolume,
                     'container_size' => $request->commodity['container_size'] ?? $quotation->container_size,
                     'origin' => $request->shipment['origin'] ?? $quotation->origin,
