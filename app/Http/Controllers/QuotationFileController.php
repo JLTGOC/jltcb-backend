@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\QuotationFileResource;
-use App\Models\QuotationFile;
-use App\Models\Quotation;
+use App\Models\{
+    QuotationFile,
+    Quotation
+};
 use Illuminate\Http\Request;
 
 class QuotationFileController extends Controller
@@ -54,11 +56,21 @@ class QuotationFileController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update Client Documents
+     * 
+     * Updates client documents only and directly.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Quotation $quotation, QuotationFile $file)
     {
-        //
+        $request->validate([
+            'file_name' => 'required|string|max:255'
+        ]);
+
+        $file->update([
+            'original_file_name' => $request->file_name
+        ]);
+        
+        return $this->success('File updated successfully', new QuotationFileResource($file));
     }
 
     /**
