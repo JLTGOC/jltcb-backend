@@ -42,7 +42,7 @@ class UpdateQuotationRequest extends FormRequest
             'shipment.origin' => 'sometimes|string',
             'shipment.destination' => 'sometimes|string',
             'documents' => ['nullable','array'],
-            'documents.*' => ['file', 'mimes:pdf,png,jpg,doc,docx,heic'],
+            'documents.*' => ['file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
             'removed_documents' => ['nullable', 'array'],
             'removed_documents.*' => [
                 'integer',

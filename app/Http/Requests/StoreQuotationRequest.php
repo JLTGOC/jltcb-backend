@@ -42,7 +42,7 @@ class StoreQuotationRequest extends FormRequest
             'shipment.origin' => 'required|string',
             'shipment.destination' => 'required|string',
             'documents' => ['required', 'array'],
-            'documents.*' => ['required', 'file', 'mimes:pdf,png,jpg,doc,docx,heic'],
+            'documents.*' => ['required', 'file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
             'remarks' => ['nullable', 'string']
         ];
     }
