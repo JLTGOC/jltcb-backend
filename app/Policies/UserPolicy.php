@@ -36,7 +36,7 @@ class UserPolicy
      */
     public function update(User $user, User $model): bool
     {
-        if ($user->hasRole(['Account Specialist'])) {
+        if ((int) $user->id === (int) $model->id || $user->hasRole('IT')) {
             return true;
         }
         return false;
@@ -71,13 +71,13 @@ class UserPolicy
      */
     public function changePassword(User $user, User $model): bool
     {
-        // Allow if user is updating their own password or if they are an Account Specialist
-        return (int) $user->id === (int) $model->id || $user->hasRole('Account Specialist');
+        // Allow if user is updating their own password or if they are an IT
+        return (int) $user->id === (int) $model->id || $user->hasRole('IT');
     }   
 
     public function changeProfile(User $user, User $model): bool
     {
-        // Allow if user is updating their own profile or if they are an Account Specialist
-        return (int) $user->id === (int) $model->id || $user->hasRole('Account Specialist');
+        // Allow if user is updating their own profile or if they are an IT
+        return (int) $user->id === (int) $model->id || $user->hasRole('IT');
     }
 }
