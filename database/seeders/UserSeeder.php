@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Database\Seeders\Traits\SeederFileTrait;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -21,12 +20,23 @@ class UserSeeder extends Seeder
         $this->cleanupSeederFiles('images');
 
         $accounts = [
-            ['role' => 'Client', 'email' => 'client@gmail.com'],
+            ['role' => 'Client', 'email' => 'client1@gmail.com'],
             ['role' => 'Client', 'email' => 'client2@gmail.com'],
-            ['role' => 'Account Specialist', 'email' => 'accountspecialist@gmail.com'],
+            ['role' => 'Lead Account Specialist', 'email' => 'leadAs@gmail.com'],
+            ['role' => 'Account Specialist', 'email' => 'as1@gmail.com'],
+            ['role' => 'Account Specialist', 'email' => 'as2@gmail.com'],
+            ['role' => 'Account Specialist', 'email' => 'as3@gmail.com'],
+            ['role' => 'Account Specialist', 'email' => 'as4@gmail.com'],
+            ['role' => 'Account Specialist', 'email' => 'as5@gmail.com'],
+            ['role' => 'Account Specialist', 'email' => 'as6@gmail.com'],
+            ['role' => 'Account Specialist', 'email' => 'as7@gmail.com'],
+            ['role' => 'Account Specialist', 'email' => 'as8@gmail.com'],
+            ['role' => 'Account Specialist', 'email' => 'as9@gmail.com'],
+            ['role' => 'Account Specialist', 'email' => 'as10@gmail.com'],
             ['role' => 'Operations', 'email' => 'operations@gmail.com'],
             ['role' => 'Marketing', 'email' => 'marketing@gmail.com'],
-            ['role' => 'Human Resource', 'email' => 'humanresource@gmail.com'],
+            ['role' => 'Human Resource', 'email' => 'hr@gmail.com'],
+            ['role' => 'IT', 'email' => 'it@gmail.com'],
         ];
 
         $profileImagePath = $this->copySeederFile('images', 'profile.jpg');
@@ -38,7 +48,7 @@ class UserSeeder extends Seeder
                     'middle_name' => fake()->boolean() ? fake()->firstName() : null,
                     'last_name' =>  fake()->lastName(),
                     'email' => $account['email'],
-                    'password' => Hash::make($account['email']),
+                    'password' => Hash::make('jltcb25'),
                     'address' => fake()->address(),
                     'contact_number' => fake()->numerify('09#########'),
                     'company_name' => ($account['role'] === 'Client') ? fake()->company() : 'JLTCB',
