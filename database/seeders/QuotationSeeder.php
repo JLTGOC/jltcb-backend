@@ -70,6 +70,10 @@ class QuotationSeeder extends Seeder
                 $dateSection = Carbon::now()->format('m-Y');
                 $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
 
+                $quotation->update([
+                    'created_by' => $quotation->as_id,
+                ]);
+
                 $isAccepted = fake()->boolean();
 
                 if ($isAccepted) {
