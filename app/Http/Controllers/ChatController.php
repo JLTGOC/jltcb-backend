@@ -164,23 +164,23 @@ class ChatController extends Controller
     {
         $clientId = auth()->id();
 
-        // 1. Get the Lead (Receiver)
-        $leadAsUser = User::where('email', 'accountspecialist@gmail.com')->first();
-        if (!$leadAsUser)
-            return $this->error('Lead AS account missing', 404);
-        $leadAsId = $leadAsUser->id;
+        // 1. Get the assigned account specialist (Receiver)
+        $regularAsUser = $quotation->accountSpecialist;
+        if (!$regularAsUser)
+            return $this->error('No assigned Account Specialist', 404);
+        $regularAsId = $regularAsUser->id;
 
-        return DB::transaction(function () use ($clientId, $leadAsId, $quotation) {
+        return DB::transaction(function () use ($clientId, $regularAsId, $quotation) {
 
             // 2. Find or Create Conversation (Client <-> Lead)
             $conversation = Conversation::where('type', 'DIRECT')
                 ->whereHas('participants', fn($q) => $q->where('user_id', $clientId))
-                ->whereHas('participants', fn($q) => $q->where('user_id', $leadAsId))
+                ->whereHas('participants', fn($q) => $q->where('user_id', $regularAsId))
                 ->first();
 
             if (!$conversation) {
                 $conversation = Conversation::create(['type' => 'DIRECT']);
-                $conversation->participants()->attach([$clientId, $leadAsId]);
+                $conversation->participants()->attach([$clientId, $regularAsId]);
             }
 
             // 3. CHECK: Prevent Duplicate Cards

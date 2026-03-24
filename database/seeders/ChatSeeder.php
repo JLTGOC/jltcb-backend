@@ -64,10 +64,10 @@ class ChatSeeder extends Seeder
 
     private function generateConversation($model, string $type) {
         $clientId = $model->client_id;
-        $leadAsId = $model->as_id;
+        $regularAsId = $model->as_id;
 
         $conversation = Conversation::whereHas('participants', fn($q) => $q->where('user_id', $clientId))
-            ->whereHas('participants', fn($q) => $q->where('user_id', $leadAsId))
+            ->whereHas('participants', fn($q) => $q->where('user_id', $regularAsId))
             ->first();
 
         if (!$conversation || $model instanceof Shipment) {
@@ -76,7 +76,7 @@ class ChatSeeder extends Seeder
                 'name' => $type === 'GROUP' ? $model->reference_number : null,
                 'last_message_at' => Carbon::now()
             ]);
-            $conversation->participants()->attach([$clientId, $leadAsId]);
+            $conversation->participants()->attach([$clientId, $regularAsId]);
         }
 
         return $conversation;
