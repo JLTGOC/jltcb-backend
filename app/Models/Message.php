@@ -39,7 +39,7 @@ class Message extends Model implements Searchable
     }
 
     protected $casts = [
-        'conversation_id' => 'integer',
+        'conversation_id' => 'string',
         'sender_id' => 'integer',
         'reference_id' => 'integer',
     ];
