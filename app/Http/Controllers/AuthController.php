@@ -2,12 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -50,15 +47,21 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        $credentials = $request->only('email', 'password');
-
         $validated = $request->validate([
-            'email' => 'required',
-            'password' => 'required'
+            'email' => 'required|string',
+            'password' => 'required|string',
         ]);
 
         if ($validated) {
-            if (!auth()->attempt($credentials)) {
+            $login = trim($validated['email']);
+            $loginField = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+            $credentials = [
+                $loginField => $login,
+                'password' => $validated['password'],
+            ];
+
+            if (!Auth::attempt($credentials)) {
                 return $this->error('Invalid credentials', 401);
             }
 

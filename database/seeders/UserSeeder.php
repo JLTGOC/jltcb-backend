@@ -6,6 +6,7 @@ use App\Models\User;
 use Database\Seeders\Traits\SeederFileTrait;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class UserSeeder extends Seeder
 {
@@ -47,6 +48,7 @@ class UserSeeder extends Seeder
                     'first_name' => fake()->firstName(),
                     'middle_name' => fake()->boolean() ? fake()->firstName() : null,
                     'last_name' =>  fake()->lastName(),
+                    'username' => Str::before($account['email'], '@'),
                     'email' => $account['email'],
                     'password' => Hash::make('jltcb2025'),
                     'address' => fake()->address(),

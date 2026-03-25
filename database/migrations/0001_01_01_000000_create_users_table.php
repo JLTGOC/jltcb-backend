@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('first_name');
             $table->string('middle_name')->nullable();
             $table->string('last_name');
+            $table->string('username')->unique();
             $table->string('full_name')
                   ->virtualAs("CONCAT_WS(' ', first_name, middle_name, last_name)");
             $table->string('email')->unique();

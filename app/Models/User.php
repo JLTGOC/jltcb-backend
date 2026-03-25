@@ -8,7 +8,6 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Auth\Passwords\CanResetPassword;
 use App\Models\{
     Article,
     Quotation
@@ -28,6 +27,7 @@ class User extends Authenticatable
         'first_name',
         'middle_name',
         'last_name',
+        'username',
         'email',
         'password',
         // 'password_length',
