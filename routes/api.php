@@ -11,6 +11,7 @@ use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\QuotationFileController;
+use App\Http\Controllers\JobOrderController;
 use Illuminate\Support\Facades\Broadcast;
 
 require __DIR__ . '/public_routes.php';
@@ -62,4 +63,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Shipment Routes
     Route::apiResource('shipments', ShipmentController::class)->only(['store', 'show', 'update', 'index']);
+
+    // Job Order Routes
+    Route::get('/job-orders/enums', [JobOrderController::class, 'jobOrderEnums']);
+    Route::apiResource('job-orders', JobOrderController::class)->only(['store', 'show', 'update', 'index']);
 });
