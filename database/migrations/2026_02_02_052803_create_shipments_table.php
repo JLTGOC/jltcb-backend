@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreign('client_id')->references('id')->on('users')->constrained()->cascadeOnDelete();
             $table->unsignedBigInteger('as_id');
             $table->foreign('as_id')->references('id')->on('users')->constrained();
-            $table->enum('status', ['ONGOING', 'DELIVERED'])->default('ONGOING');
+            $table->enum('status', ['PENDING', 'NOT YET DELIVERED', 'IN TRANSIT', 'ARRIVED', 'BERTHED', 'DISCHARGED', 'DELIVERED'])->default('PENDING');
             $table->string('contact_person');
             $table->string('contact_number');
             $table->string('email');

@@ -97,4 +97,14 @@ class QuotationPolicy
     public function chatWithQuotation(User $user, Quotation $quotation) {
         return $user->id === $quotation->client_id;
     }
+
+    public function reassignSpecialist(User $user, Quotation $quotation): bool
+    {
+        return $user->hasRole(['Lead Account Specialist']);
+    }
+
+    public function acceptQuotation(User $user, Quotation $quotation): bool
+    {
+        return $user->id === $quotation->client_id;
+    }
 }

@@ -11,6 +11,7 @@ use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\QuotationFileController;
+use App\Http\Controllers\JobOrderController;
 use Illuminate\Support\Facades\Broadcast;
 
 require __DIR__ . '/public_routes.php';
@@ -41,6 +42,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index']);
 
     Route::get('quotations/enum-options', [QuotationController::class, 'enumQuotationOptions']);
+    Route::put('/quotations/{quotation}/reassign-specialist', [QuotationController::class, 'reassignSpecialist']);
+    Route::put('/quotations/{quotation}/accept', [QuotationController::class, 'acceptQuotation']);
     Route::apiResource('quotations', QuotationController::class)->except(['update']);
     Route::post('/quotations/{quotation}', [QuotationController::class, 'update']);
 
@@ -62,4 +65,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Shipment Routes
     Route::apiResource('shipments', ShipmentController::class)->only(['store', 'show', 'update', 'index']);
+
+    // Job Order Routes
+    Route::get('/job-orders/enums', [JobOrderController::class, 'jobOrderEnums']);
+    Route::get('/job-orders/{job_order}/quotation', [JobOrderController::class, 'showJobOrderQuotation']);
+    Route::apiResource('job-orders', JobOrderController::class)->only(['store', 'show', 'index']);
 });

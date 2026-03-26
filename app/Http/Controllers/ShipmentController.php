@@ -9,7 +9,8 @@ use App\Models\{
     QuotationFile,
     ShipmentFile,
     Conversation,
-    User
+    User,
+    JobOrder,
 };
 use App\Http\Resources\ShipmentResource;
 use Carbon\Carbon;
@@ -107,24 +108,24 @@ class ShipmentController extends Controller
 
         $validated = $request->validate([
             'reference_number' => ['required', 'string', function ($attribute, $value, $fail) use ($user) {
-                $exists = Quotation::where('reference_number', $value)
-                    ->where('client_id', $user->id)
-                    ->where('status', 'RESPONDED')
+                $exists = JobOrder::where('reference_number', $value)
+                    ->where('operations_id', $user->id)
                     ->exists();
                 if (!$exists) {
-                    $fail('The quotation not found or not in RESPONDED status.');
+                    $fail('Job Order not found or quotation not in ACCEPTED status.');
                 }
             }],
         ]);
 
-        $quotation = Quotation::where('reference_number', $validated['reference_number'])
-            ->where('client_id', $user->id)
-            ->where('status', 'RESPONDED')
+        $jobOrder = JobOrder::where('reference_number', $validated['reference_number'])->first();
+
+        $quotation = Quotation::where('reference_number', $jobOrder->quotation->reference_number)
+            ->where('status', 'ACCEPTED')
             ->first();
 
         $existingShipment = Shipment::where('quotation_id', $quotation->id)->first();
         if ($existingShipment) {
-            return $this->error('Shipment already exists for this quotation', 409);
+            return $this->error('Shipment already exists for this job order', 409);
         }
 
         try {
@@ -185,6 +186,10 @@ class ShipmentController extends Controller
                 'content' => null,
                 'reference_id' => $shipment->id,
                 'reference_type' => Shipment::class,
+            ]);
+
+            $jobOrder->update([
+                'shipment_creation_status' => 'CREATED'
             ]);
 
             DB::commit();
