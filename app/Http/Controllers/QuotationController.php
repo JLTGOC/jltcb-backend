@@ -60,7 +60,7 @@ class QuotationController extends Controller
         }
 
         $request->validate([
-            'filter.status' => 'required|in:REQUESTED,RESPONDED',
+            'filter.status' => 'required|in:REQUESTED,RESPONDED,ACCEPTED,DISCARDED',
             'search' => 'sometimes|string',
             'perPage' => 'sometimes|integer|min:1|max:100',
             'client_id' => [

@@ -14,7 +14,15 @@ class AsDashboardService
         $clientsCount = User::role('Client')->count();
         
         // Get shipments where this lead is the as_id
-        $ongoingCount = Shipment::where('as_id', $user->id)->where('status', 'ONGOING')->count();
+        // 'PENDING','NOT YET DELIVERED','IN TRANSIT','ARRIVED','BERTHED','DISCHARGED','DELIVERED'
+        $pendingCount = Shipment::where('as_id', $user->id)->where('status', 'PENDING')->count();
+        $notYetDeliveredCount = Shipment::where('as_id', $user->id)->where('status', 'NOT YET DELIVERED')->count();
+        $inTransitCount = Shipment::where('as_id', $user->id)->where('status', 'IN TRANSIT')->count();
+        $arrivedCount = Shipment::where('as_id', $user->id)->where('status', 'ARRIVED')->count();
+        $dischargedCount = Shipment::where('as_id', $user->id)->where('status', 'DISCHARGED')->count();
+
+        $ongoingCount = $pendingCount + $notYetDeliveredCount + $inTransitCount + $arrivedCount + $dischargedCount;
+
         $deliveredCount = Shipment::where('as_id', $user->id)->where('status', 'DELIVERED')->count();
         
         // Get quotations where this lead is the as_id
@@ -44,7 +52,9 @@ class AsDashboardService
                 'quotations' => [
                     'responded_count' => $respondedCount,
                     'requested_count' => $newCount,
-                    'total_count' => $respondedCount + $newCount
+                    'accepted_count' => $acceptedCount,
+                    'discarded_count' => $discardedCount,
+                    'total_count' => $respondedCount + $newCount + $acceptedCount + $discardedCount
                 ],
                 'shipments' => [
                     'ongoing_count' => $ongoingCount,
@@ -76,7 +86,7 @@ class AsDashboardService
             'quotations' => [
                 'new_count' => $newCount,
                 'responded_count' => $respondedCount,
-                'accepted_count' => $deliveredCount,
+                'accepted_count' => $acceptedCount,
                 'discarded_count' => $discardedCount,
             ],
             'accounts' => [
