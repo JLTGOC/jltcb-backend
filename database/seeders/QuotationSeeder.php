@@ -8,7 +8,8 @@ use Illuminate\Database\Seeder;
 use App\Models\{
     Quotation,
     User,
-    Shipment
+    Shipment,
+    JobOrder,
 };
 use Carbon\Carbon;
 
@@ -34,7 +35,7 @@ class QuotationSeeder extends Seeder
 
             $quotation = Quotation::create([
                 'reference_number' => "QT-{$dateSection}-{$idSection}",
-                'status' => fake()->randomElement(['REQUESTED', 'RESPONDED']),
+                'status' => fake()->randomElement(['REQUESTED', 'RESPONDED', 'ACCEPTED']),
                 'client_id' => fake()->randomElement($clients),
                 'as_id' => fake()->randomElement($specialists),
                 'company_name' => $companyName,
@@ -58,31 +59,61 @@ class QuotationSeeder extends Seeder
                 ]);
             } 
 
-            if ($quotation->status === 'RESPONDED') {
-                if ($quotation->service_type === 'IMPORT') {
-                    $prefix = 'IM';
-                } elseif ($quotation->service_type === 'EXPORT') {
-                    $prefix = 'EX';
-                } elseif ( $quotation->service_type === 'BUSINESS SOLUTION') {
-                    $prefix = 'BS';
-                }
-                $lastId = Shipment::max('id') ?? 0;
-                $dateSection = Carbon::now()->format('m-Y');
-                $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
-
+            if ($quotation->status === 'ACCEPTED') {
                 $quotation->update([
                     'created_by' => $quotation->as_id,
                 ]);
 
-                $isAccepted = fake()->boolean();
+                $idSection = str_pad(((JobOrder::latest('id')->value('id') ?? 0) + 1), 3, '0', STR_PAD_LEFT);
+                $prefix = 'SJO';
+                $dateSection = now()->format('m-Y');
 
-                if ($isAccepted) {
+                $jobOrder = JobOrder::create([
+                    'reference_number' => "{$prefix}-{$dateSection}-{$idSection}",
+                    'job_type' => 'SHIPMENT',
+                    'client_id' => $quotation->client_id,
+                    'as_id' => $quotation->as_id,
+                    'operations_id' => User::role('Operations')->inRandomOrder()->first()->id,
+                    'finance_id' => User::role('Finance')->inRandomOrder()->first()->id,
+                    'quotation_id' => $quotation->id,
+                    'subject' => fake()->sentence(),
+                    'email_body' => fake()->paragraph(),
+                    'client_type' => fake()->randomElement(['NEW', 'RENEWAL']),
+                    'accredited' => fake()->randomElement(['REGULAR', 'EXPEDITED']),
+                    'tone_and_attitude' => fake()->randomElement(['FRIENDLY', 'NEUTRAL', 'HOSTILE']),
+                    'remarks' => fake()->sentence(),
+                    'service_level' => fake()->randomElement([
+                        'CARGO CONSOLIDATION (CC)',
+                        'DIRECT EXPORT (DE)',
+                        'INTERNATIONAL FREIGHT FORWARDING (IFF)',
+                        'CARGO CONSOLIDATION (CC), DIRECT EXPORT (DE)',
+                        'INTERNATIONAL FREIGHT FORWARDING (IFF), CARGO CONSOLIDATION (CC)',
+                        'INTERNATIONAL FREIGHT FORWARDING (IFF), CARGO CONSOLIDATION (CC), DIRECT EXPORT (DE)',
+                    ]),
+                    'bl_no' => fake()->bothify('BL-#####'),
+                    'eta' => Carbon::now()->addDays(fake()->numberBetween(1, 30)),
+                    'etd' => Carbon::now()->addDays(fake()->numberBetween(1, 30)),
+                    'shipment_creation_status' => fake()->randomElement(['PENDING', 'CREATED']),
+                ]);
+
+                if ($jobOrder->shipment_creation_status === 'CREATED') {
+                    if ($quotation->service_type === 'IMPORT') {
+                        $prefix = 'IM';
+                    } elseif ($quotation->service_type === 'EXPORT') {
+                        $prefix = 'EX';
+                    } elseif ( $quotation->service_type === 'BUSINESS SOLUTION') {
+                        $prefix = 'BS';
+                    }
+                    $lastId = Shipment::max('id') ?? 0;
+                    $dateSection = Carbon::now()->format('m-Y');
+                    $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
+                    
                     Shipment::create([
                         'reference_number' => "{$prefix}-{$dateSection}-{$idSection}",
                         'quotation_id' => $quotation->id,
                         'client_id' => $quotation->client_id,
                         'as_id' => $quotation->as_id,
-                        'status' => fake()->randomElement(['ONGOING', 'DELIVERED']),
+                        'status' => fake()->randomElement(['PENDING', 'NOT YET DELIVERED', 'IN TRANSIT', 'ARRIVED', 'BERTHED', 'DISCHARGED', 'DELIVERED']),
                         'company_name' => $quotation->company_name,
                         'contact_person' => $quotation->contact_person,
                         'contact_number' => $quotation->contact_number,
