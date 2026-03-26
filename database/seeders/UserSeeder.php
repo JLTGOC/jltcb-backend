@@ -35,6 +35,7 @@ class UserSeeder extends Seeder
             ['role' => 'Account Specialist', 'email' => 'as9@gmail.com'],
             ['role' => 'Account Specialist', 'email' => 'as10@gmail.com'],
             ['role' => 'Operations', 'email' => 'operations@gmail.com'],
+            ['role' => 'Finance', 'email' => 'finance@gmail.com'],
             ['role' => 'Marketing', 'email' => 'marketing@gmail.com'],
             ['role' => 'Human Resource', 'email' => 'hr@gmail.com'],
             ['role' => 'IT', 'email' => 'it@gmail.com'],
