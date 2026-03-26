@@ -434,22 +434,6 @@ class QuotationController extends Controller
     {
         $user = User::find(auth()->id());
 
-        if ($user->hasRole('Lead Account Specialist')) {
-            if (isset($request->as_id)) {
-                $quotation->update([
-                    'as_id' => $request->as_id
-                ]);
-            }
-        }
-
-        if ($user->hasRole('Client')) {
-            if (isset($request->status)) {
-                $quotation->update([
-                    'status' => $request->status
-                ]);
-            }
-        }
-
         if (((int) $user->id === (int) $quotation->client_id) || ((int) $user->id === (int) $quotation->as_id) || $user->hasRole('Lead Account Specialist')) {
             if ($request->service_options) {
                 $stringifiedServiceOptions = implode(',', $request->service['options']);
