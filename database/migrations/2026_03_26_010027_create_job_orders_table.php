@@ -37,6 +37,7 @@ return new class extends Migration
             $table->date('billing_date')->nullable();
             $table->string('shall_be_billed')->nullable();
             $table->text('closing_remarks')->nullable();
+            $table->enum('shipment_creation_status', ['PENDING', 'CREATED'])->default('PENDING');
             $table->timestamps();
         });
     }

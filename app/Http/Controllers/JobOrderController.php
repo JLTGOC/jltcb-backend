@@ -12,7 +12,10 @@ use App\Models\{
     Quotation,
 };
 use Illuminate\Support\Facades\DB;
-use App\Http\Resources\JobOrderResource;
+use App\Http\Resources\{
+    JobOrderResource,
+    QuotationResource,
+};
 
 class JobOrderController extends Controller
 {
@@ -29,18 +32,26 @@ class JobOrderController extends Controller
         $user = auth()->user();
 
         if ($user->hasRole(['Lead Account Specialist'])) {
-            $jobOrders = JobOrder::get();
+            $jobOrders = JobOrder::where('shipment_creation_status', 'PENDING')->get();
         } elseif ($user->hasRole('Account Specialist')) {
-            $jobOrders = JobOrder::where('as_id', $user->id)->get();
+            $jobOrders = JobOrder::where('as_id', $user->id)->where('shipment_creation_status', 'PENDING')->get();
         } else if ($user->hasRole('Operations')) {
-            $jobOrders = JobOrder::where('operations_id', $user->id)->get();
+            $jobOrders = JobOrder::where('operations_id', $user->id)->where('shipment_creation_status', 'PENDING')->get();
         } else if ($user->hasRole('Finance')) {
-            $jobOrders = JobOrder::where('finance_id', $user->id)->get();
+            $jobOrders = JobOrder::where('finance_id', $user->id)->where('shipment_creation_status', 'PENDING')->get();
         } else {
-            $jobOrders = JobOrder::where('client_id', $user->id)->get();
+            $jobOrders = JobOrder::where('client_id', $user->id)->where('shipment_creation_status', 'PENDING')->get();
         }
 
-        return $this->success('Job Orders fetched successfully', JobOrderResource::collection($jobOrders), 200);
+        $jobOrders = $jobOrders->map(function ($j) {
+            return [
+                'reference_number' => $j->reference_number,
+                'job_type' => $j->job_type,
+                'client' => $j->client->full_name,
+            ];
+        });
+
+        return $this->success('Job Orders fetched successfully', $jobOrders, 200);
     }
 
     /**
@@ -170,5 +181,19 @@ class JobOrderController extends Controller
             'service_levels' => $serviceLevels,
             'shall_be_billed' => $shallBeBilled,
         ]);
+    }
+
+    public function showJobOrderQuotation(JobOrder $jobOrder) {
+        if (!$jobOrder) {
+            return $this->error('Job Order not found', 404);
+        }
+
+        $quotation = $jobOrder->quotation;
+
+        if (!$quotation) {
+            return $this->error('Quotation not found for this Job Order', 404);
+        }
+
+        return $this->success('Quotation fetched successfully', new QuotationResource($quotation), 200);
     }
 }

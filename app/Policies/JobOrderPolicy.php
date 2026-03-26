@@ -68,4 +68,9 @@ class JobOrderPolicy
     {
         return $user->hasRole(['Account Specialist', 'Lead Account Specialist']);
     }
+
+    public function showJobOrderQuotation(User $user, JobOrder $jobOrder): bool
+    {
+        return $user->id === $jobOrder->client_id || $user->id === $jobOrder->as_id || $user->id === $jobOrder->operations_id || $user->id === $jobOrder->finance_id || $user->hasRole(['Lead Account Specialist']);
+    }
 }

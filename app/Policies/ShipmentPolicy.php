@@ -6,6 +6,7 @@ use App\Models\Article;
 use App\Models\Quotation;
 use App\Models\Shipment;
 use App\Models\User;
+use App\Models\JobOrder;
 use Illuminate\Auth\Access\Response;
 
 class ShipmentPolicy
@@ -42,8 +43,8 @@ class ShipmentPolicy
     {
         if 
         (
-            Quotation::where('reference_number', $reference)
-                ->where('client_id', $user->id)->exists()
+            JobOrder::where('reference_number', $reference)
+                ->where('operations_id', $user->id)->exists()
         ) 
         {
             return true;

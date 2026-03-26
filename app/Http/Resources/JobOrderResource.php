@@ -14,6 +14,8 @@ class JobOrderResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $options = explode(',', $this->quotation->service_options);
+
         return [
             'id' => $this->id,
             'reference_number' => $this->reference_number,
@@ -21,7 +23,6 @@ class JobOrderResource extends JsonResource
             'as_id' => $this->as_id,
             'operations_id' => $this->operations_id,
             'finance_id' => $this->finance_id,
-            'quotation_id' => $this->quotation_id,
             'subject' => $this->subject,
             'email_body' => $this->email_body,
             'client' => [

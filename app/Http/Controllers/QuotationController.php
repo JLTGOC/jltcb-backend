@@ -32,6 +32,8 @@ class QuotationController extends Controller
         $this->middleware('can:enumQuotationOptions,' . Quotation::class)->only('enumQuotationOptions');
         $this->middleware('can:upload,quotation')->only('upload');
         $this->middleware('can:showFile,quotation')->only('showFile');
+        $this->middleware('can:reassignSpecialist,quotation')->only('reassignSpecialist');
+        $this->middleware('can:acceptQuotation,quotation')->only('acceptQuotation');
     }
 
     /**
@@ -440,6 +442,14 @@ class QuotationController extends Controller
             }
         }
 
+        if ($user->hasRole('Client')) {
+            if (isset($request->status)) {
+                $quotation->update([
+                    'status' => $request->status
+                ]);
+            }
+        }
+
         if (((int) $user->id === (int) $quotation->client_id) || ((int) $user->id === (int) $quotation->as_id) || $user->hasRole('Lead Account Specialist')) {
             if ($request->service_options) {
                 $stringifiedServiceOptions = implode(',', $request->service['options']);
@@ -666,5 +676,31 @@ class QuotationController extends Controller
             DB::rollBack();
             return $e; // return exception for error handling
         }
+    }
+
+    public function reassignSpecialist(Quotation $quotation, Request $request) {
+        $request->validate([
+            'as_id' => ['required', 'integer', 'exists:users,id']
+        ]);
+
+        $user = User::find($request->as_id);
+
+        if (!$user->hasRole('Account Specialist')) {
+            return $this->error('The selected user must have an Account Specialist role.', 422);
+        }
+
+        $quotation->update([
+            'as_id' => $request->as_id
+        ]);
+
+        return $this->success('Account Specialist reassigned successfully', new QuotationResource($quotation), 200);
+    }
+
+    public function acceptQuotation(Quotation $quotation, Request $request) {
+        $quotation->update([
+            'status' => 'ACCEPTED'
+        ]);
+
+        return $this->success('Quotation accepted successfully', new QuotationResource($quotation), 200);
     }
 }
