@@ -30,6 +30,13 @@ return new class extends Migration
             $table->string('bl_no');
             $table->date('eta');
             $table->date('etd');
+            $table->string('hs_code')->nullable();
+            $table->string('permits')->nullable();
+            $table->text('special_remarks')->nullable();
+            $table->text('terms_of_payment')->nullable();
+            $table->date('billing_date')->nullable();
+            $table->string('shall_be_billed')->nullable();
+            $table->text('closing_remarks')->nullable();
             $table->timestamps();
         });
     }

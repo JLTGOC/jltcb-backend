@@ -66,5 +66,5 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Job Order Routes
     Route::get('/job-orders/enums', [JobOrderController::class, 'jobOrderEnums']);
-    Route::apiResource('job-orders', JobOrderController::class)->only(['store', 'show', 'update', 'index']);
+    Route::apiResource('job-orders', JobOrderController::class)->only(['store', 'show', 'index']);
 });

@@ -29,7 +29,6 @@ class JobOrderPolicy
      */
     public function create(User $user): bool
     {
-        return true;
         return $user->hasRole(['Account Specialist', 'Lead Account Specialist']);
     }
 
@@ -38,7 +37,7 @@ class JobOrderPolicy
      */
     public function update(User $user, JobOrder $jobOrder): bool
     {
-        return true;
+        return false;
     }
 
     /**

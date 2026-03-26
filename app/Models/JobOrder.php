@@ -24,6 +24,13 @@ class JobOrder extends Model
         'bl_no',
         'eta',
         'etd',
+        'hs_code',
+        'permits',
+        'special_remarks',
+        'terms_of_payment',
+        'billing_date',
+        'shall_be_billed',
+        'closing_remarks'
     ];
 
     protected $casts = [
@@ -52,11 +59,6 @@ class JobOrder extends Model
     public function finance()
     {
         return $this->belongsTo(User::class, 'finance_id');
-    }
-
-    public function billingDetails()
-    {
-        return $this->hasOne(BillingDetails::class, 'job_order_id');
     }
 
     public function quotation()

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Models\JobOrder;
 
 class StoreJobOrderRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class StoreJobOrderRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return $this->user()?->can('create', JobOrder::class) ?? false;
     }
 
     /**
@@ -34,9 +35,9 @@ class StoreJobOrderRequest extends FormRequest
             'service.bl_no' => 'required_if:job_type,SHIPMENT|string',
             'service.eta' => 'required_if:job_type,SHIPMENT|date',
             'service.etd' => 'required_if:job_type,SHIPMENT|date|after_or_equal:service.eta',
-            'billing.hs_code' => 'nullable|string',
-            'billing.permits' => 'nullable|string',
-            'billing.special_remarks' => 'nullable|string',
+            'shipment.hs_code' => 'nullable|string',
+            'shipment.permits' => 'nullable|string',
+            'shipment.special_remarks' => 'nullable|string',
             'billing.terms_of_payment' => 'nullable|string',
             'billing.billing_date' => 'nullable|date',
             'billing.shall_be_billed' => 'nullable|string',
