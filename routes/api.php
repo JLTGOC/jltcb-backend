@@ -7,8 +7,11 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ReelController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\BillingConfigController;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DetailsConfigController;
+use App\Http\Controllers\MessageTemplateController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\QuotationFileController;
 use App\Http\Controllers\JobOrderController;
@@ -73,4 +76,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/job-orders/enums', [JobOrderController::class, 'jobOrderEnums']);
     Route::get('/job-orders/{job_order}/quotation', [JobOrderController::class, 'showJobOrderQuotation']);
     Route::apiResource('job-orders', JobOrderController::class)->only(['store', 'show', 'index']);
+    
+    // Configuration Template Routes
+    Route::prefix('configs')->group(function() {
+        Route::apiResource('billing', BillingConfigController::class)
+            ->parameters(['billing' => 'record']);;
+        Route::apiResource('details', DetailsConfigController::class)
+            ->parameters(['details' => 'record']);;
+    });
+
+    Route::apiResource('message-templates', MessageTemplateController::class)
+        ->parameters(['message-templates' => 'message']);
 });
