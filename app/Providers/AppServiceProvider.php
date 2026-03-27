@@ -15,6 +15,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Conversation;
 use App\Policies\ChatPolicy;
+use Spatie\Permission\Models\Role;
+use App\Policies\RolePolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -60,5 +62,6 @@ class AppServiceProvider extends ServiceProvider
 
         // Tie ChatPolicy to Conversation model
         Gate::policy(Conversation::class, ChatPolicy::class);
+        Gate::policy(Role::class, RolePolicy::class);
     }
 }
