@@ -12,7 +12,10 @@ class RoleController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', Role::class);
+        
         $roles = Role::orderBy('id')->get(['id', 'name']);
+        
         return $this->success('Roles fetched successfully', $roles, 200);
     }
 
