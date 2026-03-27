@@ -12,6 +12,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\QuotationFileController;
 use App\Http\Controllers\JobOrderController;
+use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Broadcast;
 
 require __DIR__ . '/public_routes.php';
@@ -73,4 +74,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/job-orders/enums', [JobOrderController::class, 'jobOrderEnums']);
     Route::get('/job-orders/{job_order}/quotation', [JobOrderController::class, 'showJobOrderQuotation']);
     Route::apiResource('job-orders', JobOrderController::class)->only(['store', 'show', 'index']);
+
+    // Role Routes
+    Route::get('/roles', [RoleController::class, 'index']);
 });
