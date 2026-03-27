@@ -57,7 +57,7 @@ class ShipmentPolicy
      */
     public function update(User $user, Shipment $shipment): bool
     {
-        return false;
+        return $user->hasRole(['Operations']) && $shipment->operations_id === $user->id;
     }
 
     /**
