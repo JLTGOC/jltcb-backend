@@ -150,7 +150,7 @@ class UserController extends Controller
         return $this->success('Account specialists fetched successfully', $accountSpecialists, 200);
     }
 
-    public function indexClientAccounts() {
+    public function indexClientAccounts(Request $request) {
         $this->authorize('indexClientAccounts', User::class);
 
         $user = auth()->user();
@@ -162,11 +162,20 @@ class UserController extends Controller
             $asShipments = Shipment::distinct('client_id')->pluck('client_id');
         }
 
-        $clients = User::role('Client')
+        $query = User::query()
+            ->role('Client')
             ->whereIn('id', $clientIds)
-            ->whereIn('id', $asShipments)
-            ->get()
-            ->map(function ($c) {
+            ->whereIn('id', $asShipments);
+
+        if ($request->has('search') && $request->search !== '') {
+            $search = $request->input('search');
+            $query = $query->where(function ($q) use ($search) {
+                $q->where('full_name', 'LIKE', '%' . $search . '%')
+                    ->orWhere('id', 'LIKE', '%' . $search . '%');
+            });
+        }
+        
+        $clients = $query->get()->map(function ($c) {
                 return [
                     'id' => $c->id,
                     'full_name' => $c->full_name,
