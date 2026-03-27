@@ -145,7 +145,7 @@ class ShipmentController extends Controller
             $shipment = Shipment::create([
                 'reference_number' => "{$prefix}-{$dateSection}-{$idSection}",
                 'quotation_id' => $quotation->id,
-                'client_id' => $user->id,
+                'client_id' => $quotation->client_id,
                 'as_id' => $quotation->as_id,
                 'status' => 'PENDING',
                 'company_name' => $quotation->company_name,

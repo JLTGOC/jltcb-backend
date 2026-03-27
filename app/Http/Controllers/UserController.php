@@ -11,7 +11,10 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
-use App\Models\User;
+use App\Models\{
+    User,
+    Shipment
+};
 use App\Http\Resources\UserResource;
 
 class UserController extends Controller
@@ -145,5 +148,58 @@ class UserController extends Controller
         });
 
         return $this->success('Account specialists fetched successfully', $accountSpecialists, 200);
+    }
+
+    public function indexClientAccounts() {
+        $this->authorize('indexClientAccounts', User::class);
+
+        $user = auth()->user();
+
+        $clientIds = User::role('Client')->pluck('id');
+        if ($user->hasRole('Account Specialist')) {
+            $asShipments = Shipment::where('as_id', $user->id)->distinct('client_id')->pluck('client_id');
+        } elseif ($user->hasRole('Lead Account Specialist')) {
+            $asShipments = Shipment::distinct('client_id')->pluck('client_id');
+        }
+
+        $clients = User::role('Client')
+            ->whereIn('id', $clientIds)
+            ->whereIn('id', $asShipments)
+            ->get()
+            ->map(function ($c) {
+                return [
+                    'id' => $c->id,
+                    'full_name' => $c->full_name,
+                    'ongoing_shipments' => Shipment::where('client_id', $c->id)->whereIn('status', ['PENDING', 'NOT YET DELIVERED', 'IN TRANSIT', 'ARRIVED', 'BERTHED', 'DISCHARGED'])->count(),
+                    'completed_shipments' => Shipment::where('client_id', $c->id)->where('status', 'DELIVERED')->count(),
+                ];
+            });
+
+        return $this->success('Clients fetched successfully', $clients, 200);
+    }
+
+    public function indexClientShipments(Request $request, User $client) {
+        $clientShipments = Shipment::where('client_id', $client->id);
+
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $clientShipments = $clientShipments->where('reference_number', 'LIKE', '%' . $search . '%');
+        }
+        
+        $clientShipments = $clientShipments->get()->map(function ($s) {
+            return [
+                'reference_number' => $s->reference_number,
+                'commodity' => $s->commodity,
+                'status' => $s->status,
+            ];
+        });
+
+        return $this->success('Client shipments fetched successfully', [
+            'client' => [
+                'id' => $client->id,
+                'full_name' => $client->full_name,
+            ],
+            'shipments' => $clientShipments
+        ], 200);
     }
 }
