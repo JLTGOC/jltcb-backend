@@ -15,6 +15,7 @@ use App\Http\Controllers\MessageTemplateController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\QuotationFileController;
 use App\Http\Controllers\JobOrderController;
+use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Broadcast;
 
 require __DIR__ . '/public_routes.php';
@@ -87,4 +88,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('message-templates', MessageTemplateController::class)
         ->parameters(['message-templates' => 'message']);
+
+    // Role Routes
+    Route::get('/roles', [RoleController::class, 'index']);
 });

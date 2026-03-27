@@ -19,6 +19,8 @@ use App\Models\DetailsConfiguration;
 use App\Models\MessageTemplate;
 use App\Policies\ChatPolicy;
 use App\Policies\ConfigurationPolicy;
+use Spatie\Permission\Models\Role;
+use App\Policies\RolePolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -65,5 +67,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(BillingConfiguration::class, ConfigurationPolicy::class);
         Gate::policy(DetailsConfiguration::class, ConfigurationPolicy::class);
         Gate::policy(MessageTemplate::class, ConfigurationPolicy::class);
+        Gate::policy(Role::class, RolePolicy::class);
     }
 }
