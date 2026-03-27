@@ -46,6 +46,8 @@ class DatabaseSeeder extends Seeder
             QuotationSeeder::class,
             QuotationFileSeeder::class,
             ChatSeeder::class,
+            ConfigurationSeeder::class,
+            MessageTemplateSeeder::class
         ]);
     }
 }
