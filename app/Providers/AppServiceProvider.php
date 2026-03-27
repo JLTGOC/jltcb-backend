@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\BillingConfiguration;
 use App\Support\Scramble\SanctumAuthOperationTransformer;
 use Dedoc\Scramble\Configuration\OperationTransformers;
 use Dedoc\Scramble\Support\Generator\Operation;
@@ -14,7 +15,10 @@ use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Conversation;
+use App\Models\DetailsConfiguration;
+use App\Models\MessageTemplate;
 use App\Policies\ChatPolicy;
+use App\Policies\ConfigurationPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -57,8 +61,9 @@ class AppServiceProvider extends ServiceProvider
             ]);
         });
 
-
-        // Tie ChatPolicy to Conversation model
         Gate::policy(Conversation::class, ChatPolicy::class);
+        Gate::policy(BillingConfiguration::class, ConfigurationPolicy::class);
+        Gate::policy(DetailsConfiguration::class, ConfigurationPolicy::class);
+        Gate::policy(MessageTemplate::class, ConfigurationPolicy::class);
     }
 }
