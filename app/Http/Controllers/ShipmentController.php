@@ -147,7 +147,7 @@ class ShipmentController extends Controller
                 'quotation_id' => $quotation->id,
                 'client_id' => $user->id,
                 'as_id' => $quotation->as_id,
-                'status' => 'ONGOING',
+                'status' => 'PENDING',
                 'company_name' => $quotation->company_name,
                 'contact_person' => $quotation->contact_person,
                 'contact_number' => $quotation->contact_number,
@@ -223,13 +223,21 @@ class ShipmentController extends Controller
      */
     public function update(Request $request, Shipment $shipment)
     {
-        if ($shipment->status !== 'ONGOING') {
-            return $this->error('Shipment not found or not in ONGOING status', 404);
+        if ($shipment->status === 'DELIVERED') {
+            return $this->error('Shipment is already delivered', 400);
         }
 
-        $shipment->update([
-            'status' => 'DELIVERED'
-        ]);
+        if ($request->has('status')) {
+            $shipment->update([
+                'status' => $request->status
+            ]);
+        }
+        if ($request->has('remarks')) {
+            $shipment->update([
+                'remarks' => $request->remarks
+            ]);
+        }
+        
 
         return $this->success('Shipment status updated', 200);
     }
