@@ -27,7 +27,9 @@ class DetailsConfigController extends BaseConfigController
 
     public function __construct()
     {
-        $this->authorizeResource(DetailsConfiguration::class, 'record');
+        $this->authorizeResource(DetailsConfiguration::class, 'record', [
+            'except' => ['show', 'update', 'destroy'],
+        ]);
     }
 
     /**
@@ -79,6 +81,7 @@ class DetailsConfigController extends BaseConfigController
     public function show($record)
     {
         $record = DetailsConfiguration::findOrFail($record);
+        $this->authorize('view', $record);
 
         if ($record->type === 'DROPDOWN') {
             $record->load('dropdownOptions');
@@ -95,6 +98,7 @@ class DetailsConfigController extends BaseConfigController
     public function update(Request $request, $record)
     {
         $detailsConfig = DetailsConfiguration::findOrFail($record);
+        $this->authorize('update', $detailsConfig);
 
         $request->validate([
             'label' => 'required|string|max:255|unique:details_configurations,label,' . $record,
@@ -104,7 +108,6 @@ class DetailsConfigController extends BaseConfigController
                 'nullable',
                 function (string $attribute, mixed $value, Closure $fail) use ($detailsConfig) {
                     $existingOptionIds = $detailsConfig->dropdownOptions()->pluck('id')->toArray();
-                    
                     if (!in_array($value, $existingOptionIds)) {
                         $fail('This id does not exist or does not belong to this dropdown options');
                     }
@@ -158,6 +161,8 @@ class DetailsConfigController extends BaseConfigController
     public function destroy($record)
     {
         $record = DetailsConfiguration::findOrFail($record);
+        $this->authorize('delete', $record);
+
         return parent::destroy($record);
     }
 }

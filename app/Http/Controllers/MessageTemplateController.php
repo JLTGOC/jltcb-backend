@@ -6,6 +6,7 @@ use App\Http\Resources\MessageTemplateResource;
 use App\Models\MessageTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 class MessageTemplateController extends Controller
 {
@@ -35,15 +36,14 @@ class MessageTemplateController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'template_name' => ['required', 'string', 'max:255', 'unique:message_templates,template_name'],
             'message' => 'required|string'
         ]);
 
-        $messageTemplate = MessageTemplate::create([
-            'template_name' => $request->template_name,
-            'message' => $request->message
-        ]);
+        $messageTemplate = DB::transaction(function () use ($validated) {
+            return MessageTemplate::create($validated);
+        });
 
         return $this->success('Message Template stored successfully', new MessageTemplateResource($messageTemplate));
     }
@@ -68,7 +68,7 @@ class MessageTemplateController extends Controller
      */
     public function update(Request $request, MessageTemplate $message)
     {
-        $request->validate([
+        $validated = $request->validate([
             'template_name' => [
                 'sometimes',
                 'required', 
@@ -79,10 +79,9 @@ class MessageTemplateController extends Controller
             'message' => 'sometimes|required|string'
         ]);
 
-        $message->update([
-            'template_name' => $request->template_name,
-            'message' => $request->message
-        ]);
+        DB::transaction(function () use ($validated, $message) {
+            $message->update($validated);
+        });
 
         return $this->success('Message template updated successfully', new MessageTemplateResource($message));
     }

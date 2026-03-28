@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 abstract class BaseConfigController extends Controller
@@ -16,8 +17,6 @@ abstract class BaseConfigController extends Controller
         $configs = $this->model()::all();
 
         $grouped = $configs->groupBy('type');
-
-        // return $grouped;
 
         $response = $grouped->map(function ($configs) {
             return $this->resource()::collection(
@@ -35,15 +34,14 @@ abstract class BaseConfigController extends Controller
         $model = $this->model();
         $table = (new $model)->getTable();
 
-        $request->validate([
+        $validated = $request->validate([
             'label' => "required|string|unique:{$table},label|max:255",
             'type'  => ['required', Rule::in($this->allowedTypes())],
         ]);
 
-        $config = $model::create([
-            'label' => $request->label,
-            'type'  => $request->type,
-        ]);
+        $config = DB::transaction(function() use ($model, $validated) {
+            return $model::create($validated);
+        }); 
 
         return $this->success(
             $request->label . ' option added successfully',
@@ -65,7 +63,7 @@ abstract class BaseConfigController extends Controller
         $model = $this->model();
         $table = (new $model)->getTable();
 
-        $request->validate([
+        $validated = $request->validate([
             'label' => [
                 'required',
                 'string',
@@ -74,7 +72,9 @@ abstract class BaseConfigController extends Controller
             ],
         ]);
 
-        $record->update(['label' => $request->label]);
+        DB::transaction(function () use ($validated, $record) {
+            $record->update($validated);
+        });
 
         return $this->success(
             'Config updated successfully',

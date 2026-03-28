@@ -25,7 +25,9 @@ class BillingConfigController extends BaseConfigController
 
     public function __construct()
     {
-        $this->authorizeResource(BillingConfiguration::class, 'record');
+        $this->authorizeResource(BillingConfiguration::class, 'record', [
+            'except' => ['show', 'update', 'destroy'],
+        ]);
     }
 
     /**
@@ -54,6 +56,8 @@ class BillingConfigController extends BaseConfigController
     public function show($record)
     {
         $record = BillingConfiguration::findOrFail($record);
+        $this->authorize('view', $record);
+
         return parent::show($record);
     }
 
@@ -65,6 +69,8 @@ class BillingConfigController extends BaseConfigController
     public function update(Request $request, $record)
     {
         $record = BillingConfiguration::findOrFail($record);
+        $this->authorize('update', $record);
+
         return parent::update($request, $record);
     }
 
@@ -76,6 +82,8 @@ class BillingConfigController extends BaseConfigController
     public function destroy($record)
     {
         $record = BillingConfiguration::findOrFail($record);
+        $this->authorize('delete', $record);
+
         return parent::destroy($record);
     }
 }
