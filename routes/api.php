@@ -16,6 +16,7 @@ use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\QuotationFileController;
 use App\Http\Controllers\JobOrderController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\StandardConfigurationController;
 use Illuminate\Support\Facades\Broadcast;
 
 require __DIR__ . '/public_routes.php';
@@ -84,6 +85,8 @@ Route::middleware('auth:sanctum')->group(function () {
             ->parameters(['billing' => 'record']);;
         Route::apiResource('details', DetailsConfigController::class)
             ->parameters(['details' => 'record']);;
+        Route::apiResource('standard-templates', StandardConfigurationController::class)
+            ->parameters(['standard-templates' => 'template']);
     });
 
     Route::apiResource('message-templates', MessageTemplateController::class)

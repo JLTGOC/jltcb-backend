@@ -3,8 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\BillingConfiguration;
-use App\Models\ConfigDropdownOption;
 use App\Models\DetailsConfiguration;
+use App\Models\StandardConfiguration;
+use App\Models\MessageTemplate;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -26,7 +27,7 @@ class ConfigurationSeeder extends Seeder
         ];
 
         $currency = [
-            'PHP', 'USD', 'INR', 'JPY'
+            'PHP', 'USD'
         ];
 
         $uom = ['PER APP', 'PER BL', 'PER CONTAINER'];
@@ -55,6 +56,7 @@ class ConfigurationSeeder extends Seeder
             'DROPDOWN' => array_keys($dropdowns)
         ]);
 
+        // Details Configuration dropdown options
         foreach ($dropdowns as $label => $values) {
             $record = DetailsConfiguration::where('label', $label)->first();
 
@@ -66,6 +68,9 @@ class ConfigurationSeeder extends Seeder
                 }
             }
         }
+
+        $this->seedStandardConfigRecords();
+        $this->seedMessageTemplateRecords();
     }
 
     private function createConfigValues(string $modelClass, array $configGroupType) {
@@ -77,5 +82,81 @@ class ConfigurationSeeder extends Seeder
                 ]);
             }
         }
+    }
+
+    private function seedStandardConfigRecords() {
+        StandardConfiguration::create([
+            'template_name' => "Accreditation Template 1",
+            'policies' => 
+                "By signing this proposal, you confirm that you have read and understood the Terms and Conditions of this proposal and agree to be bound by them. You also acknowledge and agree to comply with all terms and conditions outlined in this Proposal, as well as any applicable laws and regulations. This proposal holds binding authority, with potential legal enforceability if any provision of this proposal is/are not fulfilled.",
+            'terms_and_conditions' => 
+                "Terms and Conditions: 
+                1. The service charge shall include: a. Registration as exporter in Client Profile Registration System (CPRS); b. Processing of Bureau of Customs and PhilExport order of payment and payment of accreditation fee; and c. Submission of documents in Bureau of Customs and PhilExport for import and export license processing 
+                2. All Bureau of Customs and PhilExport receipted charges shall be under the account of applicant nd is included in the rate above. 
+                3. All documentary requirements for submission to the Bureau of Customs and PhilExport shall be the responsibility of the applicant. 
+                4. The processing time shall commence from the receipt of complete documents. 
+                5. The processing timeframe shall be 120-184 working days for PhilExport export license provided that the submitted documents have passed the pre-assessment stage. 6. Any incidental charges which shall accrue due to discrepancy of documents submitted to the government agency shall be billed but with prior notice. 
+                7. The service charge is VAT ex and have no hidden charges. Terms of payment shall be 45 days upon service rendered. 
+                8. For payments to Jill L. Tolentino Customs Brokerage, please deposit payment to the following account and email scanned copy or photo of deposit slip to finance@jltcb.com.",
+            "banking_details" => 
+                "Bank Name: Metropolitan Bank and Trust Company (Metrobank)
+                Account Name: Jill L. Tolentino Customs Brokerage
+                Account Number: 250 3 25008759 5
+                Type of Account: Savings
+                Branch: Ongpin 7345201
+                Swift Code: MBTCPHMM
+
+                Bank Name: Bank of the Philippine Islands (BPI)
+                Account Name: Jill L. Tolentino Customs Brokerage
+                Account Number: 0149 1022 99
+                Type of Account: Savings
+                Branch: Escolta
+                Swift Code: BOPIPHMMXXX
+
+                Bank Name: Banco De Oro (BDO)
+                Account Name: Jill L. Tolentino Customs Brokerage
+                Account Number: 0087 3003 3646
+                Type of Account: Savings
+                Branch: Binondo - Rosario
+                Swift Code: BNORPHMMXXX
+                
+                Bank Name: Union Bank of the Philippines, Inc. (UnionBank)
+                Account Name: Jill L. Tolentino Customs Brokerage
+                Account Number: 0001 0002 1712
+                Type of Account: Checking/Current
+                Branch: Dasma
+                Swift Code: UBPHPHMM
+                
+                Bank Name: Security Bank
+                Account Name: Jill L. Tolentino Customs Brokerage
+                Account Number: 0000 0587 00262
+                Type of Account: Checking
+                Branch: Binondo
+                Swift Code: SETCPHMMXXX",
+            'footer' => "CHILL WE GOT YOU!"
+        ]);
+    }
+
+    private function seedMessageTemplateRecords() {
+        MessageTemplate::insert([
+            [
+                'template_name' => 'MSG 1',
+                'message' => 'Thank you for your for considering Jill L. Tolentino Customs Brokerage for your accreditation requirement.
+                
+                We are pleased to offer our rate proposal for the accreditation of your company as a new exporter with PhilExport',
+            ],
+            [
+                'template_name' => 'MSG 2',
+                'message' => "We appreciate your interest in Jill L. Tolentino Customs Brokerage for your accreditation requirements.
+                
+                Kindly find our proposed rates for assisting your company in securing accreditation as a new exporter with PhilExport.",
+            ],
+            [
+                'template_name' => 'MSG 3',
+                'message' => 'Greetings from Jill L. Tolentino Customs Brokerage, and thank you for considering our services for your accreditation needs.
+                
+                We are pleased to submit our rate proposal for your company’s registration as a new exporter with PhilExport.',
+            ],
+        ]);
     }
 }

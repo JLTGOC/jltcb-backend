@@ -33,6 +33,16 @@ return new class extends Migration
             $table->unique(['details_config_id', 'name']);
             $table->timestamps();
         });
+
+        Schema::create('standard_configurations', function (Blueprint $table) {
+            $table->id();
+            $table->string('template_name')->unique();
+            $table->text('policies');
+            $table->text('terms_and_conditions');
+            $table->text('banking_details');
+            $table->text('footer');
+            $table->timestamps();
+        });
     }
 
     /**

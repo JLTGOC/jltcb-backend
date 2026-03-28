@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Gate;
 use App\Models\Conversation;
 use App\Models\DetailsConfiguration;
 use App\Models\MessageTemplate;
+use App\Models\StandardConfiguration;
 use App\Policies\ChatPolicy;
 use App\Policies\ConfigurationPolicy;
 use Spatie\Permission\Models\Role;
@@ -67,6 +68,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(BillingConfiguration::class, ConfigurationPolicy::class);
         Gate::policy(DetailsConfiguration::class, ConfigurationPolicy::class);
         Gate::policy(MessageTemplate::class, ConfigurationPolicy::class);
+        Gate::policy(StandardConfiguration::class, ConfigurationPolicy::class);
         Gate::policy(Role::class, RolePolicy::class);
     }
 }
