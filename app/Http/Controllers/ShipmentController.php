@@ -131,12 +131,19 @@ class ShipmentController extends Controller
         try {
             DB::beginTransaction();
 
-            if ($quotation->service_type === 'IMPORT') {
+            $logisticsService = $quotation->logisticsService;
+            if (!$logisticsService) {
+                return $this->error('Shipment can only be created for logistics quotations', 422);
+            }
+
+            if ($logisticsService->service_type === 'IMPORT') {
                 $prefix = 'IM';
-            } elseif ($quotation->service_type === 'EXPORT') {
+            } elseif ($logisticsService->service_type === 'EXPORT') {
                 $prefix = 'EX';
-            } elseif ( $quotation->service_type === 'BUSINESS SOLUTION') {
+            } elseif ($logisticsService->service_type === 'BUSINESS SOLUTION') {
                 $prefix = 'BS';
+            } else {
+                return $this->error('Invalid logistics service type for shipment creation', 422);
             }
             $lastId = Shipment::max('id') ?? 0;
             $dateSection = Carbon::now()->format('m-Y');
@@ -152,12 +159,13 @@ class ShipmentController extends Controller
                 'contact_person' => $quotation->contact_person,
                 'contact_number' => $quotation->contact_number,
                 'email' => $quotation->email,
-                'commodity' => $quotation->commodity,
-                'cargo_type' => $quotation->cargo_type,
+                'commodity' => $logisticsService->commodity,
+                'cargo_type' => $logisticsService->cargo_type,
                 // 'cargo_volume' => $quotation->cargo_volume ?? null,
-                'container_size' => $quotation->container_size ?? null,
-                'origin' => $quotation->origin,
-                'destination' => $quotation->destination,
+                'container_size' => $logisticsService->container_size,
+                'origin' => $logisticsService->origin,
+                'destination' => $logisticsService->destination,
+                'remarks' => $logisticsService->remarks,
             ]);
 
             $quotationFiles = QuotationFile::where('quotation_id', $quotation->id)->get();

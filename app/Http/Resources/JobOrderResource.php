@@ -14,7 +14,9 @@ class JobOrderResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $options = explode(',', $this->quotation->service_options);
+        $options = $this->quotation->logisticsService?->service_options
+            ? explode(',', $this->quotation->logisticsService->service_options)
+            : [];
 
         return [
             'id' => $this->id,

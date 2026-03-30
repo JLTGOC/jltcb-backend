@@ -67,6 +67,9 @@ class JobOrderController extends Controller
             if ($quotation->as_id !== auth()->id()) {
                 return $this->error('You are not authorized to create a Job Order for this quotation', 403);
             }
+            if ($quotation->regulatoryService) {
+                return $this->error('Job Orders can only be created for logistics quotations', 422);
+            }
 
             if (JobOrder::where('quotation_id', $quotation->id)->exists()) {
                 return $this->error('A Job Order has already been created for this quotation', 400);

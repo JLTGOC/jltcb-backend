@@ -30,7 +30,8 @@ class JobOrder extends Model
         'terms_of_payment',
         'billing_date',
         'shall_be_billed',
-        'closing_remarks'
+        'closing_remarks',
+        'shipment_creation_status'
     ];
 
     protected $casts = [
