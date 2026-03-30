@@ -18,16 +18,7 @@ class Quotation extends Model implements Searchable
         'email',
         'company_name',
         'company_address',
-        'service_type',
-        'transport_mode',
-        'service_options',
-        'commodity',
-        'cargo_type',
-        // 'cargo_volume',
-        'container_size',
-        'origin',
-        'destination',
-        'remarks',
+        'position',
         'created_by'
     ];
 
@@ -64,6 +55,14 @@ class Quotation extends Model implements Searchable
 
     public function creator() {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function logisticsService() {
+        return $this->hasOne(LogisticsService::class);
+    }
+
+    public function regulatoryService() {
+        return $this->hasOne(RegulatoryService::class);
     }
 
     protected $casts = [

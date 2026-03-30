@@ -25,16 +25,7 @@ return new class extends Migration
             $table->string('email');
             $table->string('company_name');
             $table->string('company_address');
-            $table->enum('service_type', ['IMPORT', 'EXPORT', 'BUSINESS SOLUTION'])->default('IMPORT');
-            $table->enum('transport_mode', ['AIR', 'SEA'])->default('AIR');
-            $table->string('service_options');
-            $table->string('commodity');
-            $table->enum('cargo_type', ['CONTAINERIZED', 'LCL'])->default('CONTAINERIZED');
-            // $table->unsignedBigInteger('cargo_volume')->nullable();
-            $table->string('container_size')->nullable();
-            $table->string('origin');
-            $table->string('destination');
-            $table->string('remarks')->nullable();
+            $table->string('position')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->cascadeOnDelete();
             $table->timestamps();
         });
