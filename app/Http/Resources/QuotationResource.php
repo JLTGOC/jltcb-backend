@@ -22,6 +22,11 @@ class QuotationResource extends JsonResource
     {
         $platform = strtolower((string) $request->header('Platform', 'mobile'));
         $isWeb = $platform === 'web';
+        $logisticsService = $this->logisticsService;
+        $regulatoryService = $this->regulatoryService;
+
+        // Prefer explicit regulatory relation when present; otherwise default to logistics shape.
+        $isRegulatory = !is_null($regulatoryService);
 
         $message = Message::where('reference_id', $this->id)->first();
         
@@ -31,7 +36,10 @@ class QuotationResource extends JsonResource
             $conversationId = Conversation::where('id', $message->conversation_id)->value('id');
         }
         
-        $options = explode(',', $this->service_options);
+        $options = [];
+        if (!$isRegulatory && $logisticsService && !empty($logisticsService->service_options)) {
+            $options = explode(',', $logisticsService->service_options);
+        }
 
         $shipmentStatus = 'NEW';
 
@@ -54,21 +62,30 @@ class QuotationResource extends JsonResource
                 'contact_person' => $this->contact_person,
                 'contact_number' => $this->contact_number,
                 'email' => $this->email,
+                'position' => $this->position,
+                'business_type' => $regulatoryService?->business_type,
             ],
-            'service' => [
-                'type' => $this->service_type,
-                'transport_mode' => $this->transport_mode,
+            'service' => $isRegulatory ? null : [
+                'type' => $logisticsService?->service_type,
+                'transport_mode' => $logisticsService?->transport_mode,
                 'options' => $options,
             ],
-            'commodity' => [
-                'commodity' => $this->commodity,
-                'cargo_type' => $this->cargo_type,
-                'container_size' => $this->container_size ?? null
+            'commodity' => $isRegulatory ? null : [
+                'commodity' => $logisticsService?->commodity,
+                'cargo_type' => $logisticsService?->cargo_type,
+                'container_size' => $logisticsService?->container_size,
             ],
-            'shipment' => [
-                'origin' => $this->origin,
-                'destination' => $this->destination,
+            'shipment' => $isRegulatory ? null : [
+                'origin' => $logisticsService?->origin,
+                'destination' => $logisticsService?->destination,
             ],
+            'regulatory_service' => $isRegulatory ? [
+                'type_of_regulatory_assistance' => !empty($regulatoryService?->type_of_regulatory_assistance)
+                    ? explode(',', $regulatoryService->type_of_regulatory_assistance)
+                    : [],
+                'service_level' => $regulatoryService?->application_type,
+                'message' => $regulatoryService?->message,
+            ] : null,
             'quotation_file' => $this->files()->where('type', 'PROPOSAL')->exists()
                 ? $this->files()->where('type', 'PROPOSAL')->get()->map(function($file) {
                     return [
@@ -88,7 +105,7 @@ class QuotationResource extends JsonResource
                     ];
                 })
                 : 'No documents available.',
-            'remarks' => $this->remarks,
+            'remarks' => $isRegulatory ? null : $logisticsService?->remarks,
             'conversation_id' => $conversationId
         ];
 

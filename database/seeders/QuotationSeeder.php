@@ -10,6 +10,8 @@ use App\Models\{
     User,
     Shipment,
     JobOrder,
+    LogisticsService,
+    RegulatoryService,
 };
 use Carbon\Carbon;
 
@@ -33,33 +35,61 @@ class QuotationSeeder extends Seeder
             $firstName = fake()->firstName();
             $companyName = fake()->company();
 
+            $client = fake()->randomElement($clients);
+
             $quotation = Quotation::create([
                 'reference_number' => "QT-{$dateSection}-{$idSection}",
                 'status' => fake()->randomElement(['REQUESTED', 'RESPONDED', 'ACCEPTED']),
-                'client_id' => fake()->randomElement($clients),
+                'client_id' => $client,
                 'as_id' => fake()->randomElement($specialists),
                 'company_name' => $companyName,
                 'company_address' => fake()->address(),
                 'contact_person' => $firstName . ' ' . $lastName,
                 'contact_number' => fake()->numerify('09#########'),
                 'email' => mb_strtolower($lastName) . '.' . mb_strtolower($firstName) . '@gmail.com',
-                'service_type' => fake()->randomElement(['IMPORT', 'EXPORT', 'BUSINESS SOLUTION']),
-                'transport_mode' => fake()->randomElement(['AIR', 'SEA']),
-                'service_options' => 'PROJECT CARGO,POST CLEARANCE SERVICE',
-                'commodity' => 'CASTABLE 16 REFRACTOR',
-                'cargo_type' => fake()->randomElement(['CONTAINERIZED', 'LCL']),
-                'origin' => fake()->address(),
-                'destination' => fake()->address(),
-                'remarks' => fake()->sentence(),
+                'position' => User::find($client)->position,
             ]);
 
-            if ($quotation->cargo_type === 'CONTAINERIZED') {
-                $quotation->update([
-                    'container_size' => fake()->randomElement(['1x20', '1x40']),
-                ]);
-            } 
+            $serviceDomain = fake()->randomElement(['LOGISTICS', 'REGULATORY']);
 
-            if ($quotation->status === 'ACCEPTED') {
+            if ($serviceDomain === 'LOGISTICS') {
+                $cargoType = fake()->randomElement(['CONTAINERIZED', 'LCL']);
+
+                LogisticsService::create([
+                    'quotation_id' => $quotation->id,
+                    'service_type' => fake()->randomElement(['IMPORT', 'EXPORT', 'BUSINESS SOLUTION']),
+                    'transport_mode' => fake()->randomElement(['AIR', 'SEA']),
+                    'service_options' => 'PROJECT CARGO,POST CLEARANCE SERVICE',
+                    'commodity' => 'CASTABLE 16 REFRACTOR',
+                    'cargo_type' => $cargoType,
+                    'container_size' => $cargoType === 'CONTAINERIZED' ? fake()->randomElement(['1x20', '1x40']) : null,
+                    'origin' => fake()->address(),
+                    'destination' => fake()->address(),
+                    'remarks' => fake()->sentence(),
+                ]);
+            } else {
+                RegulatoryService::create([
+                    'quotation_id' => $quotation->id,
+                    'business_type' => fake()->randomElement([
+                        'COOPERATIVE',
+                        'CORPORATION',
+                        'E-COMMERCE',
+                        'INDIVIDUAL IMPORTER',
+                        'GOVERNMENT AGENCY',
+                        'IMPORT-EXPORT AGENT',
+                        'MULTINATIONAL COMPANY',
+                        'NON-PROFIT ORGANIZATION',
+                        'PARTNERSHIP',
+                        'PEZA-REGISTERED ENTERPRISE',
+                        'SOLE PROPRIETORSHIP',
+                    ]),
+                    'type_of_regulatory_assistance' => 'FOOD AND DRUG ADMINISTRATION (FDA)',
+                    'application_type' => fake()->randomElement(['NEW', 'RENEWAL']),
+                    'message' => fake()->sentence(),
+                ]);
+            }
+
+            if ($quotation->status === 'ACCEPTED' && $quotation->logisticsService) {
                 $quotation->update([
                     'created_by' => $quotation->as_id,
                 ]);
@@ -97,11 +127,17 @@ class QuotationSeeder extends Seeder
                 ]);
 
                 if ($jobOrder->shipment_creation_status === 'CREATED') {
-                    if ($quotation->service_type === 'IMPORT') {
+                    $logisticsService = $quotation->logisticsService;
+                    if (!$logisticsService) {
+                        $i += 1;
+                        continue;
+                    }
+
+                    if ($logisticsService->service_type === 'IMPORT') {
                         $prefix = 'IM';
-                    } elseif ($quotation->service_type === 'EXPORT') {
+                    } elseif ($logisticsService->service_type === 'EXPORT') {
                         $prefix = 'EX';
-                    } elseif ( $quotation->service_type === 'BUSINESS SOLUTION') {
+                    } elseif ($logisticsService->service_type === 'BUSINESS SOLUTION') {
                         $prefix = 'BS';
                     }
                     $lastId = Shipment::max('id') ?? 0;
@@ -118,12 +154,12 @@ class QuotationSeeder extends Seeder
                         'contact_person' => $quotation->contact_person,
                         'contact_number' => $quotation->contact_number,
                         'email' => $quotation->email,
-                        'commodity' => $quotation->commodity,
-                        'cargo_type' => $quotation->cargo_type,
-                        'container_size' => $quotation->container_size ?? null,
-                        'origin' => $quotation->origin,
-                        'destination' => $quotation->destination,
-                        'remarks' => $quotation->remarks,
+                        'commodity' => $logisticsService->commodity,
+                        'cargo_type' => $logisticsService->cargo_type,
+                        'container_size' => $logisticsService->container_size,
+                        'origin' => $logisticsService->origin,
+                        'destination' => $logisticsService->destination,
+                        'remarks' => $logisticsService->remarks,
                     ]);
                 }
             }
