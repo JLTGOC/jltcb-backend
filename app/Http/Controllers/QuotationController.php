@@ -88,7 +88,7 @@ class QuotationController extends Controller
         if ($request->search) {
             $search = $request->search;
             $searchIds = (new Search())
-                ->registerModel(Quotation::class, ['reference_number', 'commodity'])
+                ->registerModel(Quotation::class, ['reference_number'])
                 ->search($search)
                 ->collect()
                 ->pluck('searchable')
@@ -96,13 +96,24 @@ class QuotationController extends Controller
                 ->filter()
                 ->values();
 
+            $commoditySearchIds = Quotation::query()
+                ->whereHas('logisticsService', function ($relationQuery) use ($search) {
+                    $relationQuery->where('commodity', 'like', "%{$search}%");
+                })
+                ->select('id')
+                ->pluck('id');
+
             $clientSearchIds = Quotation::query()
                 ->leftJoin('users', 'quotations.client_id', '=', 'users.id')
                 ->where('users.full_name', 'like', "%{$search}%")
                 ->select('quotations.id')
                 ->pluck('id');
 
-            $mergedIds = $searchIds->merge($clientSearchIds)->unique()->values();
+            $mergedIds = $searchIds
+                ->merge($commoditySearchIds)
+                ->merge($clientSearchIds)
+                ->unique()
+                ->values();
 
             if ($mergedIds->isEmpty()) {
                 return $this->success('No quotations found', [], 200);
@@ -136,7 +147,7 @@ class QuotationController extends Controller
                             'id' => $quotation->id,
                             'date' => $quotation->created_at->format($dateFormat),
                             'person_in_charge' => $quotation->accountSpecialist->full_name,
-                            'commodity' => $quotation->commodity,
+                            'commodity' => $quotation->logisticsService?->commodity ?? null,
                             'conversation_id' => $conversationId ?? null,
                         ];
                     })->values();
@@ -201,7 +212,7 @@ class QuotationController extends Controller
                                     'id' => $quotation->id,
                                     'date' => $quotation->created_at->format($dateFormat),
                                     'person_in_charge' => $quotation->accountSpecialist->full_name,
-                                    'commodity' => $quotation->commodity,
+                                    'commodity' => $quotation->logisticsService?->commodity ?? null,
                                     'conversation_id' => $conversationId ?? null
                                 ];
                             })->values(),
@@ -237,7 +248,7 @@ class QuotationController extends Controller
                                 'id' => $quotation->id,
                                 'date' => $quotation->created_at->format($dateFormat),
                                 'person_in_charge' => $quotation->accountSpecialist->full_name,
-                                'commodity' => $quotation->commodity,
+                                'commodity' => $quotation->logisticsService?->commodity ?? null,
                                 'conversation_id' => $conversationId ?? null
                             ];
                         })->values(),
@@ -288,7 +299,7 @@ class QuotationController extends Controller
                         'id' => $result->id,
                         'client_name' => $result->client->full_name,
                         'reference_number' => $result->reference_number,
-                        'commodity' => $result->commodity,
+                        'commodity' => $result->logisticsService?->commodity ?? null,
                         'date' => $result->created_at->format($dateFormat),
                         'status' => $status ?? $result->status,
                         'conversation_id' => $conversationId ?? null,
@@ -320,12 +331,9 @@ class QuotationController extends Controller
     {
         $user = User::find(auth()->id());
 
+        DB::beginTransaction();
+
         try {
-            DB::beginTransaction();
-
-            $stringifiedServiceOptions = implode(',', $request->service['options']);
-            $specialists = User::role('Account Specialist')->pluck('id');
-
             $lastId = Quotation::max('id') ?? 0;
             $dateSection = Carbon::now()->format('m-Y');
             $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
@@ -356,31 +364,44 @@ class QuotationController extends Controller
                 'reference_number' => "QT-{$dateSection}-{$idSection}",
                 'client_id' => $user->id,
                 'as_id' => $assignedSpecialist->id,
-                'company_name' => $request->company['name'],
-                'company_address' => $request->company['address'],
-                'contact_person' => $request->company['contact_person'],
-                'contact_number' => $request->company['contact_number'],
-                'email' => $request->company['email'],
-                'service_type' => $request->service['type'],
-                'transport_mode' => $request->service['transport_mode'],
-                'service_options' => $stringifiedServiceOptions,
-                'commodity' => $request->commodity['commodity'],
-                'cargo_type' => $request->commodity['cargo_type'],
-                // 'cargo_volume' => $request->commodity['cargo_volume'] ?? null,
-                'container_size' => $request->commodity['container_size'],
-                'origin' => $request->shipment['origin'],
-                'destination' => $request->shipment['destination'],
-                'remarks' => $request->remarks,
+                'company_name' => $request->input('company.name'),
+                'company_address' => $request->input('company.address'),
+                'contact_person' => $request->input('company.contact_person'),
+                'contact_number' => $request->input('company.contact_number'),
+                'email' => $request->input('company.email'),
+                'position' => $request->input('company.position'),
             ]);
 
-            // if ($quotation->cargo_type === 'CONTAINERIZED' && isset($quotation->cargo_volume)) {
-            //     $quotation->update([
-            //         'cargo_volume' => null
-            //     ]);
-            // } else
-            if ($quotation->cargo_type === 'LCL' && isset($quotation->container_size)) {
-                $quotation->update([
-                    'container_size' => null
+            if ($request->input('services') === 'LOGISTICS') {
+                $stringifiedServiceOptions = implode(',', $request->service['options']);
+                $specialists = User::role('Account Specialist')->pluck('id');
+
+                $logisticsService = $quotation->logisticsService()->create([
+                    'service_type' => $request->service['type'],
+                    'transport_mode' => $request->service['transport_mode'],
+                    'service_options' => $stringifiedServiceOptions,
+                    'commodity' => $request->commodity['commodity'],
+                    'cargo_type' => $request->commodity['cargo_type'],
+                    'container_size' => $request->commodity['container_size'] ?? null,
+                    'origin' => $request->shipment['origin'],
+                    'destination' => $request->shipment['destination'],
+                    'remarks' => $request->remarks ?? null,
+                ]);
+
+                if ($quotation->cargo_type === 'LCL' && isset($quotation->container_size)) {
+                    $quotation->update([
+                        'container_size' => null
+                    ]);
+                }
+
+            } elseif ($request->input('services') === 'REGULATORY') {
+                $typeOfRegulatoryAssistance = implode(',', $request->type_of_regulatory_assistance);
+
+                $regulatoryService = $quotation->regulatoryService()->create([
+                    'business_type' => $request->input('company.business_type'),
+                    'type_of_regulatory_assistance' => $typeOfRegulatoryAssistance,
+                    'application_type' => $request->service_level,
+                    'message' => $request->message ?? null,
                 ]);
             }
 
@@ -400,7 +421,6 @@ class QuotationController extends Controller
             DB::commit();
 
             return $this->success('Quotation request submitted', new QuotationResource($quotation), 200);
-            
         } catch (ValidationException $e) {
             DB::rollback();
             return $this->error('Validation failed', 422, $e->errors());
@@ -435,47 +455,87 @@ class QuotationController extends Controller
         $user = User::find(auth()->id());
 
         if (((int) $user->id === (int) $quotation->client_id) || ((int) $user->id === (int) $quotation->as_id) || $user->hasRole('Lead Account Specialist')) {
-            if ($request->service_options) {
-                $stringifiedServiceOptions = implode(',', $request->service['options']);
-            } else {
-                $stringifiedServiceOptions = null;
-            }            
-
             try {
                 DB::beginTransaction();
 
+                $accepted = $quotation->status === 'ACCEPTED';
                 $shipped = Shipment::where('quotation_id', $quotation->id)->first();
+                if ($accepted) {
+                    return $this->error('Quotation already accepted', 422);
+                }
                 if ($shipped) {
                     return $this->error('Shipment already ongoing', 422);
                 }
 
+                $serviceType = $request->input('services');
+                if (!$serviceType) {
+                    if ($quotation->logisticsService) {
+                        $serviceType = 'LOGISTICS';
+                    } elseif ($quotation->regulatoryService) {
+                        $serviceType = 'REGULATORY';
+                    } elseif ($request->hasAny(['company.business_type', 'business_type', 'type_of_regulatory_assistance', 'service_level', 'message'])) {
+                        $serviceType = 'REGULATORY';
+                    } elseif ($request->hasAny(['service', 'commodity', 'shipment', 'remarks'])) {
+                        $serviceType = 'LOGISTICS';
+                    }
+                }
+
                 $quotation->update([
-                    'company_name' => $request->company['name'] ?? $quotation->company_name,
-                    'company_address' => $request->company['address'] ?? $quotation->company_address,
-                    'contact_person' => $request->company['contact_person'] ?? $quotation->contact_person,
-                    'contact_number' => $request->company['contact_number'] ?? $quotation->contact_number,
-                    'email' => $request->company['email'] ?? $quotation->email,
-                    'service_type' => $request->service['type'] ?? $quotation->service_type,
-                    'transport_mode' => $request->service['transport_mode'] ?? $quotation->transport_mode,
-                    'service_options' => $stringifiedServiceOptions ?? $quotation->service_options,
-                    'commodity' => $request->commodity['commodity'] ?? $quotation->commodity,
-                    'cargo_type' => $request->commodity['cargo_type'] ?? $quotation->cargo_type,
-                    // 'cargo_volume' => $request->commodity['cargo_volume'] ?? $quotation->cargoVolume,
-                    'container_size' => $request->commodity['container_size'] ?? $quotation->container_size,
-                    'origin' => $request->shipment['origin'] ?? $quotation->origin,
-                    'destination' => $request->shipment['destination'] ?? $quotation->destination,
-                    'remarks' => $request->remarks,
+                    'company_name' => $request->input('company.name', $quotation->company_name),
+                    'company_address' => $request->input('company.address', $quotation->company_address),
+                    'contact_person' => $request->input('company.contact_person', $quotation->contact_person),
+                    'contact_number' => $request->input('company.contact_number', $quotation->contact_number),
+                    'email' => $request->input('company.email', $quotation->email),
                 ]);
 
-                // if ($quotation->cargo_type === 'CONTAINERIZED' && isset($quotation->cargo_volume)) {
-                //     $quotation->update([
-                //         'cargo_volume' => null
-                //     ]);
-                // } else
-                if ($quotation->cargo_type === 'LCL' && isset($quotation->container_size)) {
-                    $quotation->update([
-                        'container_size' => null
-                    ]);
+                if ($serviceType === 'REGULATORY') {
+                    $typeOfRegulatoryAssistance = $request->has('type_of_regulatory_assistance')
+                        ? implode(',', $request->input('type_of_regulatory_assistance', []))
+                        : $quotation->regulatoryService?->type_of_regulatory_assistance;
+
+                    $quotation->regulatoryService()->updateOrCreate(
+                        ['quotation_id' => $quotation->id],
+                        [
+                            'business_type' => $request->input('company.business_type', $quotation->regulatoryService?->business_type),
+                            'type_of_regulatory_assistance' => $typeOfRegulatoryAssistance,
+                            'application_type' => $request->input('service_level', $quotation->regulatoryService?->application_type),
+                            'message' => $request->input('message', $quotation->regulatoryService?->message),
+                        ]
+                    );
+
+                    if ($quotation->logisticsService) {
+                        $quotation->logisticsService()->delete();
+                    }
+
+                } elseif ($serviceType === 'LOGISTICS') {
+                    $serviceOptions = $request->has('service.options')
+                        ? implode(',', $request->input('service.options', []))
+                        : $quotation->logisticsService?->service_options;
+
+                    $incomingCargoType = $request->input('commodity.cargo_type', $quotation->logisticsService?->cargo_type);
+                    $containerSize = $request->input('commodity.container_size', $quotation->logisticsService?->container_size);
+                    if ($incomingCargoType === 'LCL') {
+                        $containerSize = null;
+                    }
+
+                    $quotation->logisticsService()->updateOrCreate(
+                        ['quotation_id' => $quotation->id],
+                        [
+                            'service_type' => $request->input('service.type', $quotation->logisticsService?->service_type),
+                            'transport_mode' => $request->input('service.transport_mode', $quotation->logisticsService?->transport_mode),
+                            'service_options' => $serviceOptions,
+                            'commodity' => $request->input('commodity.commodity', $quotation->logisticsService?->commodity),
+                            'cargo_type' => $incomingCargoType,
+                            'container_size' => $containerSize,
+                            'origin' => $request->input('shipment.origin', $quotation->logisticsService?->origin),
+                            'destination' => $request->input('shipment.destination', $quotation->logisticsService?->destination),
+                            'remarks' => $request->input('remarks', $quotation->logisticsService?->remarks),
+                        ]
+                    );
+
+                    if ($quotation->regulatoryService) {
+                        $quotation->regulatoryService()->delete();
+                    }
                 }
 
                  // Re-upload client documents
@@ -527,6 +587,25 @@ class QuotationController extends Controller
      * Fetch enumeration options for quotations
      */
     public function enumQuotationOptions() {
+        $businessTypes = ['COOPERATIVE', 'CORPORATION', 'E-COMMERCE', 'INDIVIDUAL IMPORTER', 'GOVERNMENT AGENCY', 'IMPORT-EXPORT AGENT', 'MULTINATIONAL COMPANY', 'NON-PROFIT ORGANIZATION', 'PARTNERSHIP', 'PEZA-REGISTERED ENTERPRISE', 'SOLE PROPRIETORSHIP'];
+        $regulatoryAssistanceTypes = [
+            'BEAUREAU OF CUSTOMS (BOC)',
+            'PHILIPINE EXPORTERS CONFEDERATION, INC. (PHILEXPORT)',
+            'PHILIPPINE ECONOMIC ZONE AUTHORITY (PEZA)',
+            'DEPARTMENT OF FINANCE (DOF)',
+            'FOOD AND DRUG ADMINISTRATION (FDA)',
+            'BEAUREAU OF INTERNAL REVENUE (BIR)',
+            'BEAUREAU OF ANIMAL INDUSTRY (BAI)',
+            'NATIONAL MEAT INSPECTION SERVICE (NMIS)',
+            'BEAUREAU OF FISHIERIES AND AQUATIC RESOURCES (BFAR)',
+            'BEAUREAU OF AGRICULTURE AND FISHERIES STANDARDS (BAFS)',
+            'NATIONAL TELECOMMUNICATIONS COMMISSION (NTC)',
+            'OPTICAL MEDIA BOARD (OMB)',
+            'DEPARTMENT OF TRADE AND INDUSTRY - BEAUREAU OF PRODUCT STANDARDS (DTI-BPS)',
+            'SUGAR REGULATORY ADMINISTRATION (SRA)',
+            'DANGEROUS DRUGS BOARD (DDB)',
+            'THE PHILIPPINE DRUG ENFORCEMENT ADMINISTRATION (PDEA)',
+        ];
         $serviceTypes = ['IMPORT', 'EXPORT', 'BUSINESS SOLUTION'];
         $transportModes = ['AIR', 'SEA'];
         $serviceOptions = ServiceOption::pluck('name');
@@ -534,6 +613,8 @@ class QuotationController extends Controller
         $containerSize = ['1x10', '1x20', '1x40'];
 
         $quotationOptions = [
+            'business_types' => $businessTypes,
+            'regulatory_assistance_types' => $regulatoryAssistanceTypes,
             'service_types' => $serviceTypes,
             'transport_modes' => $transportModes,
             'service_options' => $serviceOptions,
