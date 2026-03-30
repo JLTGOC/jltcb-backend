@@ -34,6 +34,8 @@ class User extends Authenticatable
         'address',
         'contact_number',
         'company_name',
+        'position',
+        'business_type',
         'image_path',
     ];
 

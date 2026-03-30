@@ -46,17 +46,24 @@ class UserSeeder extends Seeder
 
         foreach($accounts as $account) {
             $user = User::create([
-                    'first_name' => fake()->firstName(),
-                    'middle_name' => fake()->boolean() ? fake()->firstName() : null,
-                    'last_name' =>  fake()->lastName(),
-                    'username' => Str::before($account['email'], '@'),
-                    'email' => $account['email'],
-                    'password' => Hash::make('jltcb2025'),
-                    'address' => fake()->address(),
-                    'contact_number' => fake()->numerify('09#########'),
-                    'company_name' => ($account['role'] === 'Client') ? fake()->company() : 'JLTCB',
-                    'image_path' => $profileImagePath,
+                'first_name' => fake()->firstName(),
+                'middle_name' => fake()->boolean() ? fake()->firstName() : null,
+                'last_name' =>  fake()->lastName(),
+                'username' => Str::before($account['email'], '@'),
+                'email' => $account['email'],
+                'password' => Hash::make('jltcb2025'),
+                'address' => fake()->address(),
+                'contact_number' => fake()->numerify('09#########'),
+                'company_name' => ($account['role'] === 'Client') ? fake()->company() : 'JLTCB',
+                'image_path' => $profileImagePath,
+            ]);
+
+            if ($account['role'] === 'Client') {
+                $user->update([
+                    'position' => fake()->randomElement(['Import Operations Specialist', 'Export Operations Specialist', 'Logistics Coordinator', 'Supply Chain Analyst']),
+                    'business_type' => fake()->randomElement(['COOPERATIVE', 'CORPORATION', 'E-COMMERCE', 'INDIVIDUAL IMPORTER', 'GOVERNMENT AGENCY', 'IMPORT-EXPORT AGENT', 'MULTINATIONAL COMPANY', 'NON-PROFIT ORGANIZATION', 'PARTNERSHIP', 'PEZA-REGISTERED ENTERPRISE', 'SOLE PROPRIETORSHIP']),
                 ]);
+            }
 
             $user->assignRole($account['role']);
         }

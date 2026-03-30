@@ -26,6 +26,20 @@ return new class extends Migration
             $table->string('address');
             $table->string('contact_number')->unique();
             $table->string('company_name');
+            $table->string('position')->nullable();
+            $table->enum('business_type', [
+                'COOPERATIVE',
+                'CORPORATION',
+                'E-COMMERCE',
+                'INDIVIDUAL IMPORTER',
+                'GOVERNMENT AGENCY',
+                'IMPORT-EXPORT AGENT',
+                'MULTINATIONAL COMPANY',
+                'NON-PROFIT ORGANIZATION',
+                'PARTNERSHIP',
+                'PEZA-REGISTERED ENTERPRISE',
+                'SOLE PROPRIETORSHIP',
+            ])->default('COOPERATIVE');
             $table->string('image_path')->nullable();
             $table->rememberToken();
             $table->timestamps();
