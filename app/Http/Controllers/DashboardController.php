@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Enums\RoleType;
-use Illuminate\Http\Request;
 use App\Services\Dashboard\AsDashboardService;
 use App\Services\Dashboard\ClientDashboardService;
 use App\Services\Dashboard\LeadAsDashboardService;
 use App\Services\Dashboard\MarketingDashboardService;
+use App\Services\Dashboard\OperationDashboardService;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -28,6 +29,7 @@ class DashboardController extends Controller
             RoleType::ACCOUNT_SPECIALIST->value => (new AsDashboardService())->getStats($request, $user),
             RoleType::LEAD_ACCOUNT_SPECIALIST->value => (new LeadAsDashboardService())->getStats($request, $user),
             RoleType::MARKETING->value => (new MarketingDashboardService())->getStats($user),
+            RoleType::OPERATIONS->value => (new OperationDashboardService())->getStats($user),
             default => ['message' => 'Generic dashboard data'],
         };
 

@@ -20,8 +20,9 @@ class LeadAsDashboardService
         $inTransitCount = Shipment::where('status', 'IN TRANSIT')->count();
         $arrivedCount = Shipment::where('status', 'ARRIVED')->count();
         $dischargedCount = Shipment::where('status', 'DISCHARGED')->count();
+        $berthedCount = Shipment::where('status', 'BERTHED')->count();
 
-        $ongoingCount = $pendingCount + $notYetDeliveredCount + $inTransitCount + $arrivedCount + $dischargedCount;
+        $ongoingCount = $pendingCount + $notYetDeliveredCount + $inTransitCount + $arrivedCount + $dischargedCount + $berthedCount;
 
         $deliveredCount = Shipment::where('status', 'DELIVERED')->count();
         
