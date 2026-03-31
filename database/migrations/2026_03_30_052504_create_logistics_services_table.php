@@ -17,7 +17,7 @@ return new class extends Migration
         Schema::create('logistics_services', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Quotation::class)->constrained()->onDelete('cascade');
-            $table->enum('service_type', ['IMPORT', 'EXPORT', 'BUSINESS SOLUTION'])->default('IMPORT');
+            $table->enum('service_type', ['IMPORT', 'EXPORT'])->default('IMPORT');
             $table->enum('transport_mode', ['AIR', 'SEA'])->default('AIR');
             $table->string('service_options');
             $table->string('commodity');

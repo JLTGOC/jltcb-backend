@@ -57,7 +57,7 @@ class QuotationSeeder extends Seeder
 
                 LogisticsService::create([
                     'quotation_id' => $quotation->id,
-                    'service_type' => fake()->randomElement(['IMPORT', 'EXPORT', 'BUSINESS SOLUTION']),
+                    'service_type' => fake()->randomElement(['IMPORT', 'EXPORT']),
                     'transport_mode' => fake()->randomElement(['AIR', 'SEA']),
                     'service_options' => 'PROJECT CARGO,POST CLEARANCE SERVICE',
                     'commodity' => 'CASTABLE 16 REFRACTOR',
@@ -137,8 +137,6 @@ class QuotationSeeder extends Seeder
                         $prefix = 'IM';
                     } elseif ($logisticsService->service_type === 'EXPORT') {
                         $prefix = 'EX';
-                    } elseif ($logisticsService->service_type === 'BUSINESS SOLUTION') {
-                        $prefix = 'BS';
                     }
                     $lastId = Shipment::max('id') ?? 0;
                     $dateSection = Carbon::now()->format('m-Y');

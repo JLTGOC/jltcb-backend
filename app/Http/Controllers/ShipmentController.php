@@ -140,8 +140,6 @@ class ShipmentController extends Controller
                 $prefix = 'IM';
             } elseif ($logisticsService->service_type === 'EXPORT') {
                 $prefix = 'EX';
-            } elseif ($logisticsService->service_type === 'BUSINESS SOLUTION') {
-                $prefix = 'BS';
             } else {
                 return $this->error('Invalid logistics service type for shipment creation', 422);
             }
