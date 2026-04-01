@@ -15,6 +15,8 @@ class QuotationFieldController extends Controller
      */
     public function __invoke(Request $request)
     {
+        $this->authorize('viewAny', QuotationField::class);
+
         $request->validate([
             'type' => 'required|in:REGULATORY,LOGISTICS'
         ]);
