@@ -148,6 +148,7 @@ class QuotationController extends Controller
                             'date' => $quotation->created_at->format($dateFormat),
                             'person_in_charge' => $quotation->accountSpecialist->full_name,
                             'commodity' => $quotation->logisticsService?->commodity ?? null,
+                            'service_type' => $quotation->logisticsService?->service_type ?? null,
                             'conversation_id' => $conversationId ?? null,
                         ];
                     })->values();
