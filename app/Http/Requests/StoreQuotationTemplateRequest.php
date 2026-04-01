@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\BillingConfiguration;
+use App\Models\QuotationField;
 use Illuminate\Foundation\Http\FormRequest;
 use Closure;
 
@@ -31,6 +32,23 @@ class StoreQuotationTemplateRequest extends FormRequest
             'detail_config_ids' => ['required', 'array'],
             'detail_config_ids.*' => ['integer', 'exists:details_configurations,id'],
 
+            'quotation_field_ids' => ['required', 'array'],
+            'quotation_field_ids.*' =>  
+                function (string $attribute, mixed $value, Closure $fail) {
+                    $service_type = $this->input('service_type');
+
+                    $exists = match($service_type) {
+                        'REGULATORY' => QuotationField::regulatoryFields()
+                            ->where('id', $value)->exists(),
+                        'LOGISTICS' => QuotationField::logisticsFields()
+                            ->where('id', $value)->exists()
+                    };
+
+                    if (!$exists) {
+                        $fail('This id does not exist or does not belong to quotation fields with ' . $service_type . ' service type');
+                    }
+                },
+                
             'template_charges' => ['required', 'array'],
             'template_charges.*.name' => [
                 'required_with:template_charges', 'string', 'max:255', 'distinct'

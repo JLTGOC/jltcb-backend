@@ -6,6 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Closure;
 use App\Models\BillingConfiguration;
 use Illuminate\Validation\Rule;
+use App\Models\QuotationField;
 
 class UpdateQuotationTemplateRequest extends FormRequest
 {
@@ -30,13 +31,30 @@ class UpdateQuotationTemplateRequest extends FormRequest
             'name' => [
                 'required', 'string', 'max:255', 'unique:quotation_templates,name,' . $template->id
             ],
-            'service_type' => ['sometimes', 'required', 'string', 'in:REGULATORY,LOGISTICS'],
+            'service_type' => ['sometimes', 'string', 'in:REGULATORY,LOGISTICS'],
             'is_active' => ['sometimes', 'boolean'],
 
-            'detail_config_ids' => ['sometimes', 'required', 'array'],
+            'detail_config_ids' => ['required', 'array'],
             'detail_config_ids.*' => ['integer', 'exists:details_configurations,id'],
 
-            'template_charges' => ['sometimes', 'required', 'array'],
+            'quotation_field_ids' => ['required', 'array'],
+            'quotation_field_ids.*' =>  
+                function (string $attribute, mixed $value, Closure $fail) use ($template) {
+                    $service_type = $template->service_type;
+
+                    $exists = match($service_type) {
+                        'REGULATORY' => QuotationField::regulatoryFields()
+                            ->where('id', $value)->exists(),
+                        'LOGISTICS' => QuotationField::logisticsFields()
+                            ->where('id', $value)->exists()
+                    };
+
+                    if (!$exists) {
+                        $fail('This id does not exist or does not belong to quotation fields with ' . $service_type . ' service type');
+                    }
+                },
+
+            'template_charges' => ['required', 'array'],
             'template_charges.*.id' => ['sometimes', 'exists:template_charges,id', 'distinct'],
             'template_charges.*.name' => [
                 'required_with:template_charges', 'string', 'max:255', 'distinct',  
@@ -44,9 +62,8 @@ class UpdateQuotationTemplateRequest extends FormRequest
                     ->where('template_id', $template->id)
                     ->ignore($template->id)
             ],
-            'template_charges.*.receipt_option_ids' => ['sometimes', 'required', 'array'],
+            'template_charges.*.receipt_option_ids' => ['required', 'array'],
             'template_charges.*.receipt_option_ids.*' => [
-                'sometimes',
                 'required', 
                 'integer', 
                 function (string $attribute, mixed $value, Closure $fail) {

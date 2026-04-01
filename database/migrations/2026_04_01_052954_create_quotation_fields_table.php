@@ -19,13 +19,13 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('template_client_input_config', function (Blueprint $table) {
+        Schema::create('template_client_input_configs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('template_id')->constrained('quotation_templates')
                 ->cascadeOnDelete();
             $table->foreignId('quotation_field_id')->constrained('quotation_fields')
                 ->cascadeOnDelete();
-            $table->unique(['template_id', 'quotation_field_id']);
+            $table->unique(['template_id', 'quotation_field_id'], 'allowed_client_info_unique');
             $table->timestamps();
         });
 

@@ -51,6 +51,8 @@ class QuotationTemplateController extends Controller
 
             $template->detailConfigs()->sync($request->detail_config_ids);
 
+            $template->quotationFields()->sync($request->quotation_field_ids);
+
             $chargeInputs = $request->template_charges;
 
             foreach($chargeInputs as $chargeInput) {
@@ -64,7 +66,11 @@ class QuotationTemplateController extends Controller
             return $template;
         });
 
-        $template->load(['detailConfigs.dropdownOptions', 'templateCharges.allowedReceiptCharges']);
+        $template->load([
+            'detailConfigs.dropdownOptions', 
+            'templateCharges.allowedReceiptCharges',
+            'quotationFields'
+        ]);
 
         return $this->success(
             'Quotation Template stored successfully', 
@@ -83,7 +89,9 @@ class QuotationTemplateController extends Controller
         $this->authorize('view', $template);
 
         $template->load([
-            'detailConfigs.dropdownOptions', 'templateCharges.allowedReceiptCharges'
+            'detailConfigs.dropdownOptions',
+            'templateCharges.allowedReceiptCharges', 
+            'quotationFields'
         ]);
 
         return $this->success('Quotation template fetched successfully', new QuotationTemplateResource($template));
@@ -104,6 +112,8 @@ class QuotationTemplateController extends Controller
             ]);
 
             $template->detailConfigs()->sync($request->detail_config_ids);
+
+            $template->quotationFields()->sync($request->quotation_field_ids);
 
             $chargeInputs = $request->template_charges;
 
@@ -132,7 +142,7 @@ class QuotationTemplateController extends Controller
         });
 
         $template->load([
-            'detailConfigs.dropdownOptions', 'templateCharges.allowedReceiptCharges'
+            'detailConfigs.dropdownOptions', 'templateCharges.allowedReceiptCharges', 'quotationFields'
         ]);
 
         return $this->success(

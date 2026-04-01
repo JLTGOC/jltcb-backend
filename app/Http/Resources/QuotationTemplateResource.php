@@ -19,10 +19,13 @@ class QuotationTemplateResource extends JsonResource
             'name' => $this->name,
             'service_type' => $this->service_type,
             'is_active' => $this->is_active,
-            'quotation_details' => DetailsConfigResource::collection(
+            'detail_configs' => DetailsConfigResource::collection(
                 $this->whenLoaded('detailConfigs')
             ),
-            'billing_details' => TemplateChargeResource::collection(
+            'from_client_inputs' => QuotationFieldResource::collection(
+                $this->whenLoaded('quotationFields')
+            ),
+            'template_charges' => TemplateChargeResource::collection(
                 $this->whenLoaded('templateCharges')
             )
         ];
