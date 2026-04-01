@@ -20,4 +20,13 @@ class QuotationTemplate extends Model
             'details_config_id'
         );
     }
+
+    public function quotationFields() {
+        return $this->belongsToMany(
+            QuotationField::class,
+            'template_client_input_configs',
+            'template_id',
+            'quotation_field_id'
+        );
+    }
 }
