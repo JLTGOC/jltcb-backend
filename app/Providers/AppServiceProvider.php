@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Gate;
 use App\Models\Conversation;
 use App\Models\DetailsConfiguration;
 use App\Models\MessageTemplate;
+use App\Models\QuotationField;
+use App\Models\QuotationTemplate;
 use App\Models\StandardConfiguration;
 use App\Policies\ChatPolicy;
 use App\Policies\ConfigurationPolicy;
@@ -69,6 +71,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(DetailsConfiguration::class, ConfigurationPolicy::class);
         Gate::policy(MessageTemplate::class, ConfigurationPolicy::class);
         Gate::policy(StandardConfiguration::class, ConfigurationPolicy::class);
+        Gate::policy(QuotationTemplate::class, ConfigurationPolicy::class);
+        Gate::policy(QuotationField::class, ConfigurationPolicy::class);
         Gate::policy(Role::class, RolePolicy::class);
     }
 }

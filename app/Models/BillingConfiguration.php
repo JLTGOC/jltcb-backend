@@ -12,6 +12,15 @@ class BillingConfiguration extends Model
 
     protected $fillable = ['label', 'type'];
 
+    public function templateCharges() {
+        return $this->belongsToMany(
+            TemplateCharge::class,
+            'template_charge_receipt_options',
+            'billing_config_id',
+            'template_charge_id'
+        );
+    }
+
     protected function scopeReceiptCharges(Builder $query) {
         $query->where('type', 'RECEIPT CHARGES');
     }

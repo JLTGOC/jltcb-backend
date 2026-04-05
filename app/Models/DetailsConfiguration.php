@@ -11,6 +11,19 @@ class DetailsConfiguration extends Model
 
     protected $fillable = ['label', 'type'];
 
+    public function dropdownOptions() {
+        return $this->hasMany(ConfigDropdownOption::class, 'details_config_id');
+    }
+
+    public function templates() {
+        return $this->belongsToMany(
+            QuotationTemplate::class,
+            'template_detail_config',
+            'details_config_id',
+            'template_id'
+        );
+    }
+
     protected function scopeDropdowns($query) {
         $query->where('type', 'DROPDOWN');
     }
@@ -21,9 +34,5 @@ class DetailsConfiguration extends Model
 
     protected function scopeDatePickers($query) {
         $query->where('type', 'DATE PICKER');
-    }
-
-    public function dropdownOptions() {
-        return $this->hasMany(ConfigDropdownOption::class, 'details_config_id');
     }
 }

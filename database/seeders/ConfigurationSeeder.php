@@ -32,7 +32,7 @@ class ConfigurationSeeder extends Seeder
 
         $uom = ['PER APP', 'PER BL', 'PER CONTAINER'];
 
-        $textInput = ['SERVICE LEVEL', 'PAYMENT TERMS', 'SUBJECT'];
+        $textInput = ['SERVICE LEVEL', 'PAYMENT TERMS'];
 
         $datePicker = ['RATE VALIDITY'];
 

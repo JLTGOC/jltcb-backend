@@ -15,6 +15,8 @@ use App\Http\Controllers\MessageTemplateController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\QuotationFileController;
 use App\Http\Controllers\JobOrderController;
+use App\Http\Controllers\QuotationFieldController;
+use App\Http\Controllers\QuotationTemplateController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StandardConfigurationController;
 use Illuminate\Support\Facades\Broadcast;
@@ -91,6 +93,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('message-templates', MessageTemplateController::class)
         ->parameters(['message-templates' => 'message']);
+
+    Route::apiResource('templates', QuotationTemplateController::class);
+
+    Route::get('quotation-fields', QuotationFieldController::class);
 
     // Role Routes
     Route::get('/roles', [RoleController::class, 'index']);
