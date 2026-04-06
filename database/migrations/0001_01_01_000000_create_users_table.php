@@ -26,7 +26,8 @@ return new class extends Migration
             $table->string('address');
             $table->string('contact_number')->unique();
             $table->string('company_name');
-            $table->string('position')->nullable();
+            $table->string('company_address');
+            $table->string('company_position')->nullable();
             $table->enum('business_type', [
                 'COOPERATIVE',
                 'CORPORATION',
@@ -41,6 +42,7 @@ return new class extends Migration
                 'SOLE PROPRIETORSHIP',
             ])->default('COOPERATIVE');
             $table->string('image_path')->nullable();
+            $table->string('id_image_path')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

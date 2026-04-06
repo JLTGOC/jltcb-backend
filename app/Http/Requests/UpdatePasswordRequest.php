@@ -23,7 +23,7 @@ class UpdatePasswordRequest extends FormRequest
                 Rule::requiredIf($this->user() && $this->user()->id === $userId),
                 'current_password',
             ],
-            'new_password' => ['required', 'string', 'min:8', 'confirmed'],
+            'new_password' => ['required', 'string', 'min:8', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/', 'confirmed'],
         ];
     }
 }
