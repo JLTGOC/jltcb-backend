@@ -36,9 +36,9 @@ class JobOrderController extends Controller
         } elseif ($user->hasRole('Account Specialist')) {
             $jobOrders = JobOrder::where('as_id', $user->id)->where('shipment_creation_status', 'PENDING')->get();
         } else if ($user->hasRole('Operations')) {
-            $jobOrders = JobOrder::where('operations_id', $user->id)->where('shipment_creation_status', 'PENDING')->get();
+            $jobOrders = JobOrder::get();
         } else if ($user->hasRole('Finance')) {
-            $jobOrders = JobOrder::where('finance_id', $user->id)->where('shipment_creation_status', 'PENDING')->get();
+            $jobOrders = JobOrder::get();
         } else {
             $jobOrders = JobOrder::where('client_id', $user->id)->where('shipment_creation_status', 'PENDING')->get();
         }
@@ -59,7 +59,7 @@ class JobOrderController extends Controller
                 'client' => $j->client->full_name,
                 'date_created' => strtoupper($j->created_at->format('F d, Y')),
                 'quotation_id' => $j->quotation_id,
-                'assigned_to' => $j->operations_id ?? 'Available'
+                'assigned_to' => $j->operations->username ?? 'Available'
             ];
         });
 

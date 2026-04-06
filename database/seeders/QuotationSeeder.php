@@ -50,7 +50,7 @@ class QuotationSeeder extends Seeder
                 'position' => User::find($client)->position,
             ]);
 
-            $serviceDomain = fake()->randomElement(['LOGISTICS', 'REGULATORY']);
+            $serviceDomain = fake()->randomElement(['LOGISTICS', 'LOGISTICS', 'REGULATORY']);
 
             if ($serviceDomain === 'LOGISTICS') {
                 $cargoType = fake()->randomElement(['CONTAINERIZED', 'LCL']);
@@ -140,6 +140,14 @@ class QuotationSeeder extends Seeder
                     'bl_no' => fake()->bothify('BL-#####'),
                     'eta' => Carbon::now()->addDays(fake()->numberBetween(1, 30)),
                     'etd' => Carbon::now()->addDays(fake()->numberBetween(1, 30)),
+                    'hs_code' => fake()->numerify('HS-#####'),
+                    'shipment_remarks' => fake()->sentence(),
+                    'target_delivery_date' => Carbon::now()->addDays(fake()->numberBetween(1, 30)),
+                    'target_completion_date' => Carbon::now()->addDays(fake()->numberBetween(30, 60)),
+                    'commitment_remarks' => fake()->sentence(),
+                    'terms_of_payment' => fake()->sentence(),
+                    'billing_date' => Carbon::now()->addDays(fake()->numberBetween(60, 90)),
+                    'shall_be_billed' => 'AS PER QUOTE',
                     'shipment_creation_status' => fake()->randomElement(['PENDING', 'CREATED']),
                 ]);
 
