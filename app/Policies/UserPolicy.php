@@ -20,7 +20,7 @@ class UserPolicy
      */
     public function view(User $user, User $model): bool
     {
-        return true;
+        return $user->id === $model->id || $user->hasRole(['Lead Account Specialist', 'Account Specialist', 'IT']);
     }
 
     /**

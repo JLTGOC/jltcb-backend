@@ -44,8 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users/account-specialists', [UserController::class, 'indexAccountSpecialists']);
     Route::get('/users/clients', [UserController::class, 'indexClientAccounts']);
     Route::get('/users/clients/{client}/shipments', [UserController::class, 'indexClientShipments']);
-    // Route::get('/users/clients/{client}/profile', [UserController::class, 'showClientProfile']);
-    Route::apiResource('users', UserController::class)->only(['index', 'show', 'update']);
+    Route::apiResource('users', UserController::class)->only(['show', 'update']);
     Route::put('/users/{user}/change-password', [UserController::class, 'changePassword']);
     Route::post('/users/{user}/change-profile', [UserController::class, 'changeProfile']);
 
