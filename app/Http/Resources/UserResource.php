@@ -17,6 +17,9 @@ class UserResource extends JsonResource
         $imagePath = $this->image_path
             ? ltrim(preg_replace('#^storage/#', '', $this->image_path), '/')
             : null;
+        $idImagePath = $this->id_image_path
+            ? ltrim(preg_replace('#^storage/#', '', $this->id_image_path), '/')
+            : null;
 
         return [
             'id' => $this->id,
@@ -30,7 +33,11 @@ class UserResource extends JsonResource
             'address' => $this->address,
             'contact_number' => $this->contact_number,
             'company_name' => $this->company_name,
+            'company_address' => $this->company_address,
+            'company_position' => $this->company_position,
+            'business_type' => $this->business_type,
             'image_path' => $imagePath ? asset('storage/' . $imagePath) : null,
+            'id_image_path' => $idImagePath ? asset('storage/' . $idImagePath) : null,
             'created_at' => $this->created_at?->toDateTimeString(),
             'updated_at' => $this->updated_at?->toDateTimeString(),
         ];

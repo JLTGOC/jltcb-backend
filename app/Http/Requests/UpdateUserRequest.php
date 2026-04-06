@@ -27,7 +27,7 @@ class UpdateUserRequest extends FormRequest
                 'exists:roles,name',
                 Rule::prohibitedIf(! $authUser || ! $authUser->hasRole('IT')),
             ],
-            'contact_number' => ['sometimes', 'nullable', 'string', 'size:11', 'regex:/^09\d{9}$/'],
+            'contact_number' => ['sometimes', 'nullable', 'string', 'size:11', 'regex:/^09\d{9}$/', Rule::unique('users', 'contact_number')->ignore($userId)],
             'email' => ['sometimes', 'email', Rule::unique('users', 'email')->ignore($userId)],
             'username' => ['sometimes', 'nullable', 'string', Rule::unique('users', 'username')->ignore($userId)],
         ];

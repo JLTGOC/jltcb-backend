@@ -67,6 +67,11 @@ class UserController extends Controller
 
             if (array_key_exists('position', $data)) {
                 $user->syncRoles($data['position']);
+
+                if ($user->company_name === 'JLTCB') {
+                    $user->company_position = $data['position'];
+                    $user->save();
+                }
             }
         });
 

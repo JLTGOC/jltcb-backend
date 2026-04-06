@@ -42,6 +42,7 @@ class UserSeeder extends Seeder
         ];
 
         $profileImagePath = $this->copySeederFile('images', 'profile.jpg');
+        $idImagePath = $this->copySeederFile('images', 'id.png');
         $this->copySeederFile('images', 'jltcb.png');
 
         foreach($accounts as $account) {
@@ -51,16 +52,19 @@ class UserSeeder extends Seeder
                 'last_name' =>  fake()->lastName(),
                 'username' => Str::before($account['email'], '@'),
                 'email' => $account['email'],
-                'password' => Hash::make('jltcb2025'),
+                'password' => Hash::make('Jltcb2025'),
                 'address' => fake()->address(),
                 'contact_number' => fake()->numerify('09#########'),
                 'company_name' => ($account['role'] === 'Client') ? fake()->company() : 'JLTCB',
+                'company_address' => ($account['role'] === 'Client') ? fake()->address() : 'Suite 508, Pacific Centre, 460 Quintin Paredes St. Brgy. 289 Binondo, Manila, Philippines 1006',
+                'company_position' => ($account['role'] === 'Client') ? null : $account['role'],
                 'image_path' => $profileImagePath,
+                'id_image_path' => $idImagePath,
             ]);
 
             if ($account['role'] === 'Client') {
                 $user->update([
-                    'position' => fake()->randomElement(['Import Operations Specialist', 'Export Operations Specialist', 'Logistics Coordinator', 'Supply Chain Analyst']),
+                    'company_position' => fake()->randomElement(['Import Operations Specialist', 'Export Operations Specialist', 'Logistics Coordinator', 'Supply Chain Analyst']),
                     'business_type' => fake()->randomElement(['COOPERATIVE', 'CORPORATION', 'E-COMMERCE', 'INDIVIDUAL IMPORTER', 'GOVERNMENT AGENCY', 'IMPORT-EXPORT AGENT', 'MULTINATIONAL COMPANY', 'NON-PROFIT ORGANIZATION', 'PARTNERSHIP', 'PEZA-REGISTERED ENTERPRISE', 'SOLE PROPRIETORSHIP']),
                 ]);
             }
