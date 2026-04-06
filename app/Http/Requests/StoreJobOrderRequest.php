@@ -36,12 +36,15 @@ class StoreJobOrderRequest extends FormRequest
             'service.eta' => 'required_if:job_type,SHIPMENT|date',
             'service.etd' => 'required_if:job_type,SHIPMENT|date|after_or_equal:service.eta',
             'shipment.hs_code' => 'nullable|string',
+            'shipment.rod' => 'nullable|string',
             'shipment.permits' => 'nullable|string',
             'shipment.special_remarks' => 'nullable|string',
+            'target.delivery_date' => 'nullable|string',
+            'target.completion_date' => 'nullable|string',
+            'target.special_remarks' => 'nullable|string',
             'billing.terms_of_payment' => 'nullable|string',
             'billing.billing_date' => 'nullable|date',
             'billing.shall_be_billed' => 'nullable|string',
-            'billing.closing_remarks' => 'nullable|string',
         ];
     }
 }

@@ -110,8 +110,7 @@ class QuotationSeeder extends Seeder
                     'email_body' => fake()->paragraph(),
                     'client_type' => fake()->randomElement(['NEW', 'RENEWAL']),
                     'accredited' => fake()->randomElement(['REGULAR', 'EXPEDITED']),
-                    'tone_and_attitude' => fake()->randomElement(['FRIENDLY', 'NEUTRAL', 'HOSTILE']),
-                    'remarks' => fake()->sentence(),
+                    'client_remarks' => fake()->sentence(),
                     'service_level' => fake()->randomElement([
                         'CARGO CONSOLIDATION (CC)',
                         'DIRECT EXPORT (DE)',
@@ -158,6 +157,10 @@ class QuotationSeeder extends Seeder
                         'origin' => $logisticsService->origin,
                         'destination' => $logisticsService->destination,
                         'remarks' => $logisticsService->remarks,
+                    ]);
+                } else {
+                    $jobOrder->update([
+                        'operations_id' => null,
                     ]);
                 }
             }

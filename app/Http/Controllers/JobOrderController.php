@@ -44,10 +44,22 @@ class JobOrderController extends Controller
         }
 
         $jobOrders = $jobOrders->map(function ($j) {
+            if ($j->job_type === 'SHIPMENT') {
+                $service = 'Logistics Services';
+            } elseif ($j->job_type === 'ACCREDITATION') {
+                $service = 'Regulatory Services';
+            } else {
+                $service = 'N/A';
+            }
+
             return [
+                'id' => $j->id,
                 'reference_number' => $j->reference_number,
-                'job_type' => $j->job_type,
+                'service' => $service,
                 'client' => $j->client->full_name,
+                'date_created' => strtoupper($j->created_at->format('F d, Y')),
+                'quotation_id' => $j->quotation_id,
+                'assigned_to' => $j->operations_id ?? 'Available'
             ];
         });
 
@@ -106,18 +118,21 @@ class JobOrderController extends Controller
                     'client_type' => $request->client['client_type'],
                     'accredited' => $request->client['accredited'],
                     'tone_and_attitude' => $request->client['tone_and_attitude'] ?? null,
-                    'remarks' => $request->client['remarks'] ?? null,
+                    'client_remarks' => $request->client['remarks'] ?? null,
                     'service_level' => $request->service['service_level'],
                     'bl_no' => $request->service['bl_no'],
                     'eta' => $request->service['eta'],
                     'etd' => $request->service['etd'],
                     'hs_code' => $request->shipment['hs_code'] ?? null,
+                    'rod' => $request->shipment['rod'] ?? null,
                     'permits' => $request->shipment['permits'] ?? null,
-                    'special_remarks' => $request->shipment['special_remarks'] ?? null,
+                    'shipment_remarks' => $request->shipment['special_remarks'] ?? null,
+                    'target_delivery_date' => $request->target['target_delivery_date'] ?? null,
+                    'target_completion_date' => $request->target['target_completion_date'] ?? null,
+                    'commitment_remarks' => $request->target['special_remarks'] ?? null,
                     'terms_of_payment' => $request->billing['terms_of_payment'] ?? null,
                     'billing_date' => $request->billing['billing_date'] ?? null,
                     'shall_be_billed' => $request->billing['shall_be_billed'] ?? null,
-                    'closing_remarks' => $request->billing['closing_remarks'] ?? null,
                 ]);
 
                 DB::commit();
