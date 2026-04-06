@@ -183,9 +183,26 @@ class JobOrderController extends Controller
      * 
      * Fetch enums for Job Order creation form
      */
-    public function jobOrderEnums() {
+    public function jobOrderEnums(Request $request) {
         $this->authorize('jobOrderEnums', JobOrder::class);
+
+        $autofillDetails = null;
         
+        $request->validate([
+            'quotation_reference_number' => 'sometimes|string'
+        ]);
+        if ($request->has('quotation_reference_number')) {
+            $quotation = Quotation::where('reference_number', $request->quotation_reference_number)->first() ?? null;
+            $client = $quotation->client ?? null;
+            $autofillDetails = [
+                'company_name' => $client->company_name ?? null,
+                'full_name' => $client->full_name ?? null,
+                'commodity' => $quotation->logisticsService?->commodity ?? null,
+                'cargo_type' => $quotation->logisticsService?->cargo_type ?? null,
+                'container_size' => $quotation->logisticsService?->container_size ?? null,
+            ];
+        }
+            
         $clientTypes = ['NEW', 'RENEWAL'];
         $accredited = ['REGULAR', 'EXPEDITED'];
         $serviceLevels = [
@@ -205,6 +222,7 @@ class JobOrderController extends Controller
         ];
 
         return $this->success('Job Order Enums fetched successfully', [
+            'autofill_details' => $autofillDetails,
             'client_types' => $clientTypes,
             'accredited' => $accredited,
             'service_levels' => $serviceLevels,
