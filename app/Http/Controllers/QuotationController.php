@@ -752,6 +752,11 @@ class QuotationController extends Controller
         }
     }
 
+    /**
+     * Reassign Account Specialist
+     * 
+     * Allows Lead Account Specialist to reassign the Account Specialist in charge of a quotation
+     */
     public function reassignSpecialist(Quotation $quotation, Request $request) {
         $request->validate([
             'as_id' => ['required', 'integer', 'exists:users,id']
@@ -770,6 +775,11 @@ class QuotationController extends Controller
         return $this->success('Account Specialist reassigned successfully', new QuotationResource($quotation), 200);
     }
 
+    /**
+     * Accept Quotation
+     * 
+     * Allows Client to accept a quotation, changing its status to ACCEPTED
+     */
     public function acceptQuotation(Quotation $quotation, Request $request) {
         $quotation->update([
             'status' => 'ACCEPTED'

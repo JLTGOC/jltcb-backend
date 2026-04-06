@@ -25,6 +25,8 @@ class JobOrderController extends Controller
     }
 
     /**
+     * Index Job Orders
+     * 
      * Display a listing of the resource.
      */
     public function index()
@@ -67,6 +69,8 @@ class JobOrderController extends Controller
     }
 
     /**
+     * Store Job Order
+     * 
      * Store a newly created resource in storage.
      */
     public function store(StoreJobOrderRequest $request)
@@ -145,6 +149,8 @@ class JobOrderController extends Controller
     }
 
     /**
+     * Show Job Order
+     * 
      * Display the specified resource.
      */
     public function show(JobOrder $jobOrder)
@@ -172,6 +178,11 @@ class JobOrderController extends Controller
         //
     }
 
+    /**
+     * Get Job Order Enums
+     * 
+     * Fetch enums for Job Order creation form
+     */
     public function jobOrderEnums() {
         $this->authorize('jobOrderEnums', JobOrder::class);
         
@@ -201,6 +212,11 @@ class JobOrderController extends Controller
         ]);
     }
 
+    /**
+     * Show Job Order Quotation
+     * 
+     * Fetch the quotation details associated with a Job Order
+     */
     public function showJobOrderQuotation(JobOrder $jobOrder) {
         if (!$jobOrder) {
             return $this->error('Job Order not found', 404);

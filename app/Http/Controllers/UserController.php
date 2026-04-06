@@ -26,6 +26,8 @@ class UserController extends Controller
     }
 
     /**
+     * Index Users
+     * 
      * Display a listing of the resource.
      */
     public function index()
@@ -155,6 +157,11 @@ class UserController extends Controller
         return $this->success('Account specialists fetched successfully', $accountSpecialists, 200);
     }
 
+    /**
+     * Index Client Accounts
+     * 
+     * Display a listing of client accounts with ongoing and completed shipments count.
+     */
     public function indexClientAccounts(Request $request) {
         $this->authorize('indexClientAccounts', User::class);
 
@@ -192,7 +199,14 @@ class UserController extends Controller
         return $this->success('Clients fetched successfully', $clients, 200);
     }
 
+    /**
+     * Index Client Shipments
+     * 
+     * Display a listing of shipments for a specific client.
+     */
     public function indexClientShipments(Request $request, User $client) {
+        $this->authorize('indexClientShipments', User::class);
+        
         $clientShipments = Shipment::where('client_id', $client->id);
 
         if ($request->has('search')) {

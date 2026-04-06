@@ -8,6 +8,8 @@ use Spatie\Permission\Models\Role;
 class RoleController extends Controller
 {
     /**
+     * Index Roles
+     * 
      * Display a listing of the resource.
      */
     public function index()
