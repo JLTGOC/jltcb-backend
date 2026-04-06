@@ -150,6 +150,7 @@ class QuotationController extends Controller
                             'commodity' => $quotation->logisticsService?->commodity ?? null,
                             'service_type' => $quotation->logisticsService?->service_type ?? null,
                             'conversation_id' => $conversationId ?? null,
+                            'prepared_by' => $quotation->created_by ? User::where('id', $quotation->created_by)->value('full_name') : null,
                         ];
                     })->values();
 
@@ -215,7 +216,8 @@ class QuotationController extends Controller
                                     'person_in_charge' => $quotation->accountSpecialist->full_name,
                                     'commodity' => $quotation->logisticsService?->commodity ?? null,
                                     'service_type' => $quotation->logisticsService?->service_type ?? null,
-                                    'conversation_id' => $conversationId ?? null
+                                    'conversation_id' => $conversationId ?? null,
+                                    'prepared_by' => $quotation->created_by ? User::where('id', $quotation->created_by)->value('full_name') : null,
                                 ];
                             })->values(),
                         ];
@@ -252,7 +254,9 @@ class QuotationController extends Controller
                                 'person_in_charge' => $quotation->accountSpecialist->full_name,
                                 'commodity' => $quotation->logisticsService?->commodity ?? null,
                                 'service_type' => $quotation->logisticsService?->service_type ?? null,
-                                'conversation_id' => $conversationId ?? null
+                                'conversation_id' => $conversationId ?? null,
+                                'prepared_by' => $quotation->created_by ? User::where('id', $quotation->created_by)->value('full_name') : null,
+
                             ];
                         })->values(),
                     ];
@@ -307,6 +311,7 @@ class QuotationController extends Controller
                         'date' => $result->created_at->format($dateFormat),
                         'status' => $status ?? $result->status,
                         'conversation_id' => $conversationId ?? null,
+                        'prepared_by' => $result->created_by ? User::where('id', $result->created_by)->value('full_name') : null,
                     ];
                 }
             });

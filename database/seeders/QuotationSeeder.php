@@ -89,11 +89,29 @@ class QuotationSeeder extends Seeder
                 ]);
             }
 
-            if ($quotation->status === 'ACCEPTED' && $quotation->logisticsService) {
+            if ($quotation->status === 'RESPONDED') {
                 $quotation->update([
                     'created_by' => $quotation->as_id,
                 ]);
 
+                if (!$quotation->files()->where('file_path', 'files/QuotationFile.pdf')->where('quotation_id', $quotation->id)->exists()) {
+                    $quotation->files()->updateOrCreate([
+                        'quotation_id' => $quotation->id,
+                        'file_path' => 'files/QuotationFile.pdf',
+                    ], [
+                        'uploaded_by' => $quotation->as_id,
+                        'type' => 'PROPOSAL',
+                        'original_file_name' => 'QUOTATION.pdf',
+                        'file_type' => 'application/pdf',
+                    ]);
+                } else {
+                    $quotation->files()->where('file_path', 'files/QuotationFile.pdf')->where('quotation_id', $quotation->id)->update([
+                        'type' => 'PROPOSAL',
+                    ]);
+                }
+            }
+
+            if ($quotation->status === 'ACCEPTED' && $quotation->logisticsService) {
                 $idSection = str_pad(((JobOrder::latest('id')->value('id') ?? 0) + 1), 3, '0', STR_PAD_LEFT);
                 $prefix = 'SJO';
                 $dateSection = now()->format('m-Y');
