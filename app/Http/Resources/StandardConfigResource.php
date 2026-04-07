@@ -14,13 +14,18 @@ class StandardConfigResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return [
+        $data = [
             'id' => $this->id,
             'template_name' => $this->template_name,
-            'policies' => $this->policies,
-            'terms_and_conditions' => $this->terms_and_conditions,
-            'banking_details' => $this->banking_details,
-            'footer' => $this->footer
         ];
+
+        if ($request->routeIs('standard-templates.show')) {
+            $data['policies'] = $this->policies;
+            $data['terms_and_conditions'] = $this->terms_and_conditions;
+            $data['banking_details'] = $this->banking_details;
+            $data['footer'] = $this->footer;
+        }
+        
+        return $data;
     }
 }
