@@ -793,6 +793,11 @@ class QuotationController extends Controller
         return $this->success('Quotation accepted successfully', new QuotationResource($quotation), 200);
     }
 
+    /**
+     * Show Client inputs
+     * 
+     * Show specific client quotation details based on quotation template configured
+     */
     public function clientInputs(Quotation $quotation, Request $request) {
         $request->validate([
             'template_id' => [
