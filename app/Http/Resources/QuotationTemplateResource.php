@@ -22,9 +22,6 @@ class QuotationTemplateResource extends JsonResource
             'detail_configs' => DetailsConfigResource::collection(
                 $this->whenLoaded('detailConfigs')
             ),
-            'from_client_inputs' => QuotationFieldResource::collection(
-                $this->whenLoaded('quotationFields')
-            ),
             'template_charges' => TemplateChargeResource::collection(
                 $this->whenLoaded('templateCharges')
             )

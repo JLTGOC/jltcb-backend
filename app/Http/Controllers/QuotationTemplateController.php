@@ -84,7 +84,6 @@ class QuotationTemplateController extends Controller
         $template->load([
             'detailConfigs.dropdownOptions', 
             'templateCharges.allowedReceiptCharges',
-            'quotationFields'
         ]);
 
         return $this->success(
@@ -106,7 +105,6 @@ class QuotationTemplateController extends Controller
         $template->load([
             'detailConfigs.dropdownOptions',
             'templateCharges.allowedReceiptCharges', 
-            'quotationFields'
         ]);
 
         return $this->success('Quotation template fetched successfully', new QuotationTemplateResource($template));
@@ -157,7 +155,7 @@ class QuotationTemplateController extends Controller
         });
 
         $template->load([
-            'detailConfigs.dropdownOptions', 'templateCharges.allowedReceiptCharges', 'quotationFields'
+            'detailConfigs.dropdownOptions', 'templateCharges.allowedReceiptCharges',
         ]);
 
         return $this->success(
