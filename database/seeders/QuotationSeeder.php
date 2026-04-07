@@ -89,7 +89,7 @@ class QuotationSeeder extends Seeder
                 ]);
             }
 
-            if ($quotation->status === 'RESPONDED') {
+            if ($quotation->status === 'RESPONDED' || $quotation->status === 'ACCEPTED') {
                 $quotation->update([
                     'created_by' => $quotation->as_id,
                 ]);
