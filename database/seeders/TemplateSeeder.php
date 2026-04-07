@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\BillingConfiguration;
 use App\Models\DetailsConfiguration;
+use App\Models\QuotationField;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\QuotationTemplate;
@@ -36,5 +37,11 @@ class TemplateSeeder extends Seeder
 
             $templateCharge->allowedReceiptCharges()->attach(fake()->randomElements($receiptChargeIds, random_int(2, $receiptChargesCount)));
         }
+
+        $quotationFields = QuotationField::logisticsFields()->pluck('id')->toArray();
+
+        $template->quotationFields()->attach(
+            fake()->randomElements($quotationFields, random_int(2, count($quotationFields)))
+        );
     }
 }
