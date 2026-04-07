@@ -147,8 +147,8 @@ class QuotationController extends Controller
                             'id' => $quotation->id,
                             'date' => $quotation->created_at->format($dateFormat),
                             'person_in_charge' => $quotation->accountSpecialist->full_name,
-                            'commodity' => $quotation->logisticsService?->commodity ?? null,
-                            'service_type' => $quotation->logisticsService?->service_type ?? null,
+                            'commodity' => $quotation->logisticsService?->commodity ?? 'BUSINESS SOLUTION',
+                            'service_type' => $quotation->logisticsService?->service_type ?? 'BUSINESS SOLUTION',
                             'conversation_id' => $conversationId ?? null,
                             'prepared_by' => $quotation->created_by ? User::where('id', $quotation->created_by)->value('full_name') : null,
                         ];
@@ -214,8 +214,8 @@ class QuotationController extends Controller
                                     'id' => $quotation->id,
                                     'date' => $quotation->created_at->format($dateFormat),
                                     'person_in_charge' => $quotation->accountSpecialist->full_name,
-                                    'commodity' => $quotation->logisticsService?->commodity ?? null,
-                                    'service_type' => $quotation->logisticsService?->service_type ?? null,
+                                    'commodity' => $quotation->logisticsService?->commodity ?? 'BUSINESS SOLUTION',
+                                    'service_type' => $quotation->logisticsService?->service_type ?? 'BUSINESS SOLUTION',
                                     'conversation_id' => $conversationId ?? null,
                                     'prepared_by' => $quotation->created_by ? User::where('id', $quotation->created_by)->value('full_name') : null,
                                 ];
@@ -252,8 +252,8 @@ class QuotationController extends Controller
                                 'id' => $quotation->id,
                                 'date' => $quotation->created_at->format($dateFormat),
                                 'person_in_charge' => $quotation->accountSpecialist->full_name,
-                                'commodity' => $quotation->logisticsService?->commodity ?? null,
-                                'service_type' => $quotation->logisticsService?->service_type ?? null,
+                                'commodity' => $quotation->logisticsService?->commodity ?? 'BUSINESS SOLUTION',
+                                'service_type' => $quotation->logisticsService?->service_type ?? 'BUSINESS SOLUTION',
                                 'conversation_id' => $conversationId ?? null,
                                 'prepared_by' => $quotation->created_by ? User::where('id', $quotation->created_by)->value('full_name') : null,
 
@@ -273,19 +273,22 @@ class QuotationController extends Controller
                 $results = $resultsQuery->get();
             }
 
-            $results = $results->map(function ($result) use ($user,$request, $dateFormat) {
+            $results = $results->map(function ($result) use ($user, $request, $dateFormat) {
                 if ($request->has('filter.status')) {
                     $status = null;
-
                     if ($user->hasRole('Client') && $request->filter['status'] === 'RESPONDED') {
-                        $status = 'NEW';
-                        
-                        $shipment = Shipment::where('quotation_id', $result->id)->first();
-
-                        if ($shipment) {
-                            $status = 'ACCEPTED';
+                        if ($result->status === 'RESPONDED') {
+                            $status = 'NEW';
+                        } else {
+                            $status = $result->status;
                         }
                     }
+
+                    $acceptedAt = null;
+                    if ($result->status === 'ACCEPTED') {
+                        $acceptedAt = $result->updated_at;
+                    }
+
                     $quotationCard = Message::where('reference_id', $result->id)
                         ->where('type', 'QUOTATION_CARD')
                         ->first();
@@ -306,12 +309,13 @@ class QuotationController extends Controller
                         'id' => $result->id,
                         'client_name' => $result->client->full_name,
                         'reference_number' => $result->reference_number,
-                        'commodity' => $result->logisticsService?->commodity ?? null,
-                        'service_type' => $result->logisticsService?->service_type ?? null,
+                        'commodity' => $result->logisticsService?->commodity ?? 'BUSINESS SOLUTION',
+                        'service_type' => $result->logisticsService?->service_type ?? 'BUSINESS SOLUTION',
                         'date' => $result->created_at->format($dateFormat),
                         'status' => $status ?? $result->status,
                         'conversation_id' => $conversationId ?? null,
                         'prepared_by' => $result->created_by ? User::where('id', $result->created_by)->value('full_name') : null,
+                        'accepted_at' => $acceptedAt ? $acceptedAt->format($dateFormat) : null,
                     ];
                 }
             });
