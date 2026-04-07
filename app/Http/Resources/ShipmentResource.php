@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Models\JobOrder;
 
 class ShipmentResource extends JsonResource
 {
@@ -14,16 +15,20 @@ class ShipmentResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $jobOrder = JobOrder::where('quotation_id', $this->quotation_id)->first();
 
         $data = [
             'general_info' => [
                 'id' => $this->id,
                 'reference_number' => $this->reference_number,
                 // 'quotation_id' => $this->quotation_id,
-                // 'client' => $this->client->full_name,
+                'client' => $this->client->full_name,
                 'status' => $this->status,
                 'commodity' => $this->commodity,
-                'date' => $this->created_at->format('m/d/Y'),
+                'destination' => $this->destination,
+                'eta' => $jobOrder ? $jobOrder->eta : null,
+                'etd' => $jobOrder ? $jobOrder->etd : null,
+                'date' => $this->created_at->format('Y-m-d'),
             ],
         ];
         
