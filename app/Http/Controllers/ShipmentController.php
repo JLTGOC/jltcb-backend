@@ -15,9 +15,7 @@ use App\Models\{
 use App\Http\Resources\ShipmentResource;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
-use Spatie\Searchable\Search;
 
 class ShipmentController extends Controller
 {
@@ -36,42 +34,34 @@ class ShipmentController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->input('perPage', 10);
-        $search = $request->input('search');    
+        $search = $request->input('search');
         $platform = $request->header('Platform', 'mobile');
-
-        if ($platform === 'mobile') {
-            $request->validate([
-                'filter.status' => 'required|in:ONGOING,DELIVERED'
-            ]);
-        }
+        $request->validate([
+            'filter.status' => 'required|in:ONGOING,DELIVERED',
+        ]);
 
         $user = $request->user();
+        $status = $request->input('filter.status');
+        $ongoingStatuses = ['PENDING', 'NOT YET DELIVERED', 'IN TRANSIT', 'ARRIVED', 'BERTHED', 'DISCHARGED'];
 
         // Allows conditional base query depending on role
         $baseQuery = $user->hasRole('Client') ? Shipment::where('client_id', $user->id) : Shipment::class;
-
         $shipmentsQuery = QueryBuilder::for($baseQuery)
-            ->allowedFilters(AllowedFilter::exact('status'))
             ->defaultSort('-created_at', '-id');
 
-        if ($search) {
-            if ($platform === 'mobile') {
-                // Search query for mobile
-                $shipmentsQuery->where('reference_number', 'LIKE', '%' . $search . '%');
-            } else {
-                // Search query for web
-                $searchResults = (new Search())
-                    ->registerModel(Shipment::class, [
-                        'reference_number',
-                        'status',
-                        'commodity',
-                    ])
-                    ->search($search)
-                    ->pluck('searchable.id'); // Get only shipment ids
+        if ($status === 'ONGOING') {
+            $shipmentsQuery->whereIn('status', $ongoingStatuses);
+        } else {
+            $shipmentsQuery->where('status', 'DELIVERED');
+        }
 
-                $shipmentsQuery->whereIn('id', $searchResults);
-            }
-        } 
+        if ($search) {
+            $shipmentsQuery->where(function ($query) use ($search) {
+                $query->where('reference_number', 'LIKE', '%' . $search . '%')
+                    ->orWhere('status', 'LIKE', '%' . $search . '%')
+                    ->orWhere('commodity', 'LIKE', '%' . $search . '%');
+            });
+        }
 
         // Normal pagination for web platform
         if ($platform === 'web') {
@@ -86,7 +76,7 @@ class ShipmentController extends Controller
         $message = $paginated->count() ? 'Shipments fetched successfully' : 'No Shipments available';
 
         return $this->success(
-            $message, 
+            $message,
             [
                 'shipments' => ShipmentResource::collection($paginated),
                 'pagination' => $pagination
