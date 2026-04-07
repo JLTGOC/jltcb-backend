@@ -18,7 +18,7 @@ class DetailsConfiguration extends Model
     public function templates() {
         return $this->belongsToMany(
             QuotationTemplate::class,
-            'template_detail_config',
+            'template_detail_configs',
             'details_config_id',
             'template_id'
         );

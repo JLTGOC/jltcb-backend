@@ -29,4 +29,8 @@ class QuotationTemplate extends Model
             'quotation_field_id'
         );
     }
+
+    public function issuedQuotations() {
+        return $this->hasMany(IssuedQuotation::class);
+    }
 }

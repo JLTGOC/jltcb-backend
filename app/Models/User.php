@@ -88,4 +88,8 @@ class User extends Authenticatable
     public function shipments() {
         return $this->hasMany(Shipment::class, 'client_id');
     }
+
+    public function issuedQuotations() {
+        return $this->hasMany(IssuedQuotation::class, 'issued_by');
+    }
 }

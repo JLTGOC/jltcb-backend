@@ -65,6 +65,10 @@ class Quotation extends Model implements Searchable
         return $this->hasOne(RegulatoryService::class);
     }
 
+    public function issuedQuotations() {
+        return $this->hasOne(IssuedQuotation::class);
+    }
+
     protected $casts = [
         'client_id' => 'integer',
         'as_id' => 'integer',
