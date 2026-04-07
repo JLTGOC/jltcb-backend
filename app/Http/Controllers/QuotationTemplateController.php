@@ -28,11 +28,26 @@ class QuotationTemplateController extends Controller
      * 
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $request->validate([
+            'type' => 'sometimes|in:EXPORT,IMPORT,BUSINESS SOLUTION'
+        ]);
+
+        $templateQuery = QuotationTemplate::query();
+
+        $templateType = $request->type;
+        if ($templateQuery) {
+            if (in_array($templateType, ['IMPORT', 'EXPORT'])) {
+                $templateQuery->where('service_type', 'LOGISTICS');
+            } elseif($templateType === 'BUSINESS SOLUTION') {
+                $templateQuery->where('service_type', 'REGULATORY');
+            }
+        }
+
         return $this->success(
             'Quotation templates fetched successfully', 
-            QuotationTemplateResource::collection(QuotationTemplate::all())
+            QuotationTemplateResource::collection($templateQuery->get())
         );
     }
 
