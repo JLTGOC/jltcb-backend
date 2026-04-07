@@ -39,6 +39,7 @@ class JobOrderController extends Controller
             $jobOrders = JobOrder::where('as_id', $user->id)->where('shipment_creation_status', 'PENDING')->get();
         } else if ($user->hasRole('Operations')) {
             $jobOrders = JobOrder::get();
+            $myJobOrders = JobOrder::where('operations_id', $user->id)->get();
         } else if ($user->hasRole('Finance')) {
             $jobOrders = JobOrder::get();
         } else {
@@ -65,7 +66,34 @@ class JobOrderController extends Controller
             ];
         });
 
-        return $this->success('Job Orders fetched successfully', $jobOrders, 200);
+        if ($myJobOrders) {
+            $myJobOrders = $myJobOrders->map(function ($j) {
+                if ($j->job_type === 'SHIPMENT') {
+                    $service = 'Logistics Services';
+                } elseif ($j->job_type === 'ACCREDITATION') {
+                    $service = 'Regulatory Services';
+                } else {
+                    $service = 'N/A';
+                }
+
+                return [
+                    'id' => $j->id,
+                    'reference_number' => $j->reference_number,
+                    'service' => $service,
+                    'client' => $j->client->full_name,
+                    'date_created' => strtoupper($j->created_at->format('F d, Y')),
+                    'quotation_id' => $j->quotation_id,
+                    'assigned_to' => $j->operations->username ?? 'Available'
+                ];
+            });
+        } else {
+            $myJobOrders = null;
+        }
+
+        return $this->success('Job Orders fetched successfully', [
+            'job_orders' => $jobOrders,
+            'my_job_orders' => $myJobOrders
+        ], 200);
     }
 
     /**
