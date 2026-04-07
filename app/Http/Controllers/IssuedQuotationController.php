@@ -32,6 +32,8 @@ class IssuedQuotationController extends Controller
      */
     public function store(StoreIssuedQuotationRequest $request, Quotation $quotation)
     {
+        $this->authorize('create', [$quotation]);
+
         $asId = Auth::user()->id;
 
         $issuedQuotation = DB::transaction(function() use ($quotation, $request, $asId) {
@@ -100,6 +102,8 @@ class IssuedQuotationController extends Controller
      */
     public function show(Quotation $quotation, IssuedQuotation $issuedQuotation)
     {
+        $this->authorize('view', [$quotation, $issuedQuotation]);
+
         $issuedQuotation->load([
             'detailValues', 'charges.items', 'authorizedSignatory', 'standardConfig', 'template.quotationFields', 'quotation.files'
         ]);
@@ -117,6 +121,8 @@ class IssuedQuotationController extends Controller
      */
     public function update(UpdateIssuedQuotationRequest $request, Quotation $quotation, IssuedQuotation $issuedQuotation)
     {
+        $this->authorize('update', [$quotation, $issuedQuotation]);
+    
         DB::transaction(function() use ($request, $quotation, $issuedQuotation) {
             $issuedQuotation->update([
                 'subject' => $request->subject,
@@ -187,6 +193,8 @@ class IssuedQuotationController extends Controller
      */
     public function destroy(Quotation $quotation, IssuedQuotation $issuedQuotation)
     {
+        $this->authorize('delete', [$quotation, $issuedQuotation]);
+
         $issuedQuotation->delete();
 
         return $this->success('Issued Quotation deleted successfully');

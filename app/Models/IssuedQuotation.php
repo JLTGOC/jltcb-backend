@@ -47,4 +47,8 @@ class IssuedQuotation extends Model
     public function authorizedSignatory() {
         return $this->hasOne(AuthorizedSignatories::class, 'issued_quotation_id');
     }
+
+    protected $casts = [
+        'issued_by' => 'integer',
+    ];
 }
