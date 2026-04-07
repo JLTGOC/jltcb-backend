@@ -5,15 +5,19 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreQuotationRequest;
 use App\Http\Requests\UpdateQuotationRequest;
+use App\Http\Resources\ClientInputResource;
 use App\Http\Resources\QuotationFileResource;
 use App\Http\Resources\QuotationResource;
 use App\Models\{
+    LogisticsService,
     Quotation,
     User,
     ServiceOption,
     QuotationFile,
     Shipment,
     Message,
+    QuotationTemplate,
+    RegulatoryService,
 };
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -787,5 +791,43 @@ class QuotationController extends Controller
         ]);
 
         return $this->success('Quotation accepted successfully', new QuotationResource($quotation), 200);
+    }
+
+    public function clientInputs(Quotation $quotation, Request $request) {
+        $request->validate([
+            'template_id' => [
+            'required',
+            'integer',
+            'exists:quotation_templates,id',
+            function ($attribute, $value, $fail) use ($quotation) {
+                if ($quotation->regulatoryService) {
+                    $type = 'REGULATORY';
+                } elseif ($quotation->logisticsService) {
+                    $type = 'LOGISTICS';
+                } else {
+                    return;
+                }
+
+                $template = QuotationTemplate::find($value);
+
+                if (!$template) {
+                    return; 
+                }
+
+                $quotationField = $template->quotationFields()->first();
+
+                if (!$quotationField || $quotationField->quotation_type !== $type) {
+                    $fail('The template id is not compatible with this quotation');
+                }
+            }
+            ],
+        ]);
+
+        $template = QuotationTemplate::find($request->template_id);
+
+        return $this->success(
+            'Template based client inputs fetched successfully',
+            new ClientInputResource($template, $quotation->id)
+        );
     }
 }
