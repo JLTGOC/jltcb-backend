@@ -32,7 +32,7 @@ class IssuedQuotationController extends Controller
      */
     public function store(StoreIssuedQuotationRequest $request, Quotation $quotation)
     {
-        $this->authorize('create', [$quotation]);
+        $this->authorize('create', [IssuedQuotation::class, $quotation]);
 
         $asId = Auth::user()->id;
 
