@@ -11,6 +11,7 @@ use App\Http\Controllers\BillingConfigController;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DetailsConfigController;
+use App\Http\Controllers\IssuedQuotationController;
 use App\Http\Controllers\MessageTemplateController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\QuotationFileController;
@@ -55,7 +56,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/quotations/{quotation}/accept', [QuotationController::class, 'acceptQuotation']);
     Route::apiResource('quotations', QuotationController::class)->except(['update']);
     Route::post('/quotations/{quotation}', [QuotationController::class, 'update']);
+    Route::get('/quotations/{quotation}/client-inputs', [QuotationController::class, 'clientInputs']);
 
+    Route::apiResource('quotations.issued-quotations', IssuedQuotationController::class)
+        ->except(['index', 'update'])
+        ->scoped()
+        ->parameters(['issued-quotations' => 'issuedQuotation']);
+    Route::post('/quotations/{quotation}/issued-quotations/{issuedQuotation}', [IssuedQuotationController::class, 'update']);
     
     //Temporary routes for quotation files
     Route::post('/quotations/{quotation}/upload', [QuotationController::class, 'upload']);
