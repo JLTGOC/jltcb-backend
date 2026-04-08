@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\{
     Message,
     Conversation,
-    Shipment
+    Shipment,
+    IssuedQuotation
 };
 
 class QuotationResource extends JsonResource
@@ -24,6 +25,7 @@ class QuotationResource extends JsonResource
         $isWeb = $platform === 'web';
         $logisticsService = $this->logisticsService;
         $regulatoryService = $this->regulatoryService;
+        $issuedQuotation = IssuedQuotation::where('quotation_id', $this->id)->value('id');
 
         // Prefer explicit regulatory relation when present; otherwise default to logistics shape.
         $isRegulatory = !is_null($regulatoryService);
@@ -56,6 +58,7 @@ class QuotationResource extends JsonResource
             'shipment_status' => $shipmentStatus,
             'created_at' => $this->created_at->format('m/d/Y'),
             'updated_at' => $this->updated_at->format('m/d/Y'),
+            'issued_quotation_id' => $issuedQuotation,
             'company' => [
                 'name' => $this->company_name,
                 'address' => $this->company_address,
