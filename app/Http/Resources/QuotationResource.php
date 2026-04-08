@@ -56,6 +56,7 @@ class QuotationResource extends JsonResource
             'shipment_status' => $shipmentStatus,
             'created_at' => $this->created_at->format('m/d/Y'),
             'updated_at' => $this->updated_at->format('m/d/Y'),
+            'issued_quotation_id' => $this->issuedQuotation ? $this->issuedQuotation->id : null,
             'company' => [
                 'name' => $this->company_name,
                 'address' => $this->company_address,
