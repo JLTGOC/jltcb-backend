@@ -17,6 +17,8 @@ return new class extends Migration
         Schema::create('regulatory_services', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Quotation::class)->constrained()->onDelete('cascade');
+            $table->string('full_name');
+            $table->string('contact_person_contact_number');
             $table->string('business_type');
             $table->string('type_of_regulatory_assistance');
             $table->string('application_type');

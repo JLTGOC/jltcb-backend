@@ -8,6 +8,8 @@ class RegulatoryService extends Model
 {
     protected $fillable = [
         'quotation_id',
+        'full_name',
+        'contact_person_contact_number',
         'business_type',
         'type_of_regulatory_assistance',
         'application_type',

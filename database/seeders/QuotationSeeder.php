@@ -73,6 +73,8 @@ class QuotationSeeder extends Seeder
             } else {
                 RegulatoryService::create([
                     'quotation_id' => $quotation->id,
+                    'full_name' => $quotation->contact_person,
+                    'contact_person_contact_number' => $quotation->contact_number,
                     'business_type' => fake()->randomElement([
                         'COOPERATIVE',
                         'CORPORATION',

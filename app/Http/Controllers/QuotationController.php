@@ -18,6 +18,7 @@ use App\Models\{
     Message,
     QuotationTemplate,
     RegulatoryService,
+    IssuedQuotation
 };
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -312,10 +313,13 @@ class QuotationController extends Controller
                         }
                     }
 
+                    $issuedQuotation = IssuedQuotation::where('quotation_id', $result->id)->value('id');
+
                     return [
                         'id' => $result->id,
                         'client_name' => $result->client->full_name,
                         'reference_number' => $result->reference_number,
+                        'issued_quotation_id' => $issuedQuotation   ,
                         'commodity' => $result->logisticsService?->commodity ?? 'BUSINESS SOLUTION',
                         'service_type' => $result->logisticsService?->service_type ?? 'BUSINESS SOLUTION',
                         'service' => $result->logisticsService ? 'LOGISTICS' : ($result->regulatoryService ? 'REGULATORY' : null),
@@ -418,6 +422,8 @@ class QuotationController extends Controller
                 $typeOfRegulatoryAssistance = implode(',', $request->type_of_regulatory_assistance);
 
                 $regulatoryService = $quotation->regulatoryService()->create([
+                    'full_name' => $request->input('full_name'),
+                    'contact_person_contact_number' => $request->input('company.cp_contact_number'),
                     'business_type' => $request->input('company.business_type'),
                     'type_of_regulatory_assistance' => $typeOfRegulatoryAssistance,
                     'application_type' => $request->service_level,
