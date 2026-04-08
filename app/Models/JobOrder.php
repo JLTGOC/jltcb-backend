@@ -16,24 +16,7 @@ class JobOrder extends Model
         'quotation_id',
         'subject',
         'email_body',
-        'client_type',
-        'accredited',
-        'client_remarks',
-        'service_level',
-        'bl_no',
-        'eta',
-        'etd',
-        'hs_code',
-        'rod',
-        'permits',
-        'shipment_remarks',
-        'target_delivery_date',
-        'target_completion_date',
-        'commitment_remarks',
-        'terms_of_payment',
-        'billing_date',
-        'shall_be_billed',
-        'shipment_creation_status'
+        'shipment_creation_status',
     ];
 
     protected $casts = [
@@ -67,5 +50,20 @@ class JobOrder extends Model
     public function quotation()
     {
         return $this->belongsTo(Quotation::class, 'quotation_id');
+    }
+
+    public function jobOrderBilling()
+    {
+        return $this->hasOne(JobOrderBilling::class, 'job_order_id');
+    }
+
+    public function jobOrderShipment()
+    {
+        return $this->hasOne(JobOrderShipment::class, 'job_order_id');
+    }
+
+    public function jobOrderClient()
+    {
+        return $this->hasOne(JobOrderClient::class, 'job_order_id');
     }
 }

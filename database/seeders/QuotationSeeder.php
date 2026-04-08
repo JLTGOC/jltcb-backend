@@ -10,6 +10,9 @@ use App\Models\{
     User,
     Shipment,
     JobOrder,
+    JobOrderBilling,
+    JobOrderClient,
+    JobOrderShipment,
     LogisticsService,
     RegulatoryService,
 };
@@ -126,9 +129,18 @@ class QuotationSeeder extends Seeder
                     'quotation_id' => $quotation->id,
                     'subject' => fake()->sentence(),
                     'email_body' => fake()->paragraph(),
+                    'shipment_creation_status' => fake()->randomElement(['PENDING', 'CREATED']),
+                ]);
+
+                JobOrderClient::create([
+                    'job_order_id' => $jobOrder->id,
                     'client_type' => fake()->randomElement(['NEW', 'RENEWAL']),
                     'accredited' => fake()->randomElement(['REGULAR', 'EXPEDITED']),
                     'client_remarks' => fake()->sentence(),
+                ]);
+
+                JobOrderShipment::create([
+                    'job_order_id' => $jobOrder->id,
                     'service_level' => fake()->randomElement([
                         'CARGO CONSOLIDATION (CC)',
                         'DIRECT EXPORT (DE)',
@@ -145,10 +157,13 @@ class QuotationSeeder extends Seeder
                     'target_delivery_date' => Carbon::now()->addDays(fake()->numberBetween(1, 30)),
                     'target_completion_date' => Carbon::now()->addDays(fake()->numberBetween(30, 60)),
                     'commitment_remarks' => fake()->sentence(),
+                ]);
+
+                JobOrderBilling::create([
+                    'job_order_id' => $jobOrder->id,
                     'terms_of_payment' => fake()->sentence(),
                     'billing_date' => Carbon::now()->addDays(fake()->numberBetween(60, 90)),
                     'shall_be_billed' => 'AS PER QUOTE',
-                    'shipment_creation_status' => fake()->randomElement(['PENDING', 'CREATED']),
                 ]);
 
                 if ($jobOrder->shipment_creation_status === 'CREATED') {
@@ -187,6 +202,7 @@ class QuotationSeeder extends Seeder
                 } else {
                     $jobOrder->update([
                         'operations_id' => null,
+                        'finance_id' => null,
                     ]);
                 }
             }

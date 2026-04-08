@@ -20,7 +20,6 @@ class Shipment extends Model implements Searchable
         'company_name',
         'commodity',
         'cargo_type',
-        // 'cargo_volume',
         'container_size',
         'origin',
         'destination',

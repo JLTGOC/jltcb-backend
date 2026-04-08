@@ -10,6 +10,9 @@ use App\Models\{
     User,
     JobOrder,
     Quotation,
+    JobOrderClient,
+    JobOrderShipment,
+    JobOrderBilling,
 };
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\{
@@ -128,32 +131,27 @@ class JobOrderController extends Controller
 
             $referenceNumber = "{$prefix}-{$dateSection}-{$idSection}";
 
-            $previousClientJobOrder = JobOrder::where('client_id', $request->client_id)->latest()->first() ?? null;
-            if ($previousClientJobOrder) {
-                $operationsId = $previousClientJobOrder->operations_id;
-            } else {
-                $ops = User::role('Operations')->get();
-                foreach ($ops as $op) {
-                    $ops->count = JobOrder::where('operations_id', $op->id)->count();
-                }
-                $leastLoadedOps = $ops->sortBy('count')->first();
-                $operationsId = $leastLoadedOps->id;
-            }
-
             try {
                 $jobOrder = JobOrder::create([
                     'reference_number' => $referenceNumber,
                     'job_type' => $request->job_type,
                     'client_id' => $quotation->client_id,
                     'as_id' => $quotation->as_id,
-                    'operations_id' => $operationsId,
                     'quotation_id' => $quotation->id,
                     'subject' => $request->subject['subject'],
                     'email_body' => $request->subject['email_body'],
+                ]);
+
+                JobOrderClient::create([
+                    'job_order_id' => $jobOrder->id,
                     'client_type' => $request->client['client_type'],
                     'accredited' => $request->client['accredited'],
                     'tone_and_attitude' => $request->client['tone_and_attitude'] ?? null,
                     'client_remarks' => $request->client['remarks'] ?? null,
+                ]);
+
+                JobOrderShipment::create([
+                    'job_order_id' => $jobOrder->id,
                     'service_level' => $request->service['service_level'],
                     'bl_no' => $request->service['bl_no'],
                     'eta' => $request->service['eta'],
@@ -162,9 +160,13 @@ class JobOrderController extends Controller
                     'rod' => $request->shipment['rod'] ?? null,
                     'permits' => $request->shipment['permits'] ?? null,
                     'shipment_remarks' => $request->shipment['special_remarks'] ?? null,
-                    'target_delivery_date' => $request->target['target_delivery_date'] ?? null,
-                    'target_completion_date' => $request->target['target_completion_date'] ?? null,
+                    'target_delivery_date' => $request->target['delivery_date'] ?? null,
+                    'target_completion_date' => $request->target['completion_date'] ?? null,
                     'commitment_remarks' => $request->target['special_remarks'] ?? null,
+                ]);
+
+                JobOrderBilling::create([
+                    'job_order_id' => $jobOrder->id,
                     'terms_of_payment' => $request->billing['terms_of_payment'] ?? null,
                     'billing_date' => $request->billing['billing_date'] ?? null,
                     'shall_be_billed' => $request->billing['shall_be_billed'] ?? null,
