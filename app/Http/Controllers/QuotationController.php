@@ -604,6 +604,18 @@ class QuotationController extends Controller
      * Fetch enumeration options for quotations
      */
     public function enumQuotationOptions() {
+        $user = auth()->user();
+        $autofillDetails = [
+            'client' => $user->full_name,
+            'company' => [
+                'name' => $user->company_name,
+                'address' => $user->company_address,
+                'position' => $user->position,
+                'contact_number' => $user->contact_number,
+                'email' => $user->email,
+                'business_type' => $user->business_type,
+            ],
+        ];
         $businessTypes = ['COOPERATIVE', 'CORPORATION', 'E-COMMERCE', 'INDIVIDUAL IMPORTER', 'GOVERNMENT AGENCY', 'IMPORT-EXPORT AGENT', 'MULTINATIONAL COMPANY', 'NON-PROFIT ORGANIZATION', 'PARTNERSHIP', 'PEZA-REGISTERED ENTERPRISE', 'SOLE PROPRIETORSHIP'];
         $regulatoryAssistanceTypes = [
             'BEAUREAU OF CUSTOMS (BOC)',
@@ -630,6 +642,7 @@ class QuotationController extends Controller
         $containerSize = ['1x10', '1x20', '1x40'];
 
         $quotationOptions = [
+            'autofill_details' => $autofillDetails,
             'business_types' => $businessTypes,
             'regulatory_assistance_types' => $regulatoryAssistanceTypes,
             'service_types' => $serviceTypes,
