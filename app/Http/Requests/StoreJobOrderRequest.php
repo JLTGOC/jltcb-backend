@@ -29,7 +29,6 @@ class StoreJobOrderRequest extends FormRequest
             'subject.email_body' => 'required_if:job_type,SHIPMENT|string',
             'client.client_type' => 'required_if:job_type,SHIPMENT|string|in:NEW, RENEWAL',
             'client.accredited' => 'required_if:job_type,SHIPMENT|string|in:REGULAR, EXPEDITED',
-            'client.tone_and_attitude' => 'nullable|string',
             'client.remarks' => 'nullable|string',
             'service.service_level' => 'required_if:job_type,SHIPMENT|string',
             'service.bl_no' => 'required_if:job_type,SHIPMENT|string',
