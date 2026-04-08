@@ -153,6 +153,7 @@ class QuotationController extends Controller
                             'person_in_charge' => $quotation->accountSpecialist->full_name,
                             'commodity' => $quotation->logisticsService?->commodity ?? 'BUSINESS SOLUTION',
                             'service_type' => $quotation->logisticsService?->service_type ?? 'BUSINESS SOLUTION',
+                            'service' => $quotation->logisticsService ? 'LOGISTICS' : ($quotation->regulatoryService ? 'REGULATORY' : null),
                             'conversation_id' => $conversationId ?? null,
                             'prepared_by' => $quotation->created_by ? User::where('id', $quotation->created_by)->value('full_name') : null,
                         ];
@@ -220,6 +221,7 @@ class QuotationController extends Controller
                                     'person_in_charge' => $quotation->accountSpecialist->full_name,
                                     'commodity' => $quotation->logisticsService?->commodity ?? 'BUSINESS SOLUTION',
                                     'service_type' => $quotation->logisticsService?->service_type ?? 'BUSINESS SOLUTION',
+                                    'service' => $quotation->logisticsService ? 'LOGISTICS' : ($quotation->regulatoryService ? 'REGULATORY' : null),
                                     'conversation_id' => $conversationId ?? null,
                                     'prepared_by' => $quotation->created_by ? User::where('id', $quotation->created_by)->value('full_name') : null,
                                 ];
@@ -258,6 +260,7 @@ class QuotationController extends Controller
                                 'person_in_charge' => $quotation->accountSpecialist->full_name,
                                 'commodity' => $quotation->logisticsService?->commodity ?? 'BUSINESS SOLUTION',
                                 'service_type' => $quotation->logisticsService?->service_type ?? 'BUSINESS SOLUTION',
+                                'service' => $quotation->logisticsService ? 'LOGISTICS' : ($quotation->regulatoryService ? 'REGULATORY' : null),
                                 'conversation_id' => $conversationId ?? null,
                                 'prepared_by' => $quotation->created_by ? User::where('id', $quotation->created_by)->value('full_name') : null,
 
@@ -315,6 +318,7 @@ class QuotationController extends Controller
                         'reference_number' => $result->reference_number,
                         'commodity' => $result->logisticsService?->commodity ?? 'BUSINESS SOLUTION',
                         'service_type' => $result->logisticsService?->service_type ?? 'BUSINESS SOLUTION',
+                        'service' => $result->logisticsService ? 'LOGISTICS' : ($result->regulatoryService ? 'REGULATORY' : null),
                         'date' => $result->created_at->format($dateFormat),
                         'status' => $status ?? $result->status,
                         'conversation_id' => $conversationId ?? null,
