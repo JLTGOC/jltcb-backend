@@ -22,16 +22,15 @@ class StoreQuotationRequest extends FormRequest
      */
     public function rules(): array
     {
-        // if ($this->input('services') === 'LOGISTICS') {
+        if ($this->input('services') === 'LOGISTICS') {
             return [
-                // 'services' => 'required|in:LOGISTICS,REGULATORY',
+                'services' => 'required|in:LOGISTICS,REGULATORY',
                 'company.name' => 'required|string',
                 'company.address' => 'required|string',
                 'company.contact_person' => 'required|string',
                 'company.contact_number' => 'required|string|min:11|max:11|regex:/^09\d{9}$/',
                 'company.email' => 'required|email',
-                // 'service.type' => ['required', 'string', Rule::in(['IMPORT', 'EXPORT'])],
-                'service.type' => ['required', 'string', Rule::in(['IMPORT', 'EXPORT', 'BUSINESS SOLUTION'])],
+                'service.type' => ['required', 'string', Rule::in(['IMPORT', 'EXPORT'])],
                 'service.transport_mode' => ['required', 'string', Rule::in(['SEA', 'AIR'])],
                 'service.options' => 'required|array',
                 'commodity.commodity' => 'required|string',
@@ -47,24 +46,24 @@ class StoreQuotationRequest extends FormRequest
                 'documents.*' => ['required', 'file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
                 'remarks' => ['nullable', 'string']
             ];
-        // } elseif ($this->input('services') === 'REGULATORY') {
-        //     return [
-        //         'services' => 'required|in:LOGISTICS,REGULATORY',
-        //         'company.contact_person' => 'required|string',
-        //         'company.name' => 'required|string',
-        //         'company.address' => 'required|string',
-        //         'company.position' => 'required|string',
-        //         'company.contact_number' => 'required|string|min:11|max:11|regex:/^09\d{9}$/',
-        //         'company.email' => 'required|email',
-        //         'company.business_type' => 'required',
-        //         'type_of_regulatory_assistance' => 'required|array',
-        //         'type_of_regulatory_assistance.*' => 'required|string',
-        //         'service_level' => 'required|string|in:NEW,RENEWAL',
-        //         'message' => 'nullable|string',
-        //         'documents' => ['required', 'array'],
-        //         'documents.*' => ['required', 'file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
-        //         'remarks' => ['nullable', 'string']
-        //     ];
-        // }
+        } elseif ($this->input('services') === 'REGULATORY') {
+            return [
+                'services' => 'required|in:LOGISTICS,REGULATORY',
+                'company.contact_person' => 'required|string',
+                'company.name' => 'required|string',
+                'company.address' => 'required|string',
+                'company.position' => 'required|string',
+                'company.contact_number' => 'required|string|min:11|max:11|regex:/^09\d{9}$/',
+                'company.email' => 'required|email',
+                'company.business_type' => 'required',
+                'type_of_regulatory_assistance' => 'required|array',
+                'type_of_regulatory_assistance.*' => 'required|string',
+                'service_level' => 'required|string|in:NEW,RENEWAL',
+                'message' => 'nullable|string',
+                'documents' => ['required', 'array'],
+                'documents.*' => ['required', 'file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
+                'remarks' => ['nullable', 'string']
+            ];
+        }
     }
 }

@@ -389,7 +389,7 @@ class QuotationController extends Controller
                 'position' => $request->input('company.position'),
             ]);
 
-            // if ($request->input('services') === 'LOGISTICS') {
+            if ($request->input('services') === 'LOGISTICS') {
                 $stringifiedServiceOptions = implode(',', $request->service['options']);
                 $specialists = User::role('Account Specialist')->pluck('id');
 
@@ -410,17 +410,16 @@ class QuotationController extends Controller
                         'container_size' => null
                     ]);
                 }
+            } elseif ($request->input('services') === 'REGULATORY') {
+                $typeOfRegulatoryAssistance = implode(',', $request->type_of_regulatory_assistance);
 
-            // } elseif ($request->input('services') === 'REGULATORY') {
-            //     $typeOfRegulatoryAssistance = implode(',', $request->type_of_regulatory_assistance);
-
-            //     $regulatoryService = $quotation->regulatoryService()->create([
-            //         'business_type' => $request->input('company.business_type'),
-            //         'type_of_regulatory_assistance' => $typeOfRegulatoryAssistance,
-            //         'application_type' => $request->service_level,
-            //         'message' => $request->message ?? null,
-            //     ]);
-            // }
+                $regulatoryService = $quotation->regulatoryService()->create([
+                    'business_type' => $request->input('company.business_type'),
+                    'type_of_regulatory_assistance' => $typeOfRegulatoryAssistance,
+                    'application_type' => $request->service_level,
+                    'message' => $request->message ?? null,
+                ]);
+            }
 
             // Upload client documents
             $newFiles = $request->file('documents');
@@ -484,8 +483,8 @@ class QuotationController extends Controller
                     return $this->error('Shipment already ongoing', 422);
                 }
 
-                // $serviceType = $request->input('services');
-                $serviceType = 'LOGISTICS';
+                $serviceType = $request->input('services');
+
                 if (!$serviceType) {
                     if ($quotation->logisticsService) {
                         $serviceType = 'LOGISTICS';

@@ -37,8 +37,7 @@ class UpdateQuotationRequest extends FormRequest
             ],
         ];
 
-        // $serviceType = $this->input('services');
-        $serviceType = 'LOGISTICS';
+        $serviceType = $this->input('services');
 
         if (!$serviceType && $quotation) {
             if ($quotation->logisticsService) {
