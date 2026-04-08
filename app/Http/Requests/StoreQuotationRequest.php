@@ -49,11 +49,11 @@ class StoreQuotationRequest extends FormRequest
         } elseif ($this->input('services') === 'REGULATORY') {
             return [
                 'services' => 'required|in:LOGISTICS,REGULATORY',
-                'company.contact_person' => 'required|string',
+                'company.contact_person' => 'sometimes|string',
                 'company.name' => 'required|string',
                 'company.address' => 'required|string',
                 'company.position' => 'required|string',
-                'company.contact_number' => 'required|string|min:11|max:11|regex:/^09\d{9}$/',
+                'company.contact_number' => 'sometimes|string|min:11|max:11|regex:/^09\d{9}$/',
                 'company.email' => 'required|email',
                 'company.business_type' => 'required',
                 'type_of_regulatory_assistance' => 'required|array',
