@@ -33,6 +33,8 @@ class JobOrderController extends Controller
     {
         $user = auth()->user();
 
+        $myJobOrders = null;
+
         if ($user->hasRole(['Lead Account Specialist'])) {
             $jobOrders = JobOrder::where('shipment_creation_status', 'PENDING')->get();
         } elseif ($user->hasRole('Account Specialist')) {
@@ -42,6 +44,7 @@ class JobOrderController extends Controller
             $myJobOrders = JobOrder::where('operations_id', $user->id)->get();
         } else if ($user->hasRole('Finance')) {
             $jobOrders = JobOrder::get();
+            $myJobOrders = JobOrder::where('finance_id', $user->id)->get();
         } else {
             $jobOrders = JobOrder::where('client_id', $user->id)->where('shipment_creation_status', 'PENDING')->get();
         }
@@ -62,7 +65,8 @@ class JobOrderController extends Controller
                 'client' => $j->client->full_name,
                 'date_created' => strtoupper($j->created_at->format('F d, Y')),
                 'quotation_id' => $j->quotation_id,
-                'assigned_to' => $j->operations->username ?? 'Available'
+                'operations' => $j->operations->username ?? 'Available',
+                'finance' => $j->finance->username ?? 'Available'
             ];
         });
 
@@ -83,11 +87,10 @@ class JobOrderController extends Controller
                     'client' => $j->client->full_name,
                     'date_created' => strtoupper($j->created_at->format('F d, Y')),
                     'quotation_id' => $j->quotation_id,
-                    'assigned_to' => $j->operations->username ?? 'Available'
+                    'operations' => $j->operations->username ?? 'Available',
+                    'finance' => $j->finance->username ?? 'Available'
                 ];
             });
-        } else {
-            $myJobOrders = null;
         }
 
         return $this->success('Job Orders fetched successfully', [
@@ -275,5 +278,31 @@ class JobOrderController extends Controller
         }
 
         return $this->success('Quotation fetched successfully', new QuotationResource($quotation), 200);
+    }
+
+    /**
+     * Accept Job Order
+     * 
+     * Accept a Job Order and assign it to the authenticated Operations or finance user
+     */
+    public function acceptJobOrder(JobOrder $jobOrder) {
+        $this->authorize('acceptJobOrder', $jobOrder);
+
+        if (!$jobOrder) {
+            return $this->error('Job Order not found', 404);
+        }
+
+        $user = auth()->user();
+        if ($user->hasRole('Operations')) {
+            $jobOrder->update([
+                'operations_id' => $user->id
+            ]);
+        } else if ($user->hasRole('Finance')) {
+            $jobOrder->update([
+                'finance_id' => $user->id
+            ]);
+        }
+
+        return $this->success('Job Order accepted successfully', new JobOrderResource($jobOrder), 200);
     }
 }
