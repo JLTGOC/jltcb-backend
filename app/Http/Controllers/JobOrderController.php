@@ -114,7 +114,7 @@ class JobOrderController extends Controller
             if (!$quotation) {
                 return $this->error('Quotation not found', 404);
             }
-            if ($quotation->as_id !== auth()->id()) {
+            if ($quotation->as_id !== auth()->id() && !auth()->user()->hasRole('Lead Account Specialist')) {
                 return $this->error('You are not authorized to create a Job Order for this quotation', 403);
             }
             if ($quotation->regulatoryService) {
