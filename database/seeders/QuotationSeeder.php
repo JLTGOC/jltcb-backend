@@ -154,7 +154,7 @@ class QuotationSeeder extends Seeder
                             'INTERNATIONAL FREIGHT FORWARDING (IFF), CARGO CONSOLIDATION (CC)',
                             'INTERNATIONAL FREIGHT FORWARDING (IFF), CARGO CONSOLIDATION (CC), DIRECT EXPORT (DE)',
                         ]),
-                        'bl_no' => fake()->bothify('BL-#####'),
+                        'bl_no' => fake()->bothify('AMP0#####'),
                         'eta' => Carbon::now()->addDays(fake()->numberBetween(1, 30)),
                         'etd' => Carbon::now()->addDays(fake()->numberBetween(1, 30)),
                         'hs_code' => fake()->numerify('HS-#####'),
