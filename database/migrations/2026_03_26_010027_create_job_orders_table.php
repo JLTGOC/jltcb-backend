@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('job_orders', function (Blueprint $table) {
             $table->id();
             $table->string('reference_number')->unique();
-            $table->string('job_type');
+            $table->enum('job_type', ['LOGISTICS', 'REGULATORY'])->default('LOGISTICS');
             $table->foreignId('client_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('as_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('operations_id')->nullable()->constrained('users')->cascadeOnDelete();

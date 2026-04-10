@@ -116,14 +116,16 @@ class QuotationSeeder extends Seeder
                 }
             }
 
-            if ($quotation->status === 'ACCEPTED' && $quotation->logisticsService) {
+            if ($quotation->status === 'ACCEPTED') {
+                $jobType = $quotation->logisticsService ? 'LOGISTICS' : 'REGULATORY';
+                $prefix = $jobType === 'LOGISTICS' ? 'SJO' : 'SPL';
+                
                 $idSection = str_pad(((JobOrder::latest('id')->value('id') ?? 0) + 1), 3, '0', STR_PAD_LEFT);
-                $prefix = 'SJO';
                 $dateSection = now()->format('m-Y');
 
                 $jobOrder = JobOrder::create([
                     'reference_number' => "{$prefix}-{$dateSection}-{$idSection}",
-                    'job_type' => 'SHIPMENT',
+                    'job_type' => $jobType,
                     'client_id' => $quotation->client_id,
                     'as_id' => $quotation->as_id,
                     'operations_id' => User::role('Operations')->inRandomOrder()->first()->id,
@@ -141,32 +143,34 @@ class QuotationSeeder extends Seeder
                     'client_remarks' => fake()->sentence(),
                 ]);
 
-                JobOrderShipment::create([
-                    'job_order_id' => $jobOrder->id,
-                    'service_level' => fake()->randomElement([
-                        'CARGO CONSOLIDATION (CC)',
-                        'DIRECT EXPORT (DE)',
-                        'INTERNATIONAL FREIGHT FORWARDING (IFF)',
-                        'CARGO CONSOLIDATION (CC), DIRECT EXPORT (DE)',
-                        'INTERNATIONAL FREIGHT FORWARDING (IFF), CARGO CONSOLIDATION (CC)',
-                        'INTERNATIONAL FREIGHT FORWARDING (IFF), CARGO CONSOLIDATION (CC), DIRECT EXPORT (DE)',
-                    ]),
-                    'bl_no' => fake()->bothify('BL-#####'),
-                    'eta' => Carbon::now()->addDays(fake()->numberBetween(1, 30)),
-                    'etd' => Carbon::now()->addDays(fake()->numberBetween(1, 30)),
-                    'hs_code' => fake()->numerify('HS-#####'),
-                    'shipment_remarks' => fake()->sentence(),
-                    'target_delivery_date' => Carbon::now()->addDays(fake()->numberBetween(1, 30)),
-                    'target_completion_date' => Carbon::now()->addDays(fake()->numberBetween(30, 60)),
-                    'commitment_remarks' => fake()->sentence(),
-                ]);
+                if ($quotation->logisticsService) {
+                    JobOrderShipment::create([
+                        'job_order_id' => $jobOrder->id,
+                        'service_level' => fake()->randomElement([
+                            'CARGO CONSOLIDATION (CC)',
+                            'DIRECT EXPORT (DE)',
+                            'INTERNATIONAL FREIGHT FORWARDING (IFF)',
+                            'CARGO CONSOLIDATION (CC), DIRECT EXPORT (DE)',
+                            'INTERNATIONAL FREIGHT FORWARDING (IFF), CARGO CONSOLIDATION (CC)',
+                            'INTERNATIONAL FREIGHT FORWARDING (IFF), CARGO CONSOLIDATION (CC), DIRECT EXPORT (DE)',
+                        ]),
+                        'bl_no' => fake()->bothify('BL-#####'),
+                        'eta' => Carbon::now()->addDays(fake()->numberBetween(1, 30)),
+                        'etd' => Carbon::now()->addDays(fake()->numberBetween(1, 30)),
+                        'hs_code' => fake()->numerify('HS-#####'),
+                        'shipment_remarks' => fake()->sentence(),
+                        'target_delivery_date' => Carbon::now()->addDays(fake()->numberBetween(1, 30)),
+                        'target_completion_date' => Carbon::now()->addDays(fake()->numberBetween(30, 60)),
+                        'commitment_remarks' => fake()->sentence(),
+                    ]);
 
-                JobOrderBilling::create([
-                    'job_order_id' => $jobOrder->id,
-                    'terms_of_payment' => fake()->sentence(),
-                    'billing_date' => Carbon::now()->addDays(fake()->numberBetween(60, 90)),
-                    'shall_be_billed' => 'AS PER QUOTE',
-                ]);
+                    JobOrderBilling::create([
+                        'job_order_id' => $jobOrder->id,
+                        'terms_of_payment' => fake()->sentence(),
+                        'billing_date' => Carbon::now()->addDays(fake()->numberBetween(60, 90)),
+                        'shall_be_billed' => 'AS PER QUOTE',
+                    ]);
+                }
 
                 if ($jobOrder->shipment_creation_status === 'CREATED') {
                     $logisticsService = $quotation->logisticsService;
