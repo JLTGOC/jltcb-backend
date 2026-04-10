@@ -79,8 +79,7 @@ class IssuedQuotationController extends Controller
                 'file_type' => $quotationFile->getClientOriginalExtension()
             ]);
 
-            $quotation->update(['status' => 'RESPONDED']);
-
+            $quotation->update(['status' => 'RESPONDED', 'created_by' => $asId]);
             return $issuedQuotation;
         });
 
