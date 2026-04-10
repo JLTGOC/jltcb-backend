@@ -41,28 +41,28 @@ class JobOrderResource extends JsonResource
                 'accredited' => $this->jobOrderClient->accredited,
                 'remarks' => $this->jobOrderClient->client_remarks,
             ],
-            'service' => [
+            'service' => $this->jobOrderShipment ? [
                 'service_level' => $this->jobOrderShipment->service_level,
                 'bl_no' => $this->jobOrderShipment->bl_no,
                 'eta' => $this->jobOrderShipment->eta,
                 'etd' => $this->jobOrderShipment->etd,
-            ],
-            'shipment' => [
+            ] : null,
+            'shipment' => $this->jobOrderShipment ? [
                 'hs_code' => $this->jobOrderShipment->hs_code ?? null,
                 'rod' => $this->jobOrderShipment->rod ?? null,
                 'permits' => $this->jobOrderShipment->permits ?? null,
                 'special_remarks' => $this->jobOrderShipment->shipment_remarks ?? null,
-            ],
-            'target' => [
+            ] : null,
+            'target' => $this->jobOrderShipment ? [
                 'target_delivery_date' => $this->jobOrderShipment->target_delivery_date ?? null,
                 'target_completion_date' => $this->jobOrderShipment->target_completion_date ?? null,
                 'special_remarks' => $this->jobOrderShipment->commitment_remarks ?? null,
-            ],
-            'billing_details' => [
+            ] : null,
+            'billing_details' => $this->jobOrderBilling ? [
                 'terms_of_payment' => $this->jobOrderBilling->terms_of_payment ?? null,
                 'billing_date' => $this->jobOrderBilling->billing_date ?? null,
                 'shall_be_billed' => $this->jobOrderBilling->shall_be_billed ?? null,
-            ],
+            ] : null,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
             'quotation_file' => $quotationProposal ? [

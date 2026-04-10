@@ -109,26 +109,27 @@ class JobOrderController extends Controller
      */
     public function store(StoreJobOrderRequest $request)
     {
-        if ($request->job_type === 'SHIPMENT') {
-            $quotation = Quotation::where('reference_number', $request->quotation_reference_number)->first();
-            if (!$quotation) {
-                return $this->error('Quotation not found', 404);
-            }
-            if ($quotation->as_id !== auth()->id() && !auth()->user()->hasRole('Lead Account Specialist')) {
-                return $this->error('You are not authorized to create a Job Order for this quotation', 403);
-            }
+        $quotation = Quotation::where('reference_number', $request->quotation_reference_number)->first();
+
+        if (!$quotation) {
+            return $this->error('Quotation not found', 404);
+        }
+        if ($quotation->as_id !== auth()->id() && !auth()->user()->hasRole('Lead Account Specialist')) {
+            return $this->error('You are not authorized to create a Job Order for this quotation', 403);
+        }
+        if (JobOrder::where('quotation_id', $quotation->id)->exists()) {
+            return $this->error('A Job Order has already been created for this quotation', 400);
+        }
+        
+        $idSection = str_pad(((JobOrder::latest('id')->value('id') ?? 0) + 1), 3, '0', STR_PAD_LEFT);
+        $dateSection = now()->format('m-Y');
+
+        if ($request->job_type === 'LOGISTICS') {
             if ($quotation->regulatoryService) {
-                return $this->error('Job Orders can only be created for logistics quotations', 422);
+                return $this->error('This job type can only be created for logistics quotations', 422);
             }
 
-            if (JobOrder::where('quotation_id', $quotation->id)->exists()) {
-                return $this->error('A Job Order has already been created for this quotation', 400);
-            }
-
-            $idSection = str_pad(((JobOrder::latest('id')->value('id') ?? 0) + 1), 3, '0', STR_PAD_LEFT);
             $prefix = 'SJO';
-            $dateSection = now()->format('m-Y');
-
             $referenceNumber = "{$prefix}-{$dateSection}-{$idSection}";
 
             try {
@@ -146,7 +147,6 @@ class JobOrderController extends Controller
                     'job_order_id' => $jobOrder->id,
                     'client_type' => $request->client['client_type'],
                     'accredited' => $request->client['accredited'],
-                    'tone_and_attitude' => $request->client['tone_and_attitude'] ?? null,
                     'client_remarks' => $request->client['remarks'] ?? null,
                 ]);
 
@@ -178,6 +178,41 @@ class JobOrderController extends Controller
                 DB::rollBack();
                 return $this->error('Something went wrong' . $e->getMessage(), 500);
             }
+        } elseif ($request->job_type === 'REGULATORY') {
+            if ($quotation->logisticsService) {
+                return $this->error('This job type can only be created for regulatory quotations', 422);
+            }
+
+            $prefix = 'SPL';
+            $referenceNumber = "{$prefix}-{$dateSection}-{$idSection}";
+
+            try {
+                $jobOrder = JobOrder::create([
+                    'reference_number' => $referenceNumber,
+                    'job_type' => $request->job_type,
+                    'client_id' => $quotation->client_id,
+                    'as_id' => $quotation->as_id,
+                    'quotation_id' => $quotation->id,
+                    'subject' => $request->subject['subject'],
+                    'email_body' => $request->subject['email_body'],
+                ]);
+
+                JobOrderClient::create([
+                    'job_order_id' => $jobOrder->id,
+                    'client_type' => $request->client['client_type'],
+                    'accredited' => $request->client['accredited'],
+                    'client_remarks' => $request->client['remarks'] ?? null,
+                ]);
+
+                DB::commit();
+                return $this->success('Job Order created successfully', new JobOrderResource($jobOrder), 200);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return $this->error('Something went wrong', $e->getMessage(), 500);
+            }
+            
+        } else {
+            return $this->error('Invalid job type', 422);
         }
     }
 
