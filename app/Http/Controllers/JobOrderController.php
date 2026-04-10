@@ -19,6 +19,7 @@ use App\Http\Resources\{
     JobOrderResource,
     QuotationResource,
 };
+use Spatie\Searchable\Search;
 
 class JobOrderController extends Controller
 {
@@ -32,8 +33,12 @@ class JobOrderController extends Controller
      * 
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $request->validate([
+            'search' => 'sometimes|string'
+        ]);
+
         $user = auth()->user();
 
         $myJobOrders = null;
@@ -52,10 +57,23 @@ class JobOrderController extends Controller
             $jobOrders = JobOrder::where('client_id', $user->id)->where('shipment_creation_status', 'PENDING')->get();
         }
 
+        if ($request->has('search')) {
+            $search = (new Search())
+                ->registerModel(JobOrder::class, ['reference_number'])
+                ->search($request->search)
+                ->pluck('searchable');
+
+            $jobOrders = $jobOrders->whereIn('id', $search->pluck('id'))->values();
+
+            if ($myJobOrders) {
+                $myJobOrders = $myJobOrders->whereIn('id', $search->pluck('id'))->values();
+            }
+        }
+
         $jobOrders = $jobOrders->map(function ($j) {
-            if ($j->job_type === 'SHIPMENT') {
+            if ($j->job_type === 'LOGISTICS') {
                 $service = 'Logistics Services';
-            } elseif ($j->job_type === 'ACCREDITATION') {
+            } elseif ($j->job_type === 'REGULATORY') {
                 $service = 'Regulatory Services';
             } else {
                 $service = 'N/A';
@@ -75,9 +93,9 @@ class JobOrderController extends Controller
 
         if ($myJobOrders) {
             $myJobOrders = $myJobOrders->map(function ($j) {
-                if ($j->job_type === 'SHIPMENT') {
+                if ($j->job_type === 'LOGISTICS') {
                     $service = 'Logistics Services';
-                } elseif ($j->job_type === 'ACCREDITATION') {
+                } elseif ($j->job_type === 'REGULATORY') {
                     $service = 'Regulatory Services';
                 } else {
                     $service = 'N/A';

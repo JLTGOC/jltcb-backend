@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Searchable\Searchable;
+use Spatie\Searchable\SearchResult;
 
-class JobOrder extends Model
+class JobOrder extends Model implements Searchable
 {
     protected $fillable = [
         'reference_number',
@@ -26,6 +28,15 @@ class JobOrder extends Model
         'finance_id' => 'integer',
         'quotation_id' => 'integer',
     ];
+
+    public function getSearchResult(): SearchResult
+    {
+        return new SearchResult(
+            $this,
+            $this->id,
+            null
+        );
+    }
 
     public function client()
     {
