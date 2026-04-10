@@ -696,7 +696,7 @@ class QuotationController extends Controller
         DB::beginTransaction();
         try {
 
-            $path = $file->storeAs($directory, $filename, 'public');
+            $path = $file->storeAs($directory, $filename, 'local');
 
             $quotationFile = QuotationFile::updateOrCreate(
                 [
@@ -752,7 +752,7 @@ class QuotationController extends Controller
             if (!empty($removedFileIds)) {
                 $filesToRemove = $quotation->files()->whereIn('id', $removedFileIds)->get();
                 foreach ($filesToRemove as $file) {
-                    Storage::disk('public')->delete($file->file_path);
+                    Storage::disk('local')->delete($file->file_path);
                     $file->delete();
                 }
             }
@@ -761,7 +761,7 @@ class QuotationController extends Controller
             if (!empty($newFiles)) {
                 foreach ($newFiles as $file) {
                     $filename = $file->hashName();
-                    $path = $file->storeAs('files', $filename, 'public');
+                    $path = $file->storeAs('files', $filename, 'local');
                     $originalFileName = $file->getClientOriginalName();
 
                     QuotationFile::create([

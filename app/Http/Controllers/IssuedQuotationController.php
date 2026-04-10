@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreIssuedQuotationRequest;
 use App\Http\Requests\UpdateIssuedQuotationRequest;
 use App\Http\Resources\IssuedQuotationResource;
+use App\Models\AuthorizedSignatories;
 use App\Models\IssuedQuotation;
 use App\Models\Quotation;
 use App\Models\QuotationFile;
@@ -58,7 +59,7 @@ class IssuedQuotationController extends Controller
             $issuedQuotation->standardConfig()->create($request->standard_config);
 
             $signatureFile = $request->file('signatory.signature_file');
-            $signatureFilePath = $signatureFile->store('signatures', 'public');
+            $signatureFilePath = $signatureFile->store('signatures', 'local');
 
             $issuedQuotation->authorizedSignatory()->create([
                 'closing_statement' => $request->input('signatory.closing_statement'),
@@ -69,7 +70,7 @@ class IssuedQuotationController extends Controller
             ]);
 
             $quotationFile = $request->file('issued_quotation_file');
-            $filePath = $quotationFile->store('files', 'public');
+            $filePath = $quotationFile->store('files', 'local');
 
             $quotation->files()->create([
                 'file_path' => $filePath, 
@@ -148,8 +149,8 @@ class IssuedQuotationController extends Controller
             $signatureFilePath = $signatory->signature_file_path;
 
             if ($request->hasFile('signatory.signature_file')) {
-                Storage::disk('public')->delete($signatureFilePath);
-                $signatureFilePath = $request->file('signatory.signature_file')->store('signatures', 'public');
+                Storage::disk('local')->delete($signatureFilePath);
+                $signatureFilePath = $request->file('signatory.signature_file')->store('signatures', 'local');
             }
 
             $signatory->update([
@@ -163,7 +164,7 @@ class IssuedQuotationController extends Controller
             $quotation->files()->where('type', 'PROPOSAL')->delete();
 
             $quotationFile = $request->file('issued_quotation_file');
-            $filePath = $quotationFile->store('files', 'public');
+            $filePath = $quotationFile->store('files', 'local');
 
             $quotation->files()->create([
                 'file_path' => $filePath, 
@@ -197,5 +198,24 @@ class IssuedQuotationController extends Controller
         $issuedQuotation->delete();
 
         return $this->success('Issued Quotation deleted successfully');
+    }
+
+    /**
+     * Serve Signature file
+     * 
+     * Used for securing temporary Urls for authorized signature files
+     */
+    public function serveSignature($id)
+    {
+        $signatory = AuthorizedSignatories::findOrFail($id);
+
+        $quotation = $signatory->issuedQuotation;
+        $user = Auth::user();
+
+        if ($user->id === $quotation->as_id || $user->hasRole('Lead Account Specialist')) {
+            return Storage::disk('local')->response($signatory->signature_file_path);
+        }
+
+        return $this->error('You are not authorized to view this signature file', 403);
     }
 }
