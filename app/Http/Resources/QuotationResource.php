@@ -11,6 +11,8 @@ use App\Models\{
     Shipment,
     IssuedQuotation
 };
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Carbon;
 
 class QuotationResource extends JsonResource
 {
@@ -94,7 +96,13 @@ class QuotationResource extends JsonResource
                     return [
                         'id' => $file->id,
                         'file_name' => $file->original_file_name,
-                        'file_url' => asset(Storage::url($file->file_path)),
+                        'file_url' => URL::temporarySignedRoute(
+                            'files.serve', 
+                            Carbon::now()->addMinutes(10), 
+                            [
+                                'file' => $file->id
+                            ]),
+                        'file_type' => $file->file_type,
                     ];
                 })
                 : 'No file available.',
@@ -103,7 +111,12 @@ class QuotationResource extends JsonResource
                     return [
                         'id' => $file->id,
                         'file_name' => $file->original_file_name,
-                        'file_url' => asset(Storage::url($file->file_path)),
+                        'file_url' => URL::temporarySignedRoute(
+                            'files.serve', 
+                            Carbon::now()->addMinutes(10), 
+                            [
+                                'file' => $file->id
+                            ]),
                         'file_type' => $file->file_type
                     ];
                 })

@@ -4,10 +4,15 @@ namespace App\Http\Resources;
 
 use App\Models\Quotation;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
+
+use function Illuminate\Support\minutes;
+use function Symfony\Component\Clock\now;
 
 class IssuedQuotationResource extends JsonResource
 {
@@ -74,9 +79,12 @@ class IssuedQuotationResource extends JsonResource
                     'is_authorized_signatory' => $this->authorizedSignatory->is_authorized_signatory,
                     'authorized_signatory_name' => $this->authorizedSignatory->authorized_signatory_name,
                     'position' => $this->authorizedSignatory->position,
-                    'signature_file_path' => asset(
-                        Storage::url($this->authorizedSignatory->signature_file_path)
-                    ) ,
+                    'signature_file_path' => URL::temporarySignedRoute(
+                        'signatures.serve', 
+                        Carbon::now()->addMinutes(5),
+                        [
+                            'id' => $this->authorizedSignatory->id
+                        ]),
                 ];
             }),
 
@@ -85,7 +93,17 @@ class IssuedQuotationResource extends JsonResource
             }),
 
             'quotation_file' => $this->whenLoaded('quotation', function() {
-                return new QuotationFileResource($this->quotation->files()->where('type', 'PROPOSAL')->first());
+                $file = $this->quotation->files()
+                    ->where('type', 'PROPOSAL')
+                    ->first();
+
+                if (!$file) {
+                    return null;
+                }
+
+                return URL::temporarySignedRoute('files.serve', Carbon::now()->addMinutes(10), [
+                    'file' => $file->id
+                ]);
             })            
         ];
     }

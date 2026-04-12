@@ -5,6 +5,8 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Carbon;
 
 class QuotationFileResource extends JsonResource
 {
@@ -19,8 +21,9 @@ class QuotationFileResource extends JsonResource
             'id' => $this->id,
             'uploaded_by' => $this->uploaded_by,
             'quotation_id' => $this->quotation_id,
-            // 'file_path' => asset($this->file_path),
-            'file_url' => asset(Storage::url($this->file_path)),
+            'file_url' => URL::temporarySignedRoute('files.serve', Carbon::now()->addMinutes(10), [
+                    'file' => $this->id
+                ]),
             'file_type' => $this->file_type,
             'type' => $this->type,
             'file_name' => $this->original_file_name,

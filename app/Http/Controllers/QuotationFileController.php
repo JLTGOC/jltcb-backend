@@ -8,6 +8,8 @@ use App\Models\{
     Quotation
 };
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class QuotationFileController extends Controller
 {
@@ -79,5 +81,29 @@ class QuotationFileController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Download Quotation file
+     * 
+     * Used for sharing download links of private files
+     */
+    public function download(QuotationFile $file)
+    {
+        $this->authorize('viewAny', $file->quotation);
+
+        return Storage::disk('local')->download($file->file_path);
+    }
+
+    /**
+     * Serve Quotation file
+     * 
+     * Used for securing temporary Urls for private files
+     */
+    public function serve(QuotationFile $file)
+    {
+        $this->authorize('viewAny', $file->quotation);
+
+        return Storage::disk('local')->response($file->file_path);
     }
 }
