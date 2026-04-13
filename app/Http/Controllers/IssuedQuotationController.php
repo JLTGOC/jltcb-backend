@@ -205,7 +205,7 @@ class IssuedQuotationController extends Controller
      * 
      * Used for securing temporary Urls for authorized signature files
      */
-    public function serveSignature($id)
+    public function viewSignature($id)
     {
         $signatory = AuthorizedSignatories::findOrFail($id);
 

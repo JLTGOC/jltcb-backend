@@ -63,16 +63,12 @@ Route::middleware('auth:sanctum')->group(function () {
         ->scoped()
         ->parameters(['issued-quotations' => 'issuedQuotation']);
     Route::post('/quotations/{quotation}/issued-quotations/{issuedQuotation}', [IssuedQuotationController::class, 'update']);
-    Route::get('/signatures/{id}', [IssuedQuotationController::class, 'serveSignature'])
-        ->name('signatures.serve'); 
-    
+
     //Temporary routes for quotation files
     Route::post('/quotations/{quotation}/upload', [QuotationController::class, 'upload']);
     Route::apiResource('quotations.files', QuotationFileController::class)->only(['index', 'show', 'update'])->scoped();
     Route::get('/files/{file}/download', [QuotationFileController::class, 'download'])
         ->name('files.download');
-    Route::get('/files/{file}/serve', [QuotationFileController::class, 'serve'])
-        ->name('files.serve');
 
     Route::prefix('conversations')->group(function () {
         Route::get('', [ChatController::class, 'index']); // Inbox

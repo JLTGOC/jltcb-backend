@@ -97,7 +97,7 @@ class QuotationResource extends JsonResource
                         'id' => $file->id,
                         'file_name' => $file->original_file_name,
                         'file_url' => URL::temporarySignedRoute(
-                            'files.serve', 
+                            'files.view', 
                             Carbon::now()->addMinutes(10), 
                             [
                                 'file' => $file->id
@@ -112,7 +112,7 @@ class QuotationResource extends JsonResource
                         'id' => $file->id,
                         'file_name' => $file->original_file_name,
                         'file_url' => URL::temporarySignedRoute(
-                            'files.serve', 
+                            'files.view', 
                             Carbon::now()->addMinutes(10), 
                             [
                                 'file' => $file->id

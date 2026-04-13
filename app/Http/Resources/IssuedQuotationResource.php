@@ -80,7 +80,7 @@ class IssuedQuotationResource extends JsonResource
                     'authorized_signatory_name' => $this->authorizedSignatory->authorized_signatory_name,
                     'position' => $this->authorizedSignatory->position,
                     'signature_file_path' => URL::temporarySignedRoute(
-                        'signatures.serve', 
+                        'signatures.view', 
                         Carbon::now()->addMinutes(5),
                         [
                             'id' => $this->authorizedSignatory->id
@@ -101,7 +101,7 @@ class IssuedQuotationResource extends JsonResource
                     return null;
                 }
 
-                return URL::temporarySignedRoute('files.serve', Carbon::now()->addMinutes(10), [
+                return URL::temporarySignedRoute('files.view', Carbon::now()->addMinutes(10), [
                     'file' => $file->id
                 ]);
             })            

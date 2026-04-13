@@ -21,7 +21,7 @@ class QuotationFileResource extends JsonResource
             'id' => $this->id,
             'uploaded_by' => $this->uploaded_by,
             'quotation_id' => $this->quotation_id,
-            'file_url' => URL::temporarySignedRoute('files.serve', Carbon::now()->addMinutes(10), [
+            'file_url' => URL::temporarySignedRoute('files.view', Carbon::now()->addMinutes(10), [
                     'file' => $this->id
                 ]),
             'file_type' => $this->file_type,

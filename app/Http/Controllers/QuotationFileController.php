@@ -96,11 +96,11 @@ class QuotationFileController extends Controller
     }
 
     /**
-     * Serve Quotation file
+     * View Quotation file
      * 
      * Used for securing temporary Urls for private files
      */
-    public function serve(QuotationFile $file)
+    public function view(QuotationFile $file)
     {
         $this->authorize('viewAny', $file->quotation);
 
