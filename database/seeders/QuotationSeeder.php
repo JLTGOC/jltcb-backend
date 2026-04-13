@@ -191,6 +191,7 @@ class QuotationSeeder extends Seeder
                     Shipment::create([
                         'reference_number' => "{$prefix}-{$dateSection}-{$idSection}",
                         'quotation_id' => $quotation->id,
+                        'job_order_id' => $jobOrder->id,
                         'client_id' => $quotation->client_id,
                         'as_id' => $quotation->as_id,
                         'status' => fake()->randomElement(['PENDING', 'NOT YET DELIVERED', 'IN TRANSIT', 'ARRIVED', 'BERTHED', 'DISCHARGED', 'DELIVERED']),

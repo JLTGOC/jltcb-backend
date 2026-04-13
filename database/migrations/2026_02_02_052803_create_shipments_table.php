@@ -4,6 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use App\Models\Quotation;
+use App\Models\JobOrder;
 
 return new class extends Migration
 {
@@ -16,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('reference_number')->unique();
             $table->foreignIdFor(Quotation::class)->constrained();
+            $table->foreignIdFor(JobOrder::class)->constrained();
             $table->unsignedBigInteger('client_id');
             $table->foreign('client_id')->references('id')->on('users')->constrained()->cascadeOnDelete();
             $table->unsignedBigInteger('as_id');

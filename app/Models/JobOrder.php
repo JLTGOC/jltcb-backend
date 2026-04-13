@@ -77,4 +77,8 @@ class JobOrder extends Model implements Searchable
     {
         return $this->hasOne(JobOrderClient::class, 'job_order_id');
     }
+
+    public function shipment() {
+        return $this->hasOne(Shipment::class, 'job_order_id');
+    }
 }

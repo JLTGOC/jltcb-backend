@@ -11,6 +11,7 @@ class Shipment extends Model implements Searchable
     protected $fillable = [
         'reference_number',
         'quotation_id',
+        'job_order_id',
         'client_id',
         'as_id',
         'status',
@@ -54,6 +55,10 @@ class Shipment extends Model implements Searchable
 
     public function shipmentFile() {
         return $this->hasMany(ShipmentFile::class, 'shipment_id');
+    }
+
+    public function jobOrder() {
+        return $this->belongsTo(JobOrder::class, 'job_order_id');
     }
 
     protected $casts = [
