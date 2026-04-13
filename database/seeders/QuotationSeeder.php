@@ -42,7 +42,7 @@ class QuotationSeeder extends Seeder
 
             $quotation = Quotation::create([
                 'reference_number' => "QT-{$dateSection}-{$idSection}",
-                'status' => fake()->randomElement(['REQUESTED', 'RESPONDED', 'ACCEPTED']),
+                'status' => fake()->randomElement(['REQUESTED', 'RESPONDED', 'ACCEPTED', 'ACCEPTED', 'ACCEPTED']),
                 'client_id' => $client,
                 'as_id' => fake()->randomElement($specialists),
                 'company_name' => $companyName,
@@ -51,6 +51,16 @@ class QuotationSeeder extends Seeder
                 'contact_number' => fake()->numerify('09#########'),
                 'email' => mb_strtolower($lastName) . '.' . mb_strtolower($firstName) . '@gmail.com',
                 'position' => User::find($client)->position,
+            ]);
+
+            $quotation->files()->updateOrCreate([
+                'quotation_id' => $quotation->id,
+                'file_path' => 'files/ClientDoc.pdf' ?? 'files/ClientDoc1.pdf',
+            ], [
+                'uploaded_by' => $quotation->client_id,
+                'type' => 'REQUESTED',
+                'original_file_name' => 'DOCUMENT.pdf',
+                'file_type' => 'pdf',
             ]);
 
             $serviceDomain = fake()->randomElement(['LOGISTICS', 'LOGISTICS', 'REGULATORY']);
@@ -107,7 +117,7 @@ class QuotationSeeder extends Seeder
                         'uploaded_by' => $quotation->as_id,
                         'type' => 'PROPOSAL',
                         'original_file_name' => 'QUOTATION.pdf',
-                        'file_type' => 'application/pdf',
+                        'file_type' => 'pdf',
                     ]);
                 } else {
                     $quotation->files()->where('file_path', 'files/QuotationFile.pdf')->where('quotation_id', $quotation->id)->update([
@@ -215,6 +225,6 @@ class QuotationSeeder extends Seeder
             }
 
             $i+=1;
-        } while ($i<20);
+        } while ($i<30);
     }
 }
