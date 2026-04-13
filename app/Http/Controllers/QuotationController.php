@@ -616,11 +616,11 @@ class QuotationController extends Controller
     public function enumQuotationOptions() {
         $user = auth()->user();
         $autofillDetails = [
-            'client' => $user->full_name,
+            'full_name' => $user->full_name,
             'company' => [
                 'name' => $user->company_name,
                 'address' => $user->company_address,
-                'position' => $user->position,
+                'position' => $user->company_position,
                 'contact_number' => $user->contact_number,
                 'email' => $user->email,
                 'business_type' => $user->business_type,
@@ -645,7 +645,7 @@ class QuotationController extends Controller
             'DANGEROUS DRUGS BOARD (DDB)',
             'THE PHILIPPINE DRUG ENFORCEMENT ADMINISTRATION (PDEA)',
         ];
-        $serviceTypes = ['IMPORT', 'EXPORT', 'BUSINESS SOLUTION'];
+        $serviceTypes = ['IMPORT', 'EXPORT'];
         $transportModes = ['AIR', 'SEA'];
         $serviceOptions = ServiceOption::pluck('name');
         $cargoType = ['CONTAINERIZED', 'LCL'];
