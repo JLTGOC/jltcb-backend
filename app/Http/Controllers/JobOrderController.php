@@ -95,6 +95,7 @@ class JobOrderController extends Controller
                 'client' => $j->client->full_name,
                 'date_created' => strtoupper($j->created_at->format('F d, Y')),
                 'quotation_id' => $j->quotation_id,
+                'quotation_reference_number' => $j->quotation->reference_number,
                 'assigned_to' => $assignedTo,
             ];
         });
@@ -124,6 +125,7 @@ class JobOrderController extends Controller
                     'client' => $j->client->full_name,
                     'date_created' => strtoupper($j->created_at->format('F d, Y')),
                     'quotation_id' => $j->quotation_id,
+                    'quotation_reference_number' => $j->quotation->reference_number,
                     'assigned_to' => $assignedTo,
                 ];
             });
