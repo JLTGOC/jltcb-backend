@@ -70,13 +70,22 @@ class JobOrderController extends Controller
             }
         }
 
-        $jobOrders = $jobOrders->map(function ($j) {
+        $jobOrders = $jobOrders->map(function ($j) use ($user) {
             if ($j->job_type === 'LOGISTICS') {
                 $service = 'Logistics Services';
             } elseif ($j->job_type === 'REGULATORY') {
                 $service = 'Regulatory Services';
             } else {
                 $service = 'N/A';
+            }
+
+            $assignedTo = null;
+            if ($user->hasRole('Operations')) {
+                $assignedTo = $j->operations ? $j->operations->username : 'Available';
+            } elseif ($user->hasRole('Finance')) {
+                $assignedTo = $j->finance ? $j->finance->username : 'Available';
+            } elseif ($user->hasRole('Lead Account Specialist') || $user->hasRole('Account Specialist')) {
+                $assignedTo = $j->operations ? $j->operations->username : 'Available';
             }
 
             return [
@@ -86,19 +95,26 @@ class JobOrderController extends Controller
                 'client' => $j->client->full_name,
                 'date_created' => strtoupper($j->created_at->format('F d, Y')),
                 'quotation_id' => $j->quotation_id,
-                'operations' => $j->operations->username ?? 'Available',
-                'finance' => $j->finance->username ?? 'Available'
+                'assigned_to' => $assignedTo,
             ];
         });
 
         if ($myJobOrders) {
-            $myJobOrders = $myJobOrders->map(function ($j) {
+            $myJobOrders = $myJobOrders->map(function ($j) use ($user) {
                 if ($j->job_type === 'LOGISTICS') {
                     $service = 'Logistics Services';
                 } elseif ($j->job_type === 'REGULATORY') {
                     $service = 'Regulatory Services';
                 } else {
                     $service = 'N/A';
+                }
+
+                if ($user->hasRole('Operations')) {
+                    $assignedTo = $j->operations ? $j->operations->username : 'Available';
+                } elseif ($user->hasRole('Finance')) {
+                    $assignedTo = $j->finance ? $j->finance->username : 'Available';
+                } elseif ($user->hasRole('Lead Account Specialist') || $user->hasRole('Account Specialist')) {
+                    $assignedTo = $j->operations ? $j->operations->username : 'Available';
                 }
 
                 return [
@@ -108,8 +124,7 @@ class JobOrderController extends Controller
                     'client' => $j->client->full_name,
                     'date_created' => strtoupper($j->created_at->format('F d, Y')),
                     'quotation_id' => $j->quotation_id,
-                    'operations' => $j->operations->username ?? 'Available',
-                    'finance' => $j->finance->username ?? 'Available'
+                    'assigned_to' => $assignedTo,
                 ];
             });
         }
