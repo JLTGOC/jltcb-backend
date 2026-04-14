@@ -44,9 +44,9 @@ class JobOrderController extends Controller
         $myJobOrders = null;
 
         if ($user->hasRole(['Lead Account Specialist'])) {
-            $jobOrders = JobOrder::where('shipment_creation_status', 'PENDING')->get();
+            $jobOrders = JobOrder::get();
         } elseif ($user->hasRole('Account Specialist')) {
-            $jobOrders = JobOrder::where('as_id', $user->id)->where('shipment_creation_status', 'PENDING')->get();
+            $jobOrders = JobOrder::where('as_id', $user->id)->get();
         } else if ($user->hasRole('Operations')) {
             $jobOrders = JobOrder::get();
             $myJobOrders = JobOrder::where('operations_id', $user->id)->get();
@@ -54,7 +54,7 @@ class JobOrderController extends Controller
             $jobOrders = JobOrder::get();
             $myJobOrders = JobOrder::where('finance_id', $user->id)->get();
         } else {
-            $jobOrders = JobOrder::where('client_id', $user->id)->where('shipment_creation_status', 'PENDING')->get();
+            $jobOrders = JobOrder::where('client_id', $user->id)->get();
         }
 
         if ($request->has('search')) {
@@ -110,12 +110,10 @@ class JobOrderController extends Controller
                     $service = 'N/A';
                 }
 
-                if ($user->hasRole('Operations')) {
+                if ($user->hasRole('Operations') || $user->hasRole('Lead Account Specialist') || $user->hasRole('Account Specialist')) {
                     $assignedTo = $j->operations ? $j->operations->username : 'Available';
                 } elseif ($user->hasRole('Finance')) {
                     $assignedTo = $j->finance ? $j->finance->username : 'Available';
-                } elseif ($user->hasRole('Lead Account Specialist') || $user->hasRole('Account Specialist')) {
-                    $assignedTo = $j->operations ? $j->operations->username : 'Available';
                 }
 
                 return [
