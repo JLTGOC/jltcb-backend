@@ -5,6 +5,7 @@ namespace App\Services\Dashboard;
 use App\Models\User;
 use App\Models\Quotation;
 use App\Models\Shipment;
+use App\Models\JobOrder;
 
 class AsDashboardService
 {
@@ -31,6 +32,9 @@ class AsDashboardService
         $respondedCount = Quotation::where('as_id', $user->id)->where('status', 'RESPONDED')->count();
         $acceptedCount = Quotation::where('as_id', $user->id)->where('status', 'ACCEPTED')->count();
         $discardedCount = Quotation::where('as_id', $user->id)->where('status', 'DISCARDED')->count();
+
+        // Get job orders count where this as is the as_id
+        $jobOrders = JobOrder::where('as_id', $user->id)->count();
 
         if (strtolower($request->header('Platform', 'mobile') === 'web')) {
             $clientIds = Shipment::where('as_id', $user->id)->distinct()->pluck('client_id');
@@ -89,6 +93,9 @@ class AsDashboardService
                 'responded_count' => $respondedCount,
                 'accepted_count' => $acceptedCount,
                 'discarded_count' => $discardedCount,
+            ],
+            'job_orders' => [
+                'created_count' => $jobOrders,
             ],
             'accounts' => [
                 'clients_count' => $clientsCount,

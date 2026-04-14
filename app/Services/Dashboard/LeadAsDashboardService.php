@@ -5,6 +5,7 @@ namespace App\Services\Dashboard;
 use App\Models\User;
 use App\Models\Quotation;
 use App\Models\Shipment;
+use App\Models\JobOrder;
 use Illuminate\Http\Request;
 
 class LeadAsDashboardService
@@ -31,6 +32,9 @@ class LeadAsDashboardService
         $respondedCount = Quotation::where('status', 'RESPONDED')->count();
         $acceptedCount = Quotation::where('status', 'ACCEPTED')->count();
         $discardedCount = Quotation::where('status', 'DISCARDED')->count();
+
+        // Get job orders count
+        $jobOrders = JobOrder::count();
 
         if (strtolower($request->header('Platform', 'mobile') === 'web')) {
             $clientIds = Shipment::distinct()->pluck('client_id');
@@ -89,6 +93,9 @@ class LeadAsDashboardService
                 'responded_count' => $respondedCount,
                 'accepted_count' => $acceptedCount,
                 'discarded_count' => $discardedCount,
+            ],
+            'job_orders' => [
+                'created_count' => $jobOrders,
             ],
             'accounts' => [
                 'clients_count' => $clientsCount,
