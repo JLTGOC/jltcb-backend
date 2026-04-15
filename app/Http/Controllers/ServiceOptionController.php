@@ -8,6 +8,8 @@ use App\Models\ServiceOption;
 class ServiceOptionController extends Controller
 {
     /**
+     * Index Sub Services
+     * 
      * Display a listing of the resource.
      */
     public function index()
@@ -19,6 +21,8 @@ class ServiceOptionController extends Controller
     }
 
     /**
+     * Store Sub Service
+     * 
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
@@ -46,6 +50,8 @@ class ServiceOptionController extends Controller
     }
 
     /**
+     * Update Sub Service
+     * 
      * Update the specified resource in storage.
      */
     public function update(Request $request, ServiceOption $serviceOption)
@@ -72,6 +78,8 @@ class ServiceOptionController extends Controller
     }
 
     /**
+     * Delete Sub Service
+     * 
      * Remove the specified resource from storage.
      */
     public function destroy(ServiceOption $serviceOption)
