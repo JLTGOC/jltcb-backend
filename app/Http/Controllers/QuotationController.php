@@ -633,7 +633,7 @@ class QuotationController extends Controller
         $regulatoryAssistanceTypes = RegulatoryAssistanceType::pluck('name');
         $serviceTypes = ['IMPORT', 'EXPORT'];
         $transportModes = ['AIR', 'SEA'];
-        $serviceOptions = ServiceOption::pluck('name');
+        $serviceOptions = ServiceOption::where('status', 'ENABLED')->pluck('name');
         $cargoType = ['CONTAINERIZED', 'LCL'];
         $containerSize = ContainerSize::pluck('size');
 

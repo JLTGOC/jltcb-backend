@@ -7,6 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class ServiceOption extends Model
 {
     protected $fillable = [
-        'name'
+        'name',
+        'status'
+    ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at',
     ];
 }
