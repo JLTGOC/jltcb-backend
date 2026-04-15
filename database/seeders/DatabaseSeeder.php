@@ -46,6 +46,8 @@ class DatabaseSeeder extends Seeder
             BusinessTypeSeeder::class,
             RegulatoryAssistanceTypeSeeder::class,
             ContainerSizeSeeder::class,
+            BillingModeSeeder::class,
+            ServiceLevelSeeder::class,
             QuotationSeeder::class,
             QuotationFileSeeder::class,
             ChatSeeder::class,

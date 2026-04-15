@@ -18,7 +18,9 @@ use App\Models\{
     ServiceOption,
     BusinessType,
     RegulatoryAssistanceType,
-    ContainerSize
+    ContainerSize,
+    ServiceLevel,
+    BillingMode
 };
 use Carbon\Carbon;
 
@@ -160,14 +162,7 @@ class QuotationSeeder extends Seeder
                 if ($quotation->logisticsService) {
                     JobOrderShipment::create([
                         'job_order_id' => $jobOrder->id,
-                        'service_level' => fake()->randomElement([
-                            'CARGO CONSOLIDATION (CC)',
-                            'DIRECT EXPORT (DE)',
-                            'INTERNATIONAL FREIGHT FORWARDING (IFF)',
-                            'CARGO CONSOLIDATION (CC), DIRECT EXPORT (DE)',
-                            'INTERNATIONAL FREIGHT FORWARDING (IFF), CARGO CONSOLIDATION (CC)',
-                            'INTERNATIONAL FREIGHT FORWARDING (IFF), CARGO CONSOLIDATION (CC), DIRECT EXPORT (DE)',
-                        ]),
+                        'service_level' => fake()->randomElement(ServiceLevel::pluck('name')->toArray()),
                         'bl_no' => fake()->bothify('AMP0#####'),
                         'eta' => Carbon::now()->addDays(fake()->numberBetween(1, 30)),
                         'etd' => Carbon::now()->addDays(fake()->numberBetween(1, 30)),
@@ -182,7 +177,7 @@ class QuotationSeeder extends Seeder
                         'job_order_id' => $jobOrder->id,
                         'terms_of_payment' => fake()->sentence(),
                         'billing_date' => Carbon::now()->addDays(fake()->numberBetween(60, 90)),
-                        'shall_be_billed' => 'AS PER QUOTE',
+                        'shall_be_billed' => fake()->randomElement(BillingMode::pluck('name')->toArray()),
                     ]);
                 }
 
