@@ -18,7 +18,10 @@ use App\Models\{
     Message,
     QuotationTemplate,
     RegulatoryService,
-    IssuedQuotation
+    IssuedQuotation,
+    BusinessType,
+    RegulatoryAssistanceType,
+    ContainerSize
 };
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -626,30 +629,13 @@ class QuotationController extends Controller
                 'business_type' => $user->business_type,
             ],
         ];
-        $businessTypes = ['COOPERATIVE', 'CORPORATION', 'E-COMMERCE', 'INDIVIDUAL IMPORTER', 'GOVERNMENT AGENCY', 'IMPORT-EXPORT AGENT', 'MULTINATIONAL COMPANY', 'NON-PROFIT ORGANIZATION', 'PARTNERSHIP', 'PEZA-REGISTERED ENTERPRISE', 'SOLE PROPRIETORSHIP'];
-        $regulatoryAssistanceTypes = [
-            'BEAUREAU OF CUSTOMS (BOC)',
-            'PHILIPINE EXPORTERS CONFEDERATION, INC. (PHILEXPORT)',
-            'PHILIPPINE ECONOMIC ZONE AUTHORITY (PEZA)',
-            'DEPARTMENT OF FINANCE (DOF)',
-            'FOOD AND DRUG ADMINISTRATION (FDA)',
-            'BEAUREAU OF INTERNAL REVENUE (BIR)',
-            'BEAUREAU OF ANIMAL INDUSTRY (BAI)',
-            'NATIONAL MEAT INSPECTION SERVICE (NMIS)',
-            'BEAUREAU OF FISHIERIES AND AQUATIC RESOURCES (BFAR)',
-            'BEAUREAU OF AGRICULTURE AND FISHERIES STANDARDS (BAFS)',
-            'NATIONAL TELECOMMUNICATIONS COMMISSION (NTC)',
-            'OPTICAL MEDIA BOARD (OMB)',
-            'DEPARTMENT OF TRADE AND INDUSTRY - BEAUREAU OF PRODUCT STANDARDS (DTI-BPS)',
-            'SUGAR REGULATORY ADMINISTRATION (SRA)',
-            'DANGEROUS DRUGS BOARD (DDB)',
-            'THE PHILIPPINE DRUG ENFORCEMENT ADMINISTRATION (PDEA)',
-        ];
+        $businessTypes = BusinessType::pluck('name');
+        $regulatoryAssistanceTypes = RegulatoryAssistanceType::pluck('name');
         $serviceTypes = ['IMPORT', 'EXPORT'];
         $transportModes = ['AIR', 'SEA'];
         $serviceOptions = ServiceOption::pluck('name');
         $cargoType = ['CONTAINERIZED', 'LCL'];
-        $containerSize = ['1x10', '1x20', '1x40'];
+        $containerSize = ContainerSize::pluck('size');
 
         $quotationOptions = [
             'autofill_details' => $autofillDetails,

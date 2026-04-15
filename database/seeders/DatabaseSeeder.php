@@ -49,6 +49,9 @@ class DatabaseSeeder extends Seeder
             ConfigurationSeeder::class,
             QuotationFieldSeeder::class,
             TemplateSeeder::class,
+            BusinessTypeSeeder::class,
+            RegulatoryAssistanceTypeSeeder::class,
+            ContainerSizeSeeder::class,
         ]);
     }
 }
