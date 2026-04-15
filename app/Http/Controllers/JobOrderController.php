@@ -13,6 +13,8 @@ use App\Models\{
     JobOrderClient,
     JobOrderShipment,
     JobOrderBilling,
+    ServiceLevel,
+    BillingMode
 };
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\{
@@ -305,25 +307,14 @@ class JobOrderController extends Controller
         }
             
         $clientTypes = ['NEW', 'RENEWAL'];
+        $jobTypes = ['LOGISTICS', 'REGULATORY'];
         $accredited = ['REGULAR', 'EXPEDITED'];
-        $serviceLevels = [
-            'CARGO CONSOLIDATION (CC)',
-            'DIRECT EXPORT (DE)',
-            'INTERNATIONAL FREIGHT FORWARDING (IFF)',
-            'CARGO CONSOLIDATION (CC), DIRECT EXPORT (DE)',
-            'INTERNATIONAL FREIGHT FORWARDING (IFF), CARGO CONSOLIDATION (CC)',
-            'INTERNATIONAL FREIGHT FORWARDING (IFF), CARGO CONSOLIDATION (CC), DIRECT EXPORT (DE)',
-        ];
-        $shallBeBilled = [
-            'AS PER QUOTE',
-            'AS PER RECEIPT',
-            'THIRD-PARTY RECEIPTED CHARGES ADVANCES, DEBIT NOTE, CHARGES UPON DELIVERY',
-            'CARGO CONSOLIDATION (CC), DIRECT EXPORT (DE)',
-            'UPON SERVICE RENDERED (COD)'
-        ];
+        $serviceLevels = ServiceLevel::pluck('name');
+        $shallBeBilled = BillingMode::pluck('name');
 
         return $this->success('Job Order Enums fetched successfully', [
             'autofill_details' => $autofillDetails,
+            'job_types' => $jobTypes,
             'client_types' => $clientTypes,
             'accredited' => $accredited,
             'service_levels' => $serviceLevels,
@@ -337,6 +328,8 @@ class JobOrderController extends Controller
      * Fetch the quotation details associated with a Job Order
      */
     public function showJobOrderQuotation(JobOrder $jobOrder) {
+        $this->authorize('showJobOrderQuotation', $jobOrder);
+        
         if (!$jobOrder) {
             return $this->error('Job Order not found', 404);
         }
