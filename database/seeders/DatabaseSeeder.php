@@ -43,15 +43,15 @@ class DatabaseSeeder extends Seeder
             ArticleSeeder::class,
             ReelSeeder::class,
             ServiceOptionSeeder::class,
+            BusinessTypeSeeder::class,
+            RegulatoryAssistanceTypeSeeder::class,
+            ContainerSizeSeeder::class,
             QuotationSeeder::class,
             QuotationFileSeeder::class,
             ChatSeeder::class,
             ConfigurationSeeder::class,
             QuotationFieldSeeder::class,
             TemplateSeeder::class,
-            BusinessTypeSeeder::class,
-            RegulatoryAssistanceTypeSeeder::class,
-            ContainerSizeSeeder::class,
         ]);
     }
 }

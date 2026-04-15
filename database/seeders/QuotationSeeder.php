@@ -15,6 +15,10 @@ use App\Models\{
     JobOrderShipment,
     LogisticsService,
     RegulatoryService,
+    ServiceOption,
+    BusinessType,
+    RegulatoryAssistanceType,
+    ContainerSize
 };
 use Carbon\Carbon;
 
@@ -66,16 +70,28 @@ class QuotationSeeder extends Seeder
             $serviceDomain = fake()->randomElement(['LOGISTICS', 'LOGISTICS', 'REGULATORY']);
 
             if ($serviceDomain === 'LOGISTICS') {
+                $num = fake()->numberBetween(1, 5);
+                $serviceOptions = '';
+                while ($num > 0) {
+                    $option = fake()->randomElement(ServiceOption::pluck('name')->toArray());
+                    if ($option === 'ALL IN') {
+                        $serviceOptions = 'ALL IN';
+                        break;
+                    }
+                    $serviceOptions .= $option . ($num-1 > 0 ? ',' : '');
+                    $num--;
+                }
                 $cargoType = fake()->randomElement(['CONTAINERIZED', 'LCL']);
+                $containerSize = fake()->randomElement(ContainerSize::pluck('size')->toArray());
 
                 LogisticsService::create([
                     'quotation_id' => $quotation->id,
                     'service_type' => fake()->randomElement(['IMPORT', 'EXPORT']),
                     'transport_mode' => fake()->randomElement(['AIR', 'SEA']),
-                    'service_options' => 'PROJECT CARGO,POST CLEARANCE SERVICE',
+                    'service_options' => $serviceOptions,
                     'commodity' => 'CASTABLE 16 REFRACTOR',
                     'cargo_type' => $cargoType,
-                    'container_size' => $cargoType === 'CONTAINERIZED' ? fake()->randomElement(['1x20', '1x40']) : null,
+                    'container_size' => $cargoType === 'CONTAINERIZED' ? $containerSize : null,
                     'origin' => fake()->address(),
                     'destination' => fake()->address(),
                     'remarks' => fake()->sentence(),
@@ -85,20 +101,8 @@ class QuotationSeeder extends Seeder
                     'quotation_id' => $quotation->id,
                     'full_name' => $quotation->contact_person,
                     'contact_person_contact_number' => $quotation->contact_number,
-                    'business_type' => fake()->randomElement([
-                        'COOPERATIVE',
-                        'CORPORATION',
-                        'E-COMMERCE',
-                        'INDIVIDUAL IMPORTER',
-                        'GOVERNMENT AGENCY',
-                        'IMPORT-EXPORT AGENT',
-                        'MULTINATIONAL COMPANY',
-                        'NON-PROFIT ORGANIZATION',
-                        'PARTNERSHIP',
-                        'PEZA-REGISTERED ENTERPRISE',
-                        'SOLE PROPRIETORSHIP',
-                    ]),
-                    'type_of_regulatory_assistance' => 'FOOD AND DRUG ADMINISTRATION (FDA)',
+                    'business_type' => fake()->randomElement(BusinessType::pluck('name')->toArray()),
+                    'type_of_regulatory_assistance' => fake()->randomElement(RegulatoryAssistanceType::pluck('name')->toArray()),
                     'application_type' => fake()->randomElement(['NEW', 'RENEWAL']),
                     'message' => fake()->sentence(),
                 ]);
