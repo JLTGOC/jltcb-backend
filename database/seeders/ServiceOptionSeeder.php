@@ -29,7 +29,8 @@ class ServiceOptionSeeder extends Seeder
 
         foreach ($names as $name) {
             ServiceOption::create([
-                'name' => $name
+                'name' => $name,
+                'status' => 'ENABLED',
             ]);
         }
     }

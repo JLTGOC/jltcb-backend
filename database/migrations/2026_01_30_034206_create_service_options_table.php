@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('service_options', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->enum('status', ['ENABLED', 'DISABLED'])->default('ENABLED');
             $table->timestamps();
         });
     }

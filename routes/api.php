@@ -20,6 +20,7 @@ use App\Http\Controllers\QuotationFieldController;
 use App\Http\Controllers\QuotationTemplateController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StandardConfigurationController;
+use App\Http\Controllers\ServiceOptionController;
 use Illuminate\Support\Facades\Broadcast;
 
 require __DIR__ . '/public_routes.php';
@@ -109,4 +110,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Role Routes
     Route::get('/roles', [RoleController::class, 'index']);
+
+    // Service Option Routes
+    Route::apiResource('sub-services', ServiceOptionController::class)->only(['index', 'store']);
+    Route::put('/sub-services/{serviceOption}', [ServiceOptionController::class, 'update']);
+    Route::delete('/sub-services/{serviceOption}', [ServiceOptionController::class, 'destroy']);
 });
