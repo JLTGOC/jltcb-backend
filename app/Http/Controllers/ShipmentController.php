@@ -49,7 +49,7 @@ class ShipmentController extends Controller
         $shipmentsQuery = QueryBuilder::for($baseQuery)
             ->defaultSort('-created_at', '-id');
 
-        if (isset($request->status)) {
+        if (isset($request->filter['status'])) {
             if ($status === 'ONGOING') {
                 $shipmentsQuery->whereIn('status', $ongoingStatuses);
             } else {
