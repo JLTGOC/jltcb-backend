@@ -34,7 +34,7 @@ class StoreJobOrderRequest extends FormRequest
             'client.client_type' => 'required|string|in:NEW,RENEWAL',
             'client.accredited' => 'required|string|in:REGULAR,EXPEDITED',
             'client.remarks' => 'nullable|string',
-            'service.service_level' => 'required_if:job_type,LOGISTICS|string|in:' . implode(',', ServiceLevel::pluck('name')->toArray()),
+            'service.service_level' => ['required_if:job_type,LOGISTICS', 'string', Rule::in(ServiceLevel::pluck('name')->toArray())],
             'service.bl_no' => 'required_if:job_type,LOGISTICS|string',
             'service.eta' => 'required_if:job_type,LOGISTICS|date',
             'service.etd' => 'required_if:job_type,LOGISTICS|date|after_or_equal:service.eta',
@@ -48,7 +48,7 @@ class StoreJobOrderRequest extends FormRequest
             'target.special_remarks' => 'nullable|string',
             'billing.terms_of_payment' => 'nullable|string',
             'billing.billing_date' => 'nullable|date',
-            'billing.shall_be_billed' => 'nullable|string|in:' . implode(',', BillingMode::pluck('name')->toArray()),
+            'billing.shall_be_billed' => ['nullable', 'string', Rule::in(BillingMode::pluck('name')->toArray())],
         ];
     }
 }
