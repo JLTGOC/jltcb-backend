@@ -37,7 +37,7 @@ class ShipmentController extends Controller
         $search = $request->input('search');
         $platform = $request->header('Platform', 'mobile');
         $request->validate([
-            'filter.status' => 'required|in:ONGOING,DELIVERED',
+            'filter.status' => 'sometimes|in:ONGOING,DELIVERED',
         ]);
 
         $user = $request->user();
@@ -49,11 +49,13 @@ class ShipmentController extends Controller
         $shipmentsQuery = QueryBuilder::for($baseQuery)
             ->defaultSort('-created_at', '-id');
 
-        if ($status === 'ONGOING') {
-            $shipmentsQuery->whereIn('status', $ongoingStatuses);
-        } else {
-            $shipmentsQuery->where('status', 'DELIVERED');
-        }
+        if (isset($request->status)) {
+            if ($status === 'ONGOING') {
+                $shipmentsQuery->whereIn('status', $ongoingStatuses);
+            } else {
+                $shipmentsQuery->where('status', 'DELIVERED');
+            }
+        } 
 
         if ($search) {
             $shipmentsQuery->where(function ($query) use ($search) {
