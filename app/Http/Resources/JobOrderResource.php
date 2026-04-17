@@ -48,6 +48,9 @@ class JobOrderResource extends JsonResource
                 'etd' => $this->jobOrderShipment->etd,
             ] : null,
             'shipment' => $this->jobOrderShipment ? [
+                'commodity' => $this->quotation->logisticsService->commodity ?? null,
+                'cargo_type' => $this->quotation->logisticsService->cargo_type ?? null,
+                'container_size' => $this->quotation->logisticsService->container_size ?? null,
                 'hs_code' => $this->jobOrderShipment->hs_code ?? null,
                 'rod' => $this->jobOrderShipment->rod ?? null,
                 'permits' => $this->jobOrderShipment->permits ?? null,
