@@ -12,6 +12,7 @@ class JobOrderShipment extends Model
         'bl_no',
         'eta',
         'etd',
+        'if_coordinated',
         'hs_code',
         'rod',
         'permits',

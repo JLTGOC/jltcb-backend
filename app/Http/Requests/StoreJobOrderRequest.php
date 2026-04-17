@@ -41,6 +41,7 @@ class StoreJobOrderRequest extends FormRequest
             'shipment.hs_code' => 'nullable|string',
             'shipment.rod' => 'nullable|string',
             'shipment.permits' => 'nullable|string',
+            'shipment.if_coordinated' => 'nullable|string',
             'shipment.special_remarks' => 'nullable|string',
             'target.delivery_date' => 'nullable|string',
             'target.completion_date' => 'nullable|string',

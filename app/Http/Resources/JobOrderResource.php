@@ -54,6 +54,7 @@ class JobOrderResource extends JsonResource
                 'hs_code' => $this->jobOrderShipment->hs_code ?? null,
                 'rod' => $this->jobOrderShipment->rod ?? null,
                 'permits' => $this->jobOrderShipment->permits ?? null,
+                'if_coordinated' => $this->jobOrderShipment->if_coordinated ?? null,
                 'special_remarks' => $this->jobOrderShipment->shipment_remarks ?? null,
             ] : null,
             'target' => $this->jobOrderShipment ? [

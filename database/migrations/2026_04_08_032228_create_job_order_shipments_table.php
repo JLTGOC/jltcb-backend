@@ -26,6 +26,7 @@ return new class extends Migration
             $table->string('target_delivery_date')->nullable();
             $table->string('target_completion_date')->nullable();
             $table->text('commitment_remarks')->nullable();
+            $table->string('if_coordinated')->nullable();
             $table->timestamps();
         });
     }

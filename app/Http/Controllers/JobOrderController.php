@@ -191,6 +191,7 @@ class JobOrderController extends Controller
                     'bl_no' => $request->service['bl_no'],
                     'eta' => $request->service['eta'],
                     'etd' => $request->service['etd'],
+                    'if_coordinated' => $request->shipment['if_coordinated'] ?? null,
                     'hs_code' => $request->shipment['hs_code'] ?? null,
                     'rod' => $request->shipment['rod'] ?? null,
                     'permits' => $request->shipment['permits'] ?? null,
