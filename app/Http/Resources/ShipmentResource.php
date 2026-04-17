@@ -25,8 +25,8 @@ class ShipmentResource extends JsonResource
                 'status' => $this->status,
                 'commodity' => $this->commodity,
                 'destination' => $this->destination,
-                'eta' => $this->jobOrder->eta ?? null,
-                'etd' => $this->jobOrder->etd ?? null,
+                'eta' => $this->jobOrder->jobOrderShipment->eta ?? null,
+                'etd' => $this->jobOrder->jobOrderShipment->etd ?? null,
                 'date' => $this->created_at->format('Y-m-d'),
             ],
         ];
