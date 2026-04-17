@@ -38,6 +38,19 @@ class UserResource extends JsonResource
             'business_type' => $this->business_type,
             'image_path' => $imagePath ? asset('storage/' . $imagePath) : null,
             'id_image_path' => $idImagePath ? asset('storage/' . $idImagePath) : null,
+            'tabs' => [
+                'dashboard' => $this->can('dashboard.view'),
+                'leads' => $this->can('leads.view'),
+                'quotations' => $this->can('quotations.view'),
+                'shipments' =>$this->can('shipments.view'),
+                'accounts' => $this->can('accounts.view'),
+                'job_orders' => $this->can('job_orders.view'),
+                'templates' => $this->can('templates.view')
+            ],
+            'permissions' => $this->getAllPermissions()
+                ->pluck('name')
+                ->reject(fn($p) => str_ends_with($p, '.view'))
+                ->values(),
             'created_at' => $this->created_at?->toDateTimeString(),
             'updated_at' => $this->updated_at?->toDateTimeString(),
         ];
