@@ -36,6 +36,10 @@ class QuotationTemplateController extends Controller
 
         $templateQuery = QuotationTemplate::query();
 
+        if ($request->type) {
+            $templateQuery->where('is_active', true);
+        }
+
         $templateType = $request->type;
         if ($templateQuery) {
             if (in_array($templateType, ['IMPORT', 'EXPORT'])) {
@@ -177,4 +181,29 @@ class QuotationTemplateController extends Controller
 
         return $this->success('Quotation Template deleted successfully');
     }
+
+    /**
+     * Toggle template active status
+     * 
+     * Remove the specified resource from storage.
+     */
+    public function toggleStatus(Request $request, QuotationTemplate $template)
+    {
+        $this->authorize('update', $template);
+
+        $request->validate([
+            'status' => 'required|boolean'
+        ]);
+
+        $template->update([
+            'is_active' => $request->status
+        ]);
+
+        return $this->success(
+            'Template status updated successfully', 
+            new QuotationTemplateResource($template)
+        );
+    }
+
+
 }

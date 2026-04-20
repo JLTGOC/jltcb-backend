@@ -105,6 +105,7 @@ Route::middleware('auth:sanctum')->group(function () {
         ->parameters(['message-templates' => 'message']);
 
     Route::apiResource('templates', QuotationTemplateController::class);
+    Route::patch('templates/{template}/status', [QuotationTemplateController::class, 'toggleStatus']);
 
     Route::get('quotation-fields', QuotationFieldController::class);
 
