@@ -152,8 +152,15 @@ class QuotationSeeder extends Seeder
                     'shipment_creation_status' => fake()->randomElement(['PENDING', 'CREATED']),
                 ]);
 
+                if ($quotation->logisticsService) {
+                    $serviceType = $quotation->logisticsService->service_type;
+                } elseif ($quotation->regulatoryService) {
+                    $serviceType = 'BOC New Importer Accreditation';
+                }
+
                 JobOrderClient::create([
                     'job_order_id' => $jobOrder->id,
+                    'service_type' => $serviceType,
                     'client_type' => fake()->randomElement(['NEW', 'RENEWAL']),
                     'accredited' => fake()->randomElement(['REGULAR', 'EXPEDITED']),
                     'client_remarks' => fake()->sentence(),

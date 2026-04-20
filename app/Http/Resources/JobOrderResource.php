@@ -39,6 +39,7 @@ class JobOrderResource extends JsonResource
                 'shipper' => $this->quotation->client->full_name,
                 'client_type' => $this->jobOrderClient->client_type,
                 'accredited' => $this->jobOrderClient->accredited,
+                'service_type' => $this->jobOrderClient->service_type,
                 'remarks' => $this->jobOrderClient->client_remarks,
             ],
             'service' => $this->jobOrderShipment ? [

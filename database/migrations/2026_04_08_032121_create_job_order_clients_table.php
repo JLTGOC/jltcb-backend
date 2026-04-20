@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignIdFor(JobOrder::class)->constrained()->onDelete('cascade');
             $table->string('client_type');
             $table->string('accredited');
+            $table->string('service_type');
             $table->text('client_remarks')->nullable();
             $table->timestamps();
         });

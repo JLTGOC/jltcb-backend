@@ -34,6 +34,7 @@ class StoreJobOrderRequest extends FormRequest
             'subject.email_body' => 'required|string',
             'client.client_type' => 'required|string|in:NEW,RENEWAL',
             'client.accredited' => 'required|string|in:REGULAR,EXPEDITED',
+            'client.service_type' => 'required_if:job_type,REGULATORY|string',
             'client.remarks' => 'nullable|string',
             'service.service_level' => ['required_if:job_type,LOGISTICS', 'string', Rule::in(ServiceLevel::pluck('name')->toArray())],
             'service.bl_no' => 'required_if:job_type,LOGISTICS|string',
