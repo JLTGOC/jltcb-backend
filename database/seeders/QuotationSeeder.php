@@ -94,8 +94,8 @@ class QuotationSeeder extends Seeder
                     'commodity' => 'CASTABLE 16 REFRACTOR',
                     'cargo_type' => $cargoType,
                     'container_size' => $cargoType === 'CONTAINERIZED' ? $containerSize : null,
-                    'origin' => fake()->address(),
-                    'destination' => fake()->address(),
+                    'origin' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
+                    'destination' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
                     'remarks' => fake()->sentence(),
                 ]);
             } else {
