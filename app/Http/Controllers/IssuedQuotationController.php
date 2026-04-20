@@ -9,6 +9,8 @@ use App\Models\AuthorizedSignatories;
 use App\Models\IssuedQuotation;
 use App\Models\Quotation;
 use App\Models\QuotationFile;
+use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -32,12 +34,17 @@ class IssuedQuotationController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(StoreIssuedQuotationRequest $request, Quotation $quotation)
-    {
+{
         $this->authorize('create', [IssuedQuotation::class, $quotation]);
 
         $asId = Auth::user()->id;
 
-        $issuedQuotation = DB::transaction(function() use ($quotation, $request, $asId) {
+        $signatureFilePath = null;
+        $quotationFilePath = null;
+
+        DB::beginTransaction();
+
+        try {
             $issuedQuotation = $quotation->issuedQuotations()->create([
                 'template_id' => $request->template_id,
                 'issued_by' => $asId,
@@ -58,8 +65,10 @@ class IssuedQuotationController extends Controller
 
             $issuedQuotation->standardConfig()->create($request->standard_config);
 
-            $signatureFile = $request->file('signatory.signature_file');
-            $signatureFilePath = $signatureFile->store('signatures', 'local');
+            if ($request->hasFile('signatory.signature_file')) {
+                $signatureFilePath = $request->file('signatory.signature_file')
+                    ->store('signatures', 'local');
+            }
 
             $issuedQuotation->authorizedSignatory()->create([
                 'closing_statement' => $request->input('signatory.closing_statement'),
@@ -69,28 +78,58 @@ class IssuedQuotationController extends Controller
                 'signature_file_path' => $signatureFilePath
             ]);
 
-            $quotationFile = $request->file('issued_quotation_file');
-            $filePath = $quotationFile->store('files', 'local');
+            if ($request->hasFile('issued_quotation_file')) {
+                $quotationFile = $request->file('issued_quotation_file');
 
-            $quotation->files()->create([
-                'file_path' => $filePath, 
-                'uploaded_by' => $asId, 
-                'type' => 'PROPOSAL', 
-                'original_file_name' => $quotationFile->getClientOriginalName(), 
-                'file_type' => $quotationFile->getClientOriginalExtension()
+                $quotationFilePath = $quotationFile->store('files', 'local');
+
+                $quotation->files()->create([
+                    'file_path' => $quotationFilePath,
+                    'uploaded_by' => $asId,
+                    'type' => 'PROPOSAL',
+                    'original_file_name' => $quotationFile->getClientOriginalName(),
+                    'file_type' => $quotationFile->getClientOriginalExtension()
+                ]);
+            }
+
+            $quotation->update([
+                'status' => 'RESPONDED',
+                'created_by' => $asId
             ]);
 
-            $quotation->update(['status' => 'RESPONDED', 'created_by' => $asId]);
-            return $issuedQuotation;
-        });
+            DB::commit();
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            if ($signatureFilePath) {
+                Storage::disk('local')->delete($signatureFilePath);
+            }
+
+            if ($quotationFilePath) {
+                Storage::disk('local')->delete($quotationFilePath);
+            }
+
+            return $this->error(
+                'An error occurred while storing issued quotation. Please try again.', 
+                data: [
+                    "error_message" => $e->getMessage()
+                ]
+            );
+        }
 
         $issuedQuotation->load([
-            'detailValues', 'charges.items', 'authorizedSignatory', 'standardConfig', 'template.quotationFields', 'quotation.files'
+            'detailValues',
+            'charges.items',
+            'authorizedSignatory',
+            'standardConfig',
+            'template.quotationFields',
+            'quotation.files'
         ]);
 
         return $this->success(
-            'Issued Quotation stored successfully', 
-            new IssuedQuotationResource($issuedQuotation), 
+            'Issued Quotation stored successfully',
+            new IssuedQuotationResource($issuedQuotation),
             201
         );
     }
@@ -120,10 +159,16 @@ class IssuedQuotationController extends Controller
      * Update the specified resource in storage.
      */
     public function update(UpdateIssuedQuotationRequest $request, Quotation $quotation, IssuedQuotation $issuedQuotation)
-    {
+{
         $this->authorize('update', [$quotation, $issuedQuotation]);
-    
-        DB::transaction(function() use ($request, $quotation, $issuedQuotation) {
+
+        $newSignaturePath = null;
+        $newQuotationFilePath = null;
+        $oldSignaturePath = $issuedQuotation->authorizedSignatory->signature_file_path;
+
+        DB::beginTransaction();
+
+        try {
             $issuedQuotation->update([
                 'subject' => $request->subject,
                 'message' => $request->message,
@@ -136,7 +181,7 @@ class IssuedQuotationController extends Controller
             foreach ($request->charges as $charge) {
                 $chargeRecord = $issuedQuotation->charges()->create([
                     'name' => $charge['name'],
-                    'subtotal'     => collect($charge['items'])->sum('amount'),
+                    'subtotal' => collect($charge['items'])->sum('amount'),
                 ]);
 
                 $chargeRecord->items()->createMany($charge['items']);
@@ -146,46 +191,71 @@ class IssuedQuotationController extends Controller
             $issuedQuotation->standardConfig()->create($request->standard_config);
 
             $signatory = $issuedQuotation->authorizedSignatory;
-            $signatureFilePath = $signatory->signature_file_path;
 
             if ($request->hasFile('signatory.signature_file')) {
-                Storage::disk('local')->delete($signatureFilePath);
-                $signatureFilePath = $request->file('signatory.signature_file')->store('signatures', 'local');
+                $newSignaturePath = $request->file('signatory.signature_file')->store('signatures', 'local');
             }
 
             $signatory->update([
-                'closing_statement'         => $request->input('signatory.closing_statement'),
-                'is_authorized_signatory'   => $request->input('signatory.is_authorized_signatory'),
+                'closing_statement' => $request->input('signatory.closing_statement'),
+                'is_authorized_signatory' => $request->input('signatory.is_authorized_signatory'),
                 'authorized_signatory_name' => $request->input('signatory.authorized_signatory_name'),
-                'position'                  => $request->input('signatory.position'),
-                'signature_file_path'       => $signatureFilePath,
+                'position' => $request->input('signatory.position'),
+                'signature_file_path' => $newSignaturePath ?? $oldSignaturePath,
             ]);
 
-            $quotation->files()->where('type', 'PROPOSAL')->delete();
+            $oldquotationFile = $quotation->files()->where('type', 'PROPOSAL')->first();
+            Storage::disk('local')->delete($oldquotationFile->file_path);
+            $oldquotationFile->delete();
+        
+            if ($request->hasFile('issued_quotation_file')) {
+                $quotationFile = $request->file('issued_quotation_file');
+                $newQuotationFilePath = $quotationFile->store('files', 'local');
 
-            $quotationFile = $request->file('issued_quotation_file');
-            $filePath = $quotationFile->store('files', 'local');
+                $quotation->files()->create([
+                    'file_path' => $newQuotationFilePath,
+                    'uploaded_by' => Auth::user()->id,
+                    'type' => 'PROPOSAL',
+                    'original_file_name' => $quotationFile->getClientOriginalName(),
+                    'file_type' => $quotationFile->getClientOriginalExtension(),
+                ]);
+            }
 
-            $quotation->files()->create([
-                'file_path' => $filePath, 
-                'uploaded_by' => Auth::user()->id, 
-                'type' => 'PROPOSAL', 
-                'original_file_name' => $quotationFile->getClientOriginalName(), 
-                'file_type' => $quotationFile->getClientOriginalExtension()
-            ]);
-        });
+            DB::commit();
+
+            if ($newSignaturePath && $oldSignaturePath) {
+                Storage::disk('local')->delete($oldSignaturePath);
+            }
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            if ($newSignaturePath) {
+                Storage::disk('local')->delete($newSignaturePath);
+            }
+
+            if ($newQuotationFilePath) {
+                Storage::disk('local')->delete($newQuotationFilePath);
+            }
+
+            return $this->error(
+                'An error occurred while updating issued quotation. Please try again.', 
+                data: [
+                    "error_message" => $e->getMessage()
+                ]
+            );
+        }
 
         $issuedQuotation->load([
             'detailValues', 'charges', 'authorizedSignatory', 'standardConfig', 'template.quotationFields', 'quotation.files'
         ]);
 
         return $this->success(
-            'Issued Quotation updated successfully', 
-            new IssuedQuotationResource($issuedQuotation), 
+            'Issued Quotation updated successfully',
+            new IssuedQuotationResource($issuedQuotation),
             201
         );
     }
-
     /**
      * Delete Issued Quotation
      * 
