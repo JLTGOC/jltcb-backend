@@ -53,10 +53,12 @@ class UserSeeder extends Seeder
                 'username' => Str::before($account['email'], '@'),
                 'email' => $account['email'],
                 'password' => Hash::make('Jltcb2025'),
-                'address' => fake()->address(),
+                'address' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
                 'contact_number' => fake()->numerify('09#########'),
                 'company_name' => ($account['role'] === 'Client') ? fake()->company() : 'JLTCB',
-                'company_address' => ($account['role'] === 'Client') ? fake()->address() : 'Suite 508, Pacific Centre, 460 Quintin Paredes St. Brgy. 289 Binondo, Manila, Philippines 1006',
+                'company_address' => ($account['role'] === 'Client') ? 
+                    fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode()
+                    : 'Suite 508, Pacific Centre, 460 Quintin Paredes St. Brgy. 289 Binondo, Manila, Philippines 1006',
                 'company_position' => ($account['role'] === 'Client') ? null : $account['role'],
                 'image_path' => $profileImagePath,
                 'id_image_path' => $idImagePath,
