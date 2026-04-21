@@ -27,7 +27,7 @@ class ChatSeeder extends Seeder
         foreach($clients as $client) {
             // Direct Conversations
             $quotations = Quotation::where('client_id', $client->id)
-                ->where('status', 'RESPONDED')
+                ->whereIn('status', ['RESPONDED', 'ACCEPTED'])
                 ->orderBy('created_at', 'asc')
                 ->get();
             
