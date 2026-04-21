@@ -54,13 +54,16 @@ class QuotationController extends Controller
         $platform = strtolower((string) $request->header('Platform', 'mobile'));
         $isWeb = $platform === 'web';
         $perPage = $request->input('perPage', 10);
-        $selectedClientId = $request->input('client_id');
         $dateFormat = $isWeb ? 'm/d/y' : 'Y/m/d';
         $query = Quotation::query();
+        $myQuotationsQuery = null;
+
         if ($user->hasRole('Client')) {
             $query->where('client_id', $user->id);
-        } elseif ($user->hasRole(['Account Specialist', 'Lead Account Specialist'])) {
-            // No additional query constraints needed, as Account Specialists can view all quotations
+        } elseif ($user->hasRole('Lead Account Specialist')) {
+            // No additional query constraints needed.
+        } elseif ($user->hasRole('Account Specialist')) {
+            $myQuotationsQuery = Quotation::query()->where('as_id', $user->id);
         } else {
             return $this->error('Unauthorized', 403);
         }
@@ -87,77 +90,87 @@ class QuotationController extends Controller
         $quotations = QueryBuilder::for($query)
             ->allowedFilters([AllowedFilter::exact('status')]);
 
-        $status = $request->input('filter.status');
-        if ($status) {
-            $quotations->where('status', $status);
-        }
+        $myQuotations = $myQuotationsQuery
+            ? QueryBuilder::for($myQuotationsQuery)->allowedFilters([AllowedFilter::exact('status')])
+            : null;
 
-        if (isset($request->client_type) && $request->client_type === 'OLD') {
-            $oldClientIds = [];
-            foreach (User::role('Client')->with('quotations')->get() as $client) {
-                if ($client->quotations->count() > 1) {
-                    $oldClientIds[] = $client->id;
+        $applyQueryConstraints = function ($builder) use ($request) {
+            $status = $request->input('filter.status');
+            if ($status) {
+                $builder->where('status', $status);
+            }
+
+            if ($request->filled('client_id')) {
+                $builder->where('client_id', $request->input('client_id'));
+            }
+
+            if (isset($request->client_type) && $request->client_type === 'OLD') {
+                $oldClientIds = [];
+                foreach (User::role('Client')->with('quotations')->get() as $client) {
+                    if ($client->quotations->count() > 1) {
+                        $oldClientIds[] = $client->id;
+                    }
                 }
-            }
-            $quotations->whereIn('client_id', $oldClientIds);
-        } elseif (isset($request->client_type) && $request->client_type === 'NEW') {
-            $newClientIds = [];
-            foreach (User::role('Client')->with('quotations')->get() as $client) {
-                if ($client->quotations->count() === 1) {
-                    $newClientIds[] = $client->id;
+                $builder->whereIn('client_id', $oldClientIds);
+            } elseif (isset($request->client_type) && $request->client_type === 'NEW') {
+                $newClientIds = [];
+                foreach (User::role('Client')->with('quotations')->get() as $client) {
+                    if ($client->quotations->count() === 1) {
+                        $newClientIds[] = $client->id;
+                    }
                 }
-            }
-            $quotations->whereIn('client_id', $newClientIds);
-        }
-
-        if ($request->search) {
-            $search = $request->search;
-            $searchIds = (new Search())
-                ->registerModel(Quotation::class, ['reference_number'])
-                ->search($search)
-                ->collect()
-                ->pluck('searchable')
-                ->map->id
-                ->filter()
-                ->values();
-
-            $commoditySearchIds = Quotation::query()
-                ->whereHas('logisticsService', function ($relationQuery) use ($search) {
-                    $relationQuery->where('commodity', 'like', "%{$search}%");
-                })
-                ->select('id')
-                ->pluck('id');
-
-            $clientSearchIds = Quotation::query()
-                ->leftJoin('users', 'quotations.client_id', '=', 'users.id')
-                ->where('users.full_name', 'like', "%{$search}%")
-                ->select('quotations.id')
-                ->pluck('id');
-
-            $mergedIds = $searchIds
-                ->merge($commoditySearchIds)
-                ->merge($clientSearchIds)
-                ->unique()
-                ->values();
-
-            if ($mergedIds->isEmpty()) {
-                return $this->success('No quotations found', [], 200);
+                $builder->whereIn('client_id', $newClientIds);
             }
 
-            $quotations->whereIn('id', $mergedIds);
+            if ($request->search) {
+                $search = $request->search;
+                $searchIds = (new Search())
+                    ->registerModel(Quotation::class, ['reference_number'])
+                    ->search($search)
+                    ->collect()
+                    ->pluck('searchable')
+                    ->map->id
+                    ->filter()
+                    ->values();
+
+                $commoditySearchIds = Quotation::query()
+                    ->whereHas('logisticsService', function ($relationQuery) use ($search) {
+                        $relationQuery->where('commodity', 'like', "%{$search}%");
+                    })
+                    ->select('id')
+                    ->pluck('id');
+
+                $clientSearchIds = Quotation::query()
+                    ->leftJoin('users', 'quotations.client_id', '=', 'users.id')
+                    ->where('users.full_name', 'like', "%{$search}%")
+                    ->select('quotations.id')
+                    ->pluck('id');
+
+                $mergedIds = $searchIds
+                    ->merge($commoditySearchIds)
+                    ->merge($clientSearchIds)
+                    ->unique()
+                    ->values();
+
+                if ($mergedIds->isEmpty()) {
+                    $builder->whereRaw('1 = 0');
+                    return;
+                }
+
+                $builder->whereIn('id', $mergedIds);
+            }
+        };
+
+        $applyQueryConstraints($quotations);
+        if ($myQuotations) {
+            $applyQueryConstraints($myQuotations);
         }
 
         $pagination = null;
 
         if ($user->hasRole('Account Specialist') || $user->hasRole('Lead Account Specialist')) {
             if ($isWeb) {
-                $resultsQuery = $quotations
-                    ->with(['client', 'accountSpecialist', 'logisticsService', 'regulatoryService'])
-                    ->orderBy('created_at', 'desc');
-
-                $paginated = $resultsQuery->paginate($perPage);
-
-                $quotations = $paginated->getCollection()->map(function ($quotation) use ($dateFormat) {
+                $formatQuotation = function ($quotation) use ($dateFormat) {
                     $issuedQuotation = IssuedQuotation::where('quotation_id', $quotation->id)->value('id');
 
                     return [
@@ -184,16 +197,39 @@ class QuotationController extends Controller
                         'prepared_by' => $quotation->created_by ? User::where('id', $quotation->created_by)->value('full_name') : null,
                         'issued_quotation_id' => $issuedQuotation ?? null,
                     ];
-                });
+                };
+
+                $resultsQuery = $quotations
+                    ->with(['client', 'accountSpecialist', 'logisticsService', 'regulatoryService'])
+                    ->orderBy('created_at', 'desc');
+
+                $paginated = $resultsQuery->paginate($perPage);
+
+                $quotations = $paginated->getCollection()->map($formatQuotation);
+
+                $myQuotationsResults = collect();
+                if ($myQuotations) {
+                    $myQuotationsResults = $myQuotations
+                        ->with(['client', 'accountSpecialist', 'logisticsService', 'regulatoryService'])
+                        ->orderBy('created_at', 'desc')
+                        ->get()
+                        ->map($formatQuotation)
+                        ->values();
+                }
 
                 $pagination = $this->pagePaginationData($paginated);
 
                 if ($quotations->isEmpty()) {
-                    return $this->success('No quotations found', [], 200);
+                    return $this->success('No quotations found', [
+                        'quotations' => [],
+                        'my_quotations' => $myQuotationsResults,
+                        'pagination' => $pagination,
+                    ], 200);
                 }
 
                 return $this->success('All quotations fetched', [
                     'quotations' => $quotations->values(),
+                    'my_quotations' => $myQuotationsResults,
                     'pagination' => $pagination,
                 ], 200);
             } else {
