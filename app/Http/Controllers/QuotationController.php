@@ -59,16 +59,15 @@ class QuotationController extends Controller
         $query = Quotation::query();
         if ($user->hasRole('Client')) {
             $query->where('client_id', $user->id);
-        } elseif ($user->hasRole('Account Specialist')) {
-            $query->where('as_id', $user->id);
-        } elseif ($user->hasRole('Lead Account Specialist')) {
-            // No additional query constraints for Lead Account Specialist
+        } elseif ($user->hasRole(['Account Specialist', 'Lead Account Specialist'])) {
+            // No additional query constraints needed, as Account Specialists can view all quotations
         } else {
             return $this->error('Unauthorized', 403);
         }
 
         $request->validate([
             'filter.status' => 'required|in:REQUESTED,RESPONDED,ACCEPTED,DISCARDED',
+            'client_type' => 'sometimes|in:OLD,NEW',
             'search' => 'sometimes|string',
             'perPage' => 'sometimes|integer|min:1|max:100',
             'client_id' => [
@@ -91,6 +90,24 @@ class QuotationController extends Controller
         $status = $request->input('filter.status');
         if ($status) {
             $quotations->where('status', $status);
+        }
+
+        if (isset($request->client_type) && $request->client_type === 'OLD') {
+            $oldClientIds = [];
+            foreach (User::role('Client')->with('quotations')->get() as $client) {
+                if ($client->quotations->count() > 1) {
+                    $oldClientIds[] = $client->id;
+                }
+            }
+            $quotations->whereIn('client_id', $oldClientIds);
+        } elseif (isset($request->client_type) && $request->client_type === 'NEW') {
+            $newClientIds = [];
+            foreach (User::role('Client')->with('quotations')->get() as $client) {
+                if ($client->quotations->count() === 1) {
+                    $newClientIds[] = $client->id;
+                }
+            }
+            $quotations->whereIn('client_id', $newClientIds);
         }
 
         if ($request->search) {
@@ -132,149 +149,105 @@ class QuotationController extends Controller
 
         $pagination = null;
 
-        if (($user->hasRole('Account Specialist') || $user->hasRole('Lead Account Specialist')) && $request->filter['status'] === 'REQUESTED') {
+        if ($user->hasRole('Account Specialist') || $user->hasRole('Lead Account Specialist')) {
             if ($isWeb) {
-                if ($selectedClientId) {
-                    $resultsQuery = (clone $quotations)
-                        ->with(['client', 'accountSpecialist'])
-                        ->where('client_id', $selectedClientId)
+                $resultsQuery = $quotations
+                    ->with(['client', 'accountSpecialist', 'logisticsService', 'regulatoryService'])
+                    ->orderBy('created_at', 'desc');
+
+                $paginated = $resultsQuery->paginate($perPage);
+
+                $quotations = $paginated->getCollection()->map(function ($quotation) use ($dateFormat) {
+                    $issuedQuotation = IssuedQuotation::where('quotation_id', $quotation->id)->value('id');
+
+                    return [
+                        'id' => $quotation->id,
+                        'date' => $quotation->created_at->format($dateFormat),
+                        'client_full_name' => $quotation->client->full_name,
+                        'status' => $quotation->status,
+                        'assignment_status' => $quotation->assignment_status,
+                        'as_username' => $quotation->accountSpecialist->username ?? 'Available',
+                        'as_full_name' => $quotation->accountSpecialist->full_name ?? null,
+                        'assigned_at' => $quotation->assigned_at ? Carbon::parse($quotation->assigned_at)->format($dateFormat) : null,
+                        'service' => $quotation->logisticsService ? 'LOGISTICS' : ($quotation->regulatoryService ? 'REGULATORY' : null),
+                        'logistics_service' => $quotation->logisticsService ? [
+                            'commodity' => $quotation->logisticsService->commodity,
+                            'service_type' => $quotation->logisticsService->service_type,
+                            'transport_mode' => $quotation->logisticsService->transport_mode,
+                            'origin' => $quotation->logisticsService->origin,
+                            'destination' => $quotation->logisticsService->destination,
+                        ] : null,
+                        'regulatory_service' => $quotation->regulatoryService ? [
+                            'application_type' => $quotation->regulatoryService->application_type,
+                        ] : null,
+                        'conversation_id' => $conversationId ?? null,
+                        'prepared_by' => $quotation->created_by ? User::where('id', $quotation->created_by)->value('full_name') : null,
+                        'issued_quotation_id' => $issuedQuotation ?? null,
+                    ];
+                });
+
+                $pagination = $this->pagePaginationData($paginated);
+
+                return $this->success('All quotations fetched', [
+                    'quotations' => $quotations->values(),
+                    'pagination' => $pagination,
+                ], 200);
+            } else {
+                if ($request->filter['status'] === 'REQUESTED') {
+                    $resultsQuery = $quotations
+                        ->with(['client', 'accountSpecialist', 'logisticsService', 'regulatoryService'])
                         ->orderBy('created_at', 'desc');
 
-                    $paginated = $resultsQuery->paginate($perPage);
-                    $pagination = $this->pagePaginationData($paginated);
+                    $results = $resultsQuery->get();
 
-                    $quotationsForClient = $paginated->getCollection()->map(function ($quotation) use ($dateFormat) {
-                        $card = Message::where('reference_id', $quotation->id)
-                            ->where('type', 'QUOTATION_CARD')
-                            ->first();
-                        if ($card) {
-                            $conversationId = $card->conversation_id;
-                        }
+                    $groupedByClient = $results->groupBy('client_id')->map(function ($clientQuotations) use ($dateFormat) {
+                        $client = $clientQuotations->first()->client;
 
                         return [
-                            'id' => $quotation->id,
-                            'date' => $quotation->created_at->format($dateFormat),
-                            'person_in_charge' => $quotation->accountSpecialist->full_name,
-                            'commodity' => $quotation->logisticsService?->commodity ?? 'BUSINESS SOLUTION',
-                            'service_type' => $quotation->logisticsService?->service_type ?? $quotation->regulatoryService?->service_type ?? 'BUSINESS SOLUTION',
-                            'service' => $quotation->logisticsService ? 'LOGISTICS' : ($quotation->regulatoryService ? 'REGULATORY' : null),
-                            'conversation_id' => $conversationId ?? null,
-                            'prepared_by' => $quotation->created_by ? User::where('id', $quotation->created_by)->value('full_name') : null,
-                        ];
-                    })->values();
-
-                    $clientName = $paginated->getCollection()->first()?->client?->full_name
-                        ?? User::where('id', $selectedClientId)->value('full_name');
-
-                    $results = [[
-                        'client_id' => $selectedClientId,
-                        'name' => $clientName,
-                        'request_count' => $paginated->total(),
-                        'quotations' => $quotationsForClient,
-                    ]];
-
-                    return $this->success('All quotations fetched', [
-                        'quotations' => $results,
-                        'pagination' => $pagination,
-                    ], 200);
-                }
-
-                $paginatedClients = (clone $quotations)
-                    ->select('client_id', DB::raw('MAX(created_at) as latest_created_at'))
-                    ->groupBy('client_id')
-                    ->orderBy('latest_created_at', 'desc')
-                    ->paginate($perPage);
-
-                $pagination = $this->pagePaginationData($paginatedClients);
-                $clientIds = $paginatedClients->getCollection()->pluck('client_id')->values();
-
-                if ($clientIds->isEmpty()) {
-                    $results = collect();
-                } else {
-                    $groupedByClient = (clone $quotations)
-                        ->with(['client', 'accountSpecialist'])
-                        ->whereIn('client_id', $clientIds)
-                        ->orderBy('created_at', 'desc')
-                        ->get()
-                        ->groupBy('client_id');
-
-                    $results = $clientIds->map(function ($clientId) use ($groupedByClient, $dateFormat) {
-                        $userQuotations = $groupedByClient->get($clientId, collect());
-
-                        if ($userQuotations->isEmpty()) {
-                            return null;
-                        }
-
-                        $firstQuotation = $userQuotations->first();
-
-                        return [
-                            'client_id' => $firstQuotation->client_id,
-                            'name' => $firstQuotation->client->full_name,
-                            'request_count' => $userQuotations->count(),
-                            'quotations' => $userQuotations->map(function ($quotation) use ($dateFormat) {
-                                $card = Message::where('reference_id', $quotation->id)
-                                    ->where('type', 'QUOTATION_CARD')
-                                    ->first();
-                                if ($card) {
-                                    $conversationId = $card->conversation_id;
-                                }
+                            'client_id' => $client->id,
+                            'client_full_name' => $client->full_name,
+                            'quotations_count' => $clientQuotations->count(),
+                            'date' => $clientQuotations->first()->created_at->format($dateFormat),
+                            'quotations' => $clientQuotations->map(function ($quotation) use ($dateFormat) {
+                                $issuedQuotation = IssuedQuotation::where('quotation_id', $quotation->id)->value('id');
 
                                 return [
                                     'id' => $quotation->id,
                                     'date' => $quotation->created_at->format($dateFormat),
-                                    'person_in_charge' => $quotation->accountSpecialist->full_name,
-                                    'commodity' => $quotation->logisticsService?->commodity ?? 'BUSINESS SOLUTION',
-                                    'service_type' => $quotation->logisticsService?->service_type ?? $quotation->regulatoryService?->service_type ?? 'BUSINESS SOLUTION',
+                                    'client_full_name' => $quotation->client->full_name,
+                                    'status' => $quotation->status,
+                                    'assignment_status' => $quotation->assignment_status,
+                                    'as_username' => $quotation->accountSpecialist->username ?? 'Available',
+                                    'as_full_name' => $quotation->accountSpecialist->full_name ?? null,
+                                    'assigned_at' => $quotation->assigned_at ? Carbon::parse($quotation->assigned_at)->format($dateFormat) : null,
                                     'service' => $quotation->logisticsService ? 'LOGISTICS' : ($quotation->regulatoryService ? 'REGULATORY' : null),
+                                    'logistics_service' => $quotation->logisticsService ? [
+                                        'commodity' => $quotation->logisticsService->commodity,
+                                        'service_type' => $quotation->logisticsService->service_type,
+                                        'transport_mode' => $quotation->logisticsService->transport_mode,
+                                        'origin' => $quotation->logisticsService->origin,
+                                        'destination' => $quotation->logisticsService->destination,
+                                    ] : null,
+                                    'regulatory_service' => $quotation->regulatoryService ? [
+                                        'application_type' => $quotation->regulatoryService->application_type,
+                                    ] : null,
                                     'conversation_id' => $conversationId ?? null,
                                     'prepared_by' => $quotation->created_by ? User::where('id', $quotation->created_by)->value('full_name') : null,
+                                    'issued_quotation_id' => $issuedQuotation ?? null,
                                 ];
                             })->values(),
                         ];
-                    })->filter()->values();
+                    })->values();
+
+                    if ($groupedByClient->isEmpty()) {
+                        return $this->success('No quotations found', [], 200);
+                    }
+
+                    return $this->success('All quotations fetched', $groupedByClient, 200);
                 }
-
-                return $this->success('All quotations fetched', [
-                    'quotations' => $results,
-                    'pagination' => $pagination,
-                ], 200);
-            } else {
-                $resultsQuery = (clone $quotations)->with('client')->orderBy('created_at', 'desc');
-                $results = $resultsQuery->get();
-
-                $results = $results->groupBy('client_id')->map(function ($userQuotations) use ($dateFormat) {
-                    $firstQuotation = $userQuotations->first();
-                    // $client = User::where('id', $firstQuotation->client_id)->value('full_name');
-
-                    return [
-                        'client_id' => $firstQuotation->client_id,
-                        'name' => $firstQuotation->client->full_name,
-                        'request_count' => $userQuotations->count(),
-                        'quotations' => $userQuotations->map(function ($quotation) use ($dateFormat) {
-                            $card = Message::where('reference_id', $quotation->id)
-                                ->where('type', 'QUOTATION_CARD')
-                                ->first();
-                            if ($card) {
-                                $conversationId = $card->conversation_id;
-                            }
-
-                            return [
-                                'id' => $quotation->id,
-                                'date' => $quotation->created_at->format($dateFormat),
-                                'person_in_charge' => $quotation->accountSpecialist->full_name,
-                                'commodity' => $quotation->logisticsService?->commodity ?? 'BUSINESS SOLUTION',
-                                'service_type' => $quotation->logisticsService?->service_type ?? $quotation->regulatoryService?->service_type ?? 'BUSINESS SOLUTION',
-                                'service' => $quotation->logisticsService ? 'LOGISTICS' : ($quotation->regulatoryService ? 'REGULATORY' : null),
-                                'conversation_id' => $conversationId ?? null,
-                                'prepared_by' => $quotation->created_by ? User::where('id', $quotation->created_by)->value('full_name') : null,
-
-                            ];
-                        })->values(),
-                    ];
-                })->values();
             }
         } else {
-            $resultsQuery = $quotations->with('client')->orderBy('created_at', 'desc');
+            $resultsQuery = $quotations->with(['client', 'logisticsService'])->orderBy('created_at', 'desc');
 
             if ($isWeb) {
                 $paginated = $resultsQuery->paginate($perPage);
@@ -316,21 +289,12 @@ class QuotationController extends Controller
                         }
                     }
 
-                    $issuedQuotation = IssuedQuotation::where('quotation_id', $result->id)->value('id');
-
                     return [
                         'id' => $result->id,
-                        'client_name' => $result->client->full_name,
                         'reference_number' => $result->reference_number,
-                        'issued_quotation_id' => $issuedQuotation   ,
-                        'commodity' => $result->logisticsService?->commodity ?? 'BUSINESS SOLUTION',
-                        'service_type' => $result->logisticsService?->service_type ?? $result->regulatoryService?->service_type ?? 'BUSINESS SOLUTION',
-                        'service' => $result->logisticsService ? 'LOGISTICS' : ($result->regulatoryService ? 'REGULATORY' : null),
+                        'commodity' => $result->logisticsService?->commodity ?? $result->regulatoryService?->type_of_regulatory_assistance ?? null,
                         'date' => $result->created_at->format($dateFormat),
-                        'status' => $status ?? $result->status,
                         'conversation_id' => $conversationId ?? null,
-                        'prepared_by' => $result->created_by ? User::where('id', $result->created_by)->value('full_name') : null,
-                        'accepted_at' => $acceptedAt ? $acceptedAt->format($dateFormat) : null,
                     ];
                 }
             });
@@ -339,15 +303,6 @@ class QuotationController extends Controller
         if ($results->isEmpty()) {
             return $this->success('No quotations found', [], 200);
         }
-
-        if ($isWeb) {
-            return $this->success('All quotations fetched', [
-                'quotations' => $results->values(),
-                'pagination' => $pagination,
-            ], 200);
-        }
-
-        return $this->success('All quotations fetched', $results->values(), 200);
     }
 
     /**
