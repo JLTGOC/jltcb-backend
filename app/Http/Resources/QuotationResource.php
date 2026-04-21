@@ -67,8 +67,8 @@ class QuotationResource extends JsonResource
                 'contact_person' => $this->contact_person,
                 'contact_number' => $this->contact_number,
                 'email' => $this->email,
-                'position' => $this->position,
-                'business_type' => $regulatoryService?->business_type,
+                'position' => $regulatoryService?->position ?? $this->client->company_position,
+                'business_type' => $regulatoryService?->business_type ?? $this->client->business_type,
             ],
             'service' => $isRegulatory ? null : [
                 'type' => $logisticsService?->service_type,

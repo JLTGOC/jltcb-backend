@@ -470,6 +470,7 @@ class QuotationController extends Controller
                     'full_name' => $request->input('full_name'),
                     'contact_person_contact_number' => $request->input('company.cp_contact_number'),
                     'business_type' => $request->input('company.business_type'),
+                    'position' => $request->input('company.position'),
                     'type_of_regulatory_assistance' => $typeOfRegulatoryAssistance,
                     'application_type' => $request->service_level,
                     'message' => $request->message ?? null,
