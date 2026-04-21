@@ -188,6 +188,10 @@ class QuotationController extends Controller
 
                 $pagination = $this->pagePaginationData($paginated);
 
+                if ($quotations->isEmpty()) {
+                    return $this->success('No quotations found', [], 200);
+                }
+
                 return $this->success('All quotations fetched', [
                     'quotations' => $quotations->values(),
                     'pagination' => $pagination,
@@ -244,6 +248,61 @@ class QuotationController extends Controller
                     }
 
                     return $this->success('All quotations fetched', $groupedByClient, 200);
+                } else {
+                    $resultsQuery = $quotations->with(['client', 'logisticsService'])->orderBy('created_at', 'desc');
+
+                    $results = $resultsQuery->get()->map(function ($result) use ($user, $request, $dateFormat) {
+                        if ($request->has('filter.status')) {
+                            $status = null;
+                            if ($user->hasRole('Client') && $request->filter['status'] === 'RESPONDED') {
+                                if ($result->status === 'RESPONDED') {
+                                    $status = 'NEW';
+                                } else {
+                                    $status = $result->status;
+                                }
+                            }
+
+                            $acceptedAt = null;
+                            if ($result->status === 'ACCEPTED') {
+                                $acceptedAt = $result->updated_at;
+                            }
+
+                            $quotationCard = Message::where('reference_id', $result->id)
+                                ->where('type', 'QUOTATION_CARD')
+                                ->first();
+                            if ($quotationCard) {
+                                $conversationId = $quotationCard->conversation_id;
+                            }
+
+                            if ($status === 'ACCEPTED') {
+                                $shipmentCard = Message::where('reference_id', $shipment->id)
+                                    ->where('type', 'SHIPMENT_CARD')
+                                    ->first();
+                                if ($shipmentCard) {
+                                    $conversationId = $shipmentCard->conversation_id;
+                                }
+                            }
+
+                            return [
+                                'id' => $result->id,
+                                'client_name' => $result->client->full_name,
+                                'reference_number' => $result->reference_number,
+                                'issued_quotation_id' => IssuedQuotation::where('quotation_id', $result->id)->value('id') ?? null,
+                                'commodity' => $result->logisticsService?->commodity ?? $result->regulatoryService?->type_of_regulatory_assistance ?? null,
+                                'date' => $result->created_at->format($dateFormat),
+                                'conversation_id' => $conversationId ?? null,
+                                'prepared_by' => $result->created_by ? User::where('id', $result->created_by)->value('full_name') : null,
+                                'service' => $result->logisticsService ? 'LOGISTICS' : ($result->regulatoryService ? 'REGULATORY' : null),
+                                'service_type' => $result->logisticsService ? $result->logisticsService->service_type : ($result->regulatoryService ? $result->regulatoryService->type_of_regulatory_assistance : null),
+                            ];
+                        }
+                    });
+
+                    if ($results->isEmpty()) {
+                        return $this->success('No quotations found', [], 200);
+                    }
+
+                    return $this->success('All quotations fetched', $results->values(), 200);
                 }
             }
         } else {
@@ -298,10 +357,6 @@ class QuotationController extends Controller
                     ];
                 }
             });
-        }
-
-        if ($results->isEmpty()) {
-            return $this->success('No quotations found', [], 200);
         }
     }
 
