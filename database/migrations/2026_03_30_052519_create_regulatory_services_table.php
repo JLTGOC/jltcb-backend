@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('full_name');
             $table->string('contact_person_contact_number');
             $table->string('business_type');
+            $table->string('position');
             $table->string('type_of_regulatory_assistance');
             $table->string('application_type');
             $table->text('message')->nullable();
