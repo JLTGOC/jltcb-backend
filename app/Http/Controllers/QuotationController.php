@@ -298,8 +298,8 @@ class QuotationController extends Controller
                                 $conversationId = $quotationCard->conversation_id;
                             }
 
-                            if ($status === 'ACCEPTED') {
-                                $shipmentCard = Message::where('reference_id', $shipment->id)
+                            if ($result->shipment) {
+                                $shipmentCard = Message::where('reference_id', $result->shipment?->id)
                                     ->where('type', 'SHIPMENT_CARD')
                                     ->first();
                                 if ($shipmentCard) {
