@@ -45,18 +45,36 @@ class QuotationSeeder extends Seeder
             $companyName = fake()->company();
 
             $client = fake()->randomElement($clients);
+            $status = fake()->randomElement(['REQUESTED', 'RESPONDED', 'ACCEPTED', 'ACCEPTED']);
+            if ($status === 'ACCEPTED') {
+                $assignmentStatus = 'ASSIGNED';
+            } elseif ($status === 'RESPONDED') {
+                $assignmentStatus = fake()->randomElement(['ASSIGNED', 'REASSIGNMENT REQUESTED']);
+            } elseif ($status === 'REQUESTED') {
+                $assignmentStatus = fake()->randomElement(['AVAILABLE', 'ASSIGNED', 'REASSIGNMENT REQUESTED']);
+            }
+
+            $assignedAt = $assignmentStatus === 'ASSIGNED' || $assignmentStatus === 'REASSIGNMENT REQUESTED' ? Carbon::now() : null;
+
+            if ($assignmentStatus === 'ASSIGNED' || $assignmentStatus === 'REASSIGNMENT REQUESTED') {
+                $assignedSpecialist = fake()->randomElement($specialists);
+            } else {
+                $assignedSpecialist = null;
+            }
 
             $quotation = Quotation::create([
                 'reference_number' => "QT-{$dateSection}-{$idSection}",
-                'status' => fake()->randomElement(['REQUESTED', 'RESPONDED', 'ACCEPTED', 'ACCEPTED', 'ACCEPTED']),
+                'status' => $status,
                 'client_id' => $client,
-                'as_id' => fake()->randomElement($specialists),
+                'as_id' => $assignedSpecialist,
                 'company_name' => $companyName,
                 'company_address' => fake()->address(),
                 'contact_person' => $firstName . ' ' . $lastName,
                 'contact_number' => fake()->numerify('09#########'),
                 'email' => mb_strtolower($lastName) . '.' . mb_strtolower($firstName) . '@gmail.com',
                 'position' => User::find($client)->position,
+                'assignment_status' => $assignmentStatus,
+                'assigned_at' => $assignedAt,
             ]);
 
             $quotation->files()->updateOrCreate([
@@ -120,7 +138,7 @@ class QuotationSeeder extends Seeder
                         'quotation_id' => $quotation->id,
                         'file_path' => 'files/QuotationFile.pdf',
                     ], [
-                        'uploaded_by' => $quotation->as_id,
+                        'uploaded_by' => $quotation->as_id ?? fake()->randomElement($specialists),
                         'type' => 'PROPOSAL',
                         'original_file_name' => 'QUOTATION.pdf',
                         'file_type' => 'pdf',

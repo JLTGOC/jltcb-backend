@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('reference_number')->unique();
             $table->unsignedBigInteger('client_id');
             $table->foreign('client_id')->references('id')->on('users')->constrained()->cascadeOnDelete();
-            $table->unsignedBigInteger('as_id');
+            $table->unsignedBigInteger('as_id')->nullable();
             $table->foreign('as_id')->references('id')->on('users')->constrained();
             $table->enum('status', ['REQUESTED', 'RESPONDED', 'ACCEPTED', 'DISCARDED'])->default('REQUESTED');
             $table->string('contact_person');
@@ -26,6 +26,8 @@ return new class extends Migration
             $table->string('company_name');
             $table->string('company_address');
             $table->string('position')->nullable();
+            $table->enum('assignment_status', ['AVAILABLE', 'ASSIGNED', 'REASSIGNMENT REQUESTED'])->default('AVAILABLE');
+            $table->timestamp('assigned_at')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->cascadeOnDelete();
             $table->timestamps();
         });

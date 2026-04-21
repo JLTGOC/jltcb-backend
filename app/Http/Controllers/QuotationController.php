@@ -369,35 +369,43 @@ class QuotationController extends Controller
             $previousQuotation = Quotation::where('client_id', $user->id)->latest()->first();
             if ($previousQuotation) {
                 $assignedSpecialist = $previousQuotation->accountSpecialist;
-            } else {
-                $specialists = User::role('Account Specialist')->get();
-                foreach ($specialists as $specialist) {
-                    $quotationsCount = Quotation::where('as_id', $specialist->id)->count();
-                    $specialist->quotations_count = $quotationsCount;
-                }
+            } 
+            // else {
+                // $specialists = User::role('Account Specialist')->get();
+                // foreach ($specialists as $specialist) {
+                //     $quotationsCount = Quotation::where('as_id', $specialist->id)->count();
+                //     $specialist->quotations_count = $quotationsCount;
+                // }
 
-                $minCount = $specialists->min('quotations_count');
+                // $minCount = $specialists->min('quotations_count');
 
-                if ($specialists->where('quotations_count', $minCount)->count() > 1) {
-                    foreach ($specialists->where('quotations_count', $minCount) as $specialist) {
-                        $specialist->lastest_quotation = Quotation::where('as_id', $specialist->id)->latest()->first()?->created_at ?? Carbon::createFromTimestamp(0);
-                    }
-                    $assignedSpecialist = $specialists->where('quotations_count', $minCount)->sortBy('lastest_quotation')->first();
-                } else {
-                    $assignedSpecialist = $specialists->where('quotations_count', $minCount)->first();
-                }
+                // if ($specialists->where('quotations_count', $minCount)->count() > 1) {
+                //     foreach ($specialists->where('quotations_count', $minCount) as $specialist) {
+                //         $specialist->lastest_quotation = Quotation::where('as_id', $specialist->id)->latest()->first()?->created_at ?? Carbon::createFromTimestamp(0);
+                //     }
+                //     $assignedSpecialist = $specialists->where('quotations_count', $minCount)->sortBy('lastest_quotation')->first();
+                // } else {
+                //     $assignedSpecialist = $specialists->where('quotations_count', $minCount)->first();
+                // }
+            // }
+
+            if ($assignedSpecialist) {
+                $assignmentStatus = 'ASSIGNED';
+                $assignedAt = Carbon::now();
             }
 
             $quotation = Quotation::create([
                 'reference_number' => "QT-{$dateSection}-{$idSection}",
                 'client_id' => $user->id,
-                'as_id' => $assignedSpecialist->id,
+                'as_id' => $assignedSpecialist->id ?? null,
                 'company_name' => $request->input('company.name'),
                 'company_address' => $request->input('company.address'),
                 'contact_person' => $request->input('company.contact_person'),
                 'contact_number' => $request->input('company.contact_number'),
                 'email' => $request->input('company.email'),
                 'position' => $request->input('company.position'),
+                'assignment_status' => $assignmentStatus ?? 'UNASSIGNED',
+                'assigned_at' => $assignedAt ?? null
             ]);
 
             if ($request->input('services') === 'LOGISTICS') {
@@ -775,21 +783,38 @@ class QuotationController extends Controller
      * Allows Lead Account Specialist to reassign the Account Specialist in charge of a quotation
      */
     public function reassignSpecialist(Quotation $quotation, Request $request) {
-        $request->validate([
-            'as_id' => ['required', 'integer', 'exists:users,id']
-        ]);
+        if (auth()->user()->hasRole('Lead Account Specialist')) {
+            if ($quotation->assignment_status !== 'REASSIGNMENT_REQUESTED') {
+                return $this->error('Reassignment can only be done when the assignment status is REASSIGNMENT_REQUESTED', 422);
+            }
 
-        $user = User::find($request->as_id);
+            $request->validate([
+                'as_id' => ['required', 'integer', 'exists:users,id']
+            ]);
 
-        if (!$user->hasRole('Account Specialist')) {
-            return $this->error('The selected user must have an Account Specialist role.', 422);
+            $user = User::find($request->as_id);
+
+            if (!$user->hasRole('Account Specialist')) {
+                return $this->error('The selected user must have an Account Specialist role.', 422);
+            }
+
+            $quotation->update([
+                'as_id' => $request->as_id,
+                'assignment_status' => 'ASSIGNED',
+                'assigned_at' => Carbon::now()
+            ]);
+
+            return $this->success('Account Specialist reassigned successfully', new QuotationResource($quotation), 200);
+        } elseif (auth()->user()->id === $quotation->as_id) {
+            $quotation->update([
+                'assignment_status' => 'REASSIGNMENT REQUESTED',
+                'assigned_at' => null
+            ]);
+
+            return $this->success('Account Specialist unassigned successfully', new QuotationResource($quotation), 200);
+        } else {
+            return $this->error('Unauthorized', 403);
         }
-
-        $quotation->update([
-            'as_id' => $request->as_id
-        ]);
-
-        return $this->success('Account Specialist reassigned successfully', new QuotationResource($quotation), 200);
     }
 
     /**

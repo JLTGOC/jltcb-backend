@@ -19,6 +19,8 @@ class Quotation extends Model implements Searchable
         'company_name',
         'company_address',
         'position',
+        'assignment_status',
+        'assigned_at',
         'created_by'
     ];
 
