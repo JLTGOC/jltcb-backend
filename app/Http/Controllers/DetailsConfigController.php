@@ -53,6 +53,8 @@ class DetailsConfigController extends BaseConfigController
             'options' => 'required_if:type,DROPDOWN|array',
             'options.*.name' => 'required|string|max:255|distinct',
         ]);
+        
+        // return $request->options;
 
         $detailsConfig = DetailsConfiguration::create([
             'label' => $request->label,
@@ -60,13 +62,7 @@ class DetailsConfigController extends BaseConfigController
         ]);
 
         if ($detailsConfig->type === 'DROPDOWN') {
-            $options = collect($request->options)
-                ->filter()
-                ->map(fn($option) => ['name' => $option])
-                ->values()
-                ->toArray();
-
-            $detailsConfig->dropdownOptions()->createMany($options);
+            $detailsConfig->dropdownOptions()->createMany($request->options);
             $detailsConfig->load('dropdownOptions');
         }
 

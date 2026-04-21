@@ -22,7 +22,10 @@ class DetailsConfigResource extends JsonResource
             'dropdown_options' => $this->when(
                 $this->type === 'DROPDOWN', 
                 ConfigDropdownOptionResource::collection($this->whenLoaded('dropdownOptions'))
-            ) 
+            ), 
+            'count' => $this->whenLoaded('dropdownOptions', function() {
+                return $this->dropdownOptions()->count();
+            })
         ];
     }
 }
