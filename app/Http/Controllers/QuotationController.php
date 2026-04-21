@@ -291,20 +291,6 @@ class QuotationController extends Controller
 
                     $results = $resultsQuery->get()->map(function ($result) use ($user, $request, $dateFormat) {
                         if ($request->has('filter.status')) {
-                            $status = null;
-                            if ($user->hasRole('Client') && $request->filter['status'] === 'RESPONDED') {
-                                if ($result->status === 'RESPONDED') {
-                                    $status = 'NEW';
-                                } else {
-                                    $status = $result->status;
-                                }
-                            }
-
-                            $acceptedAt = null;
-                            if ($result->status === 'ACCEPTED') {
-                                $acceptedAt = $result->updated_at;
-                            }
-
                             $quotationCard = Message::where('reference_id', $result->id)
                                 ->where('type', 'QUOTATION_CARD')
                                 ->first();
