@@ -794,8 +794,8 @@ class QuotationController extends Controller
      */
     public function reassignSpecialist(Quotation $quotation, Request $request) {
         if (auth()->user()->hasRole('Lead Account Specialist')) {
-            if ($quotation->assignment_status !== 'REASSIGNMENT_REQUESTED') {
-                return $this->error('Reassignment can only be done when the assignment status is REASSIGNMENT_REQUESTED', 422);
+            if ($quotation->assignment_status !== 'REASSIGNMENT REQUESTED') {
+                return $this->error('Reassignment can only be done when the assignment status is REASSIGNMENT REQUESTED', 422);
             }
 
             $request->validate([
