@@ -55,7 +55,7 @@ class QuotationResource extends JsonResource
             'id' => $this->id,   
             'reference_number' => $this->reference_number,
             'client' => $this->client->full_name,
-            'account_specialist' => $this->accountSpecialist->full_name,
+            'account_specialist' => $this->accountSpecialist->full_name ?? null,
             'status' => $this->status,
             'shipment_status' => $shipmentStatus,
             'created_at' => $this->created_at->format('m/d/Y'),

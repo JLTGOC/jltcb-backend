@@ -175,6 +175,7 @@ class QuotationController extends Controller
 
                     return [
                         'id' => $quotation->id,
+                        'reference_number' => $quotation->reference_number,
                         'date' => $quotation->created_at->format($dateFormat),
                         'client_full_name' => $quotation->client->full_name,
                         'status' => $quotation->status,
@@ -253,6 +254,7 @@ class QuotationController extends Controller
 
                                 return [
                                     'id' => $quotation->id,
+                                    'reference_number' => $quotation->reference_number,
                                     'date' => $quotation->created_at->format($dateFormat),
                                     'client_full_name' => $quotation->client->full_name,
                                     'status' => $quotation->status,
