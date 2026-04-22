@@ -22,6 +22,7 @@ use App\Http\Resources\{
     QuotationResource,
 };
 use Spatie\Searchable\Search;
+use Carbon\Carbon;
 
 class JobOrderController extends Controller
 {
@@ -370,5 +371,47 @@ class JobOrderController extends Controller
         }
 
         return $this->success('Job Order accepted successfully', new JobOrderResource($jobOrder), 200);
+    }
+
+    /**
+     * Reassign Job Order Operations
+     * 
+     * Reassign the Job Order to another Operations user
+     */
+    public function reassignOps(Request $request, JobOrder $jobOrder) {
+        $this->authorize('reassignOps', $jobOrder);
+
+        if (!$jobOrder) {
+            return $this->error('Job Order not found', 404);
+        }
+
+        if (auth()->user()->hasRole('Lead Operations')) {
+            if ($jobOrder->assignment_status !== 'REASSIGNMENT REQUESTED') {
+                return $this->error('This Job Order cannot be reassigned', 422);
+            }
+
+            $request->validate([
+                'operations_id' => 'required|exists:users,id'
+            ]);
+
+            $ops = User::find($request->operations_id);
+            if (!$ops->hasRole('Operations')) {
+                return $this->error('The selected user is not an Operations user', 422);
+            }
+
+            $jobOrder->update([
+                'operations_id' => $request->operations_id,
+                'assignment_status' => 'ASSIGNED',
+                'assigned_at' => Carbon::now(),
+            ]);
+        } elseif (auth()->user()->hasRole('Operations')) {
+            $jobOrder->update([
+                'assignment_status' => 'REASSIGNMENT REQUESTED',
+            ]);
+
+            return $this->success('Reassignment request sent successfully', new JobOrderResource($jobOrder), 200);
+        }
+
+        return $this->success('Job Order reassigned successfully', new JobOrderResource($jobOrder), 200);
     }
 }

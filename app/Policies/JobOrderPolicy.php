@@ -85,4 +85,9 @@ class JobOrderPolicy
         }
         return !$opsOrFinanceExists;
     }
+
+    public function reassignOps(User $user, JobOrder $jobOrder): bool
+    {
+        return $user->hasRole('Lead Operations') || ($user->hasRole('Operations') && $jobOrder->operations_id === $user->id);
+    }
 }

@@ -89,6 +89,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/job-orders/enums', [JobOrderController::class, 'jobOrderEnums']);
     Route::get('/job-orders/{job_order}/quotation', [JobOrderController::class, 'showJobOrderQuotation']);
     Route::put('/job-orders/{job_order}/accept', [JobOrderController::class, 'acceptJobOrder']);
+    Route::put('/job-orders/{job_order}/reassign-ops', [JobOrderController::class, 'reassignOps']);
     Route::apiResource('job-orders', JobOrderController::class)->only(['store', 'show', 'index']);
     
     // Configuration Template Routes
