@@ -19,6 +19,8 @@ class JobOrder extends Model implements Searchable
         'subject',
         'email_body',
         'shipment_creation_status',
+        'assignment_status',
+        'assigned_at',
     ];
 
     protected $casts = [
@@ -27,6 +29,8 @@ class JobOrder extends Model implements Searchable
         'operations_id' => 'integer',
         'finance_id' => 'integer',
         'quotation_id' => 'integer',
+        'assignment_status' => 'string',
+        'assigned_at' => 'datetime',
     ];
 
     public function getSearchResult(): SearchResult

@@ -33,6 +33,7 @@ class QuotationSeeder extends Seeder
     {
         $clients = User::role('Client')->pluck('id');
         $specialists = User::role('Account Specialist')->pluck('id');
+        $ops = User::role('Operations')->get();
 
         $i = 0;
         do {
@@ -168,20 +169,43 @@ class QuotationSeeder extends Seeder
                 $idSection = str_pad(((JobOrder::latest('id')->value('id') ?? 0) + 1), 3, '0', STR_PAD_LEFT);
                 $dateSection = now()->format('m-Y');
 
+                $assignedOps = null;
+
+                $assignmentStatus = fake()->randomElement(['AVAILABLE', 'ASSIGNED', 'REASSIGNMENT REQUESTED']);
+                if ($assignmentStatus === 'ASSIGNED' || $assignmentStatus === 'REASSIGNMENT REQUESTED') {
+                    if ($ops->isNotEmpty()) {
+                        $assignedOps = $ops->random();
+                    } else {
+                        $assignmentStatus = 'AVAILABLE';
+                    }
+                }
+
                 $jobOrder = JobOrder::create([
                     'reference_number' => "{$prefix}-{$dateSection}-{$idSection}",
                     'job_type' => $jobType,
                     'client_id' => $quotation->client_id,
                     'as_id' => $quotation->as_id,
-                    'operations_id' => User::role('Operations')->inRandomOrder()->first()->id,
+                    'operations_id' => $assignedOps?->id,
                     'finance_id' => User::role('Finance')->inRandomOrder()->first()->id,
                     'quotation_id' => $quotation->id,
                     'subject' => fake()->sentence(),
                     'email_body' => fake()->paragraph(),
                     'shipment_creation_status' => fake()->randomElement(['PENDING', 'CREATED']),
+                    'assignment_status' => $assignmentStatus,
                     'created_at' => Carbon::now()->subDays(fake()->numberBetween(5, 10)),
                     'updated_at' => Carbon::now()->subDays(fake()->numberBetween(1, 5)),
                 ]);
+
+                if ($jobOrder->assignment_status === 'ASSIGNED' || $jobOrder->assignment_status === 'REASSIGNMENT REQUESTED') {
+                    $jobOrder->update([
+                        'assigned_at' => $jobOrder->updated_at,
+                    ]);
+                } elseif ($jobOrder->assignment_status === 'AVAILABLE') {
+                    $jobOrder->update([
+                        'operations_id' => null,
+                        'shipment_creation_status' => 'PENDING',
+                    ]);
+                }
 
                 if ($quotation->logisticsService) {
                     $serviceType = $quotation->logisticsService->service_type;
@@ -258,11 +282,6 @@ class QuotationSeeder extends Seeder
                         'origin' => $logisticsService->origin,
                         'destination' => $logisticsService->destination,
                         'remarks' => $logisticsService->remarks,
-                    ]);
-                } else {
-                    $jobOrder->update([
-                        'operations_id' => null,
-                        'finance_id' => null,
                     ]);
                 }
             }
