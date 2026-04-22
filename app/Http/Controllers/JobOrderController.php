@@ -23,9 +23,27 @@ use App\Http\Resources\{
 };
 use Spatie\Searchable\Search;
 use Carbon\Carbon;
+use App\Enums\ServiceLevelEnum;
 
 class JobOrderController extends Controller
 {
+    private function normalizeServiceLevel(?string $serviceLevel): ?string
+    {
+        if (!$serviceLevel) {
+            return null;
+        }
+
+        return match ($serviceLevel) {
+            'CC', 'CARGO CONSOLIDATION (CC)' => ServiceLevelEnum::CARGO_CONSOLIDATION->value,
+            'DE', 'DIRECT EXPORT (DE)' => ServiceLevelEnum::DIRECT_EXPORT->value,
+            'IFF', 'INTERNATIONAL FREIGHT FORWARDING (IFF)' => ServiceLevelEnum::INTERNATIONAL_FREIGHT_FORWARDING->value,
+            'CC, DE', 'CARGO CONSOLIDATION (CC), DIRECT EXPORT (DE)' => ServiceLevelEnum::CARGO_CONSOLIDATION_DIRECT_EXPORT->value,
+            'IFF, CC', 'INTERNATIONAL FREIGHT FORWARDING (IFF), CARGO CONSOLIDATION (CC)' => ServiceLevelEnum::INTERNATIONAL_FREIGHT_FORWARDING_CARGO_CONSOLIDATION->value,
+            'IFF, CC, DE', 'INTERNATIONAL FREIGHT FORWARDING (IFF), CARGO CONSOLIDATION (CC), DIRECT EXPORT (DE)' => ServiceLevelEnum::INTERNATIONAL_FREIGHT_FORWARDING_CARGO_CONSOLIDATION_DIRECT_EXPORT->value,
+            default => ServiceLevelEnum::tryFrom($serviceLevel)?->value ?? $serviceLevel,
+        };
+    }
+
     public function __construct()
     {
         $this->authorizeResource(JobOrder::class, 'job_order');
@@ -38,6 +56,9 @@ class JobOrderController extends Controller
      */
     public function index(Request $request)
     {
+        $platform = $request->header('Platform', 'mobile');
+        $isWeb = $platform === 'web';
+
         $request->validate([
             'search' => 'sometimes|string'
         ]);
@@ -46,7 +67,7 @@ class JobOrderController extends Controller
 
         $myJobOrders = null;
 
-        if ($user->hasRole(['Lead Account Specialist'])) {
+        if ($user->hasRole(['Lead Account Specialist', 'Lead Operations'])) {
             $jobOrders = JobOrder::get();
         } elseif ($user->hasRole('Account Specialist')) {
             $jobOrders = JobOrder::where('as_id', $user->id)->get();
@@ -66,14 +87,20 @@ class JobOrderController extends Controller
                 ->search($request->search)
                 ->pluck('searchable');
 
-            $jobOrders = $jobOrders->whereIn('id', $search->pluck('id'))->values();
+            $clientIds = User::where('full_name', 'like', '%' . $request->search . '%')->pluck('id');
+            $clientJobOrderIds = JobOrder::whereIn('client_id', $clientIds)->pluck('id');
+            $mergedIds = $search->pluck('id')->merge($clientJobOrderIds)->unique();
+
+            $jobOrders = $jobOrders
+                ->whereIn('id', $mergedIds)
+                ->values();
 
             if ($myJobOrders) {
-                $myJobOrders = $myJobOrders->whereIn('id', $search->pluck('id'))->values();
+                $myJobOrders = $myJobOrders->whereIn('id', $mergedIds)->values();
             }
         }
 
-        $jobOrders = $jobOrders->map(function ($j) use ($user) {
+        $jobOrders = $jobOrders->map(function ($j) use ($user, $isWeb) {
             if ($j->job_type === 'LOGISTICS') {
                 $service = 'Logistics Services';
             } elseif ($j->job_type === 'REGULATORY') {
@@ -91,6 +118,52 @@ class JobOrderController extends Controller
                 $assignedTo = $j->operations ? $j->operations->username : 'Available';
             }
 
+            if ($isWeb) {
+                if ($j->job_type === 'LOGISTICS') {
+                    $serviceLevel = $j->jobOrderShipment->service_level ?? null;
+                    $serviceLevel = $this->normalizeServiceLevel($serviceLevel);
+
+                    return [
+                        'id' => $j->id,
+                        'reference_number' => $j->reference_number,
+                        'client' => $j->client->full_name,
+                        'date_created' => strtoupper($j->created_at->format('F d, Y')),
+                        'job_type' => 'LOGISTICS',
+                        'commodity' => $j->quotation->logisticsService->commodity,
+                        'service_type' => $j->quotation->logisticsService->service_type,
+                        'transport_mode' => $j->quotation->logisticsService->transport_mode,
+                        'origin' => $j->quotation->logisticsService->origin,
+                        'destination' => $j->quotation->logisticsService->destination,
+                        'service_level' => $serviceLevel,
+                        'bl_no' => $j->jobOrderShipment->bl_no ?? null,
+                        'quotation_id' => $j->quotation_id,
+                        'quotation_reference_number' => $j->quotation->reference_number,
+                        'assignment_status' => $j->assignment_status,
+                        'assigned_to' => $j->operations->full_name ?? null,
+                        'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
+                    ];
+                } elseif ($j->job_type === 'REGULATORY') {
+                    if ($j->operations) {
+                        $assignedTo = mb_strtoupper($j->operations->full_name);
+                    } else {
+                        $assignedTo = null;
+                    }
+                    return [
+                        'id' => $j->id,
+                        'reference_number' => $j->reference_number,
+                        'client' => $j->client->full_name,
+                        'date_created' => strtoupper($j->created_at->format('F d, Y')),
+                        'job_type' => 'REGULATORY',
+                        'application_type' => $j->quotation->regulatoryService->application_type,
+                        'quotation_id' => $j->quotation_id,
+                        'quotation_reference_number' => $j->quotation->reference_number,
+                        'assignment_status' => $j->assignment_status,
+                        'assigned_to' => $assignedTo,
+                        'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
+                    ];
+                }
+            }
+
             return [
                 'id' => $j->id,
                 'reference_number' => $j->reference_number,
@@ -104,7 +177,7 @@ class JobOrderController extends Controller
         });
 
         if ($myJobOrders) {
-            $myJobOrders = $myJobOrders->map(function ($j) use ($user) {
+            $myJobOrders = $myJobOrders->map(function ($j) use ($user, $isWeb) {
                 if ($j->job_type === 'LOGISTICS') {
                     $service = 'Logistics Services';
                 } elseif ($j->job_type === 'REGULATORY') {
@@ -117,6 +190,52 @@ class JobOrderController extends Controller
                     $assignedTo = $j->operations ? $j->operations->username : 'Available';
                 } elseif ($user->hasRole('Finance')) {
                     $assignedTo = $j->finance ? $j->finance->username : 'Available';
+                }
+
+                if ($isWeb) {
+                    if ($j->job_type === 'LOGISTICS') {
+                        $serviceLevel = $j->jobOrderShipment->service_level ?? null;
+                        $serviceLevel = $this->normalizeServiceLevel($serviceLevel);
+
+                        return [
+                            'id' => $j->id,
+                            'reference_number' => $j->reference_number,
+                            'client' => $j->client->full_name,
+                            'date_created' => strtoupper($j->created_at->format('F d, Y')),
+                            'job_type' => 'LOGISTICS',
+                            'commodity' => $j->quotation->logisticsService->commodity,
+                            'service_type' => $j->quotation->logisticsService->service_type,
+                            'transport_mode' => $j->quotation->logisticsService->transport_mode,
+                            'origin' => $j->quotation->logisticsService->origin,
+                            'destination' => $j->quotation->logisticsService->destination,
+                            'service_level' => $serviceLevel,
+                            'bl_no' => $j->jobOrderShipment->bl_no ?? null,
+                            'quotation_id' => $j->quotation_id,
+                            'quotation_reference_number' => $j->quotation->reference_number,
+                            'assignment_status' => $j->assignment_status,
+                            'assigned_to' => $j->operations->full_name ?? null,
+                            'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
+                        ];
+                    } elseif ($j->job_type === 'REGULATORY') {
+                        if ($j->operations) {
+                            $assignedTo = mb_strtoupper($j->operations->full_name);
+                        } else {
+                            $assignedTo = null;
+                        }
+                        return [
+                            'id' => $j->id,
+                            'reference_number' => $j->reference_number,
+                            'client' => $j->client->full_name,
+                            'date_created' => strtoupper($j->created_at->format('F d, Y')),
+                            'job_type' => 'REGULATORY',
+                            'application_type' => $j->quotation->regulatoryService->application_type,
+                            'quotation_id' => $j->quotation_id,
+                            'quotation_reference_number' => $j->quotation->reference_number,
+                            'assignment_status' => $j->assignment_status,
+                            'assigned_to' => $assignedTo,
+                            'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
+                        ];
+                    }
                 }
 
                 return [
