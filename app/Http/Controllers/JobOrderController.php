@@ -14,7 +14,8 @@ use App\Models\{
     JobOrderShipment,
     JobOrderBilling,
     ServiceLevel,
-    BillingMode
+    BillingMode,
+    ReassignmentRequest,
 };
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\{
@@ -493,6 +494,44 @@ class JobOrderController extends Controller
     }
 
     /**
+     * Request Job Order Reassignment
+     * 
+     * Request reassignment of the Job Order to another Operations user (Operations users) or request reassignment to Operations team (Lead Operations)
+     */
+    public function requestReassignment(JobOrder $jobOrder, Request $request) {
+        $this->authorize('requestReassignment', $jobOrder);
+
+        if (!$jobOrder) {
+            return $this->error('Job Order not found', 404);
+        }
+
+        $reassignmentRequest = ReassignmentRequest::where('job_order_id', $jobOrder->id)->where('status', 'PENDING')->latest()->first();
+
+        if ($reassignmentRequest) {
+            return $this->error('A reassignment request is already pending for this Job Order', 422);
+        } else {
+            $request->validate([
+                'reason' => 'required|string',
+                'additional_details' => 'sometimes|string',
+            ]);
+
+            $jobOrder->update([
+                'assignment_status' => 'REASSIGNMENT REQUESTED',
+            ]);
+
+            $reassignmentRequest = ReassignmentRequest::create([
+                'job_order_id' => $jobOrder->id,
+                'as_id' => auth()->id(),
+                'reason' => $request->reason,
+                'additional_details' => $request->additional_details,
+                'status' => 'PENDING',
+            ]);
+
+            return $this->success('Reassignment request submitted successfully', $reassignmentRequest, 200);
+        }
+    }
+
+    /**
      * Reassign Job Order Operations
      * 
      * Reassign the Job Order to another Operations user
@@ -504,36 +543,39 @@ class JobOrderController extends Controller
             return $this->error('Job Order not found', 404);
         }
 
-        if (auth()->user()->hasRole('Lead Operations')) {
-            if ($jobOrder->assignment_status !== 'REASSIGNMENT REQUESTED') {
-                return $this->error('This Job Order cannot be reassigned', 422);
-            }
+        $reassignmentRequest = ReassignmentRequest::where('job_order_id', $jobOrder->id)->where('status', 'PENDING')->latest()->first();
 
-            $request->validate([
-                'operations_id' => 'required|exists:users,id'
-            ]);
-
-            $ops = User::find($request->operations_id);
-            if (!$ops->hasRole('Operations')) {
-                return $this->error('The selected user is not an Operations user', 422);
-            }
-            if ($jobOrder->operations_id === (int) $request->operations_id) {
-                return $this->error('The Job Order is already assigned to this user', 422);
-            }
-
-            $jobOrder->update([
-                'operations_id' => $request->operations_id,
-                'assignment_status' => 'ASSIGNED',
-                'assigned_at' => Carbon::now(),
-            ]);
-        } elseif (auth()->user()->hasRole('Operations')) {
-            $jobOrder->update([
-                'assignment_status' => 'REASSIGNMENT REQUESTED',
-            ]);
-
-            return $this->success('Reassignment request sent successfully', new JobOrderResource($jobOrder), 200);
+        if (!$reassignmentRequest) {
+            return $this->error('No pending reassignment request for this Job Order', 422);
         }
 
-        return $this->success('Job Order reassigned successfully', new JobOrderResource($jobOrder), 200);
+        $request->validate([
+            'status' => 'required|in:APPROVED,REJECTED',
+            'operations_id' => 'required_if:status,APPROVED|exists:users,id'
+        ]);
+
+        if ($request->status === 'REJECTED') {
+            $jobOrder->update([
+                'assignment_status' => 'ASSIGNED',
+            ]);
+
+            $reassignmentRequest->update([
+                'status' => 'REJECTED',
+            ]);
+
+            return $this->success('Reassignment request rejected', $reassignmentRequest, 200);
+        } elseif ($request->status === 'APPROVED') {
+            $jobOrder->update([
+                'operations_id' => $request->operations_id,
+                'assigned_at' => Carbon::now(),
+                'assignment_status' => 'ASSIGNED'
+            ]);
+
+            $reassignmentRequest->update([
+                'status' => 'APPROVED',
+            ]);
+
+            return $this->success('Reassignment request approved', $reassignmentRequest, 200);
+        }
     }
 }

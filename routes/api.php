@@ -54,6 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('quotations/enum-options', [QuotationController::class, 'enumQuotationOptions']);
     Route::put('/quotations/{quotation}/reassign-specialist', [QuotationController::class, 'reassignSpecialist']);
+    Route::post('/quotations/{quotation}/request-reassignment', [QuotationController::class, 'requestReassignment']);
     Route::put('/quotations/{quotation}/accept', [QuotationController::class, 'acceptQuotation']);
     Route::apiResource('quotations', QuotationController::class)->except(['update']);
     Route::post('/quotations/{quotation}', [QuotationController::class, 'update']);
@@ -89,6 +90,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/job-orders/enums', [JobOrderController::class, 'jobOrderEnums']);
     Route::get('/job-orders/{job_order}/quotation', [JobOrderController::class, 'showJobOrderQuotation']);
     Route::put('/job-orders/{job_order}/accept', [JobOrderController::class, 'acceptJobOrder']);
+    Route::post('/job-orders/{job_order}/request-reassignment', [JobOrderController::class, 'requestReassignment']);
     Route::put('/job-orders/{job_order}/reassign-ops', [JobOrderController::class, 'reassignOps']);
     Route::apiResource('job-orders', JobOrderController::class)->only(['store', 'show', 'index']);
     

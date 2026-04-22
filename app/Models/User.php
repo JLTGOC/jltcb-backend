@@ -92,4 +92,8 @@ class User extends Authenticatable
     public function issuedQuotations() {
         return $this->hasMany(IssuedQuotation::class, 'issued_by');
     }
+
+    public function reassignmentRequests() {
+        return $this->hasMany(ReassignmentRequest::class);
+    }
 }

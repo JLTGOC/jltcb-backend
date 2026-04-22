@@ -85,4 +85,8 @@ class JobOrder extends Model implements Searchable
     public function shipment() {
         return $this->hasOne(Shipment::class, 'job_order_id');
     }
+
+    public function reassignmentRequests() {
+        return $this->hasMany(ReassignmentRequest::class);
+    }
 }

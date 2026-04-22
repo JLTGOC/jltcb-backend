@@ -40,7 +40,6 @@ class QuotationController extends Controller
         $this->middleware('can:enumQuotationOptions,' . Quotation::class)->only('enumQuotationOptions');
         $this->middleware('can:upload,quotation')->only('upload');
         $this->middleware('can:showFile,quotation')->only('showFile');
-        $this->middleware('can:reassignSpecialist,quotation')->only('reassignSpecialist');
         $this->middleware('can:acceptQuotation,quotation')->only('acceptQuotation');
     }
 
@@ -864,42 +863,54 @@ class QuotationController extends Controller
      * Allows Lead Account Specialist to reassign the Account Specialist in charge of a quotation
      */
     public function reassignSpecialist(Quotation $quotation, Request $request) {
-        if (auth()->user()->hasRole('Lead Account Specialist')) {
-            if ($quotation->assignment_status !== 'REASSIGNMENT REQUESTED') {
-                return $this->error('Reassignment can only be done when the assignment status is REASSIGNMENT REQUESTED', 422);
-            }
+        $this->authorize('reassignSpecialist', $quotation);
 
-            $request->validate([
-                'status' => ['required', 'in:APPROVED,REJECTED'],
-                'as_id' => ['required_if:status,APPROVED', 'integer', 'exists:users,id']
+        if (!$quotation) {
+            return $this->error('Quotation not found', 404);
+        }
+
+        $reassignmentRequest = ReassignmentRequest::where('quotation_id', $quotation->id)->where('status', 'PENDING')->latest()->first();
+
+        if (!$reassignmentRequest) {
+            return $this->error('No pending reassignment request for this quotation', 422);
+        }
+
+        $request->validate([
+            'status' => ['required', 'in:APPROVED,REJECTED'],
+            'as_id' => ['required_if:status,APPROVED', 'integer', 'exists:users,id']
+        ]);
+
+        if ($request->status === 'REJECTED') {
+            $quotation->update([
+                'assignment_status' => 'ASSIGNED',
             ]);
 
-            if ($request->status === 'REJECTED') {
-                $quotation->update([
-                    'assignment_status' => 'ASSIGNED',
-                ]);
+            $reassignmentRequest->update([
+                'status' => 'REJECTED'
+            ]);
 
-                return $this->success('Reassignment request rejected, previous Account Specialist retained', new QuotationResource($quotation), 200);
-            } elseif ($request->status === 'APPROVED') {
-                $user = User::find($request->as_id);
+            return $this->success('Reassignment request rejected, previous Account Specialist retained', $reassignmentRequest, 200);
+        } elseif ($request->status === 'APPROVED') {
+            $user = User::find($request->as_id);
 
-                if (!$user->hasRole('Account Specialist')) {
-                    return $this->error('The selected user must have an Account Specialist role.', 422);
-                }
-                if ((int) $request->as_id === $quotation->as_id) {
-                    return $this->error('The selected Account Specialist is already assigned to this quotation.', 422);
-                }
-
-                $quotation->update([
-                    'as_id' => $request->as_id,
-                    'assignment_status' => 'ASSIGNED',
-                    'assigned_at' => Carbon::now()
-                ]);
-
-                return $this->success('Account Specialist reassigned successfully', new QuotationResource($quotation), 200);
+            if (!$user->hasRole('Account Specialist')) {
+                return $this->error('The selected user must have an Account Specialist role.', 422);
             }
-        } else {
-            return $this->error('Unauthorized', 403);
+            if ((int) $request->as_id === $quotation->as_id) {
+                return $this->error('The selected Account Specialist is already assigned to this quotation.', 422);
+            }
+
+            $quotation->update([
+                'as_id' => $request->as_id,
+                'assignment_status' => 'ASSIGNED',
+                'assigned_at' => Carbon::now()
+            ]);
+
+            $reassignmentRequest->update([
+                'status' => 'APPROVED'
+            ]);
+
+            return $this->success('Account Specialist reassigned successfully', new QuotationResource($quotation), 200);
         }
     }
 
@@ -909,28 +920,36 @@ class QuotationController extends Controller
      * Allows Account Specialist to request for reassignment of a quotation to another Account Specialist, changing the assignment status to REASSIGNMENT REQUESTED
      */
     public function requestReassignment(Quotation $quotation, Request $request) {
+        $this->authorize('requestReassignment', $quotation);
+
         if (auth()->user()->id !== $quotation->as_id) {
             return $this->error('Only the assigned Account Specialist can request for reassignment', 403);
         }
 
-        $request->validate([
-            'reason' => ['required', 'string'],
-            'additional_details' => ['nullable', 'string']
-        ]);
+        $reassignmentRequest = ReassignmentRequest::where('quotation_id', $quotation->id)->where('status', 'PENDING')->latest()->first();
 
-        $quotation->update([
-            'assignment_status' => 'REASSIGNMENT REQUESTED',
-        ]);
+        if ($reassignmentRequest) {
+            return $this->error('A reassignment request is already pending for this quotation', 422);
+        } else {
+            $request->validate([
+                'reason' => ['required', 'string'],
+                'additional_details' => ['nullable', 'string']
+            ]);
 
-        $reassignmentRequest = ReassignmentRequest::create([
-            'quotation_id' => $quotation->id,
-            'as_id' => auth()->id(),
-            'reason' => $request->reason,
-            'additional_details' => $request->additional_details,
-            'status' => 'PENDING'
-        ]);
+            $quotation->update([
+                'assignment_status' => 'REASSIGNMENT REQUESTED',
+            ]);
 
-        return $this->success('Reassignment request submitted successfully', new QuotationResource($quotation), 200);
+            $reassignmentRequest = ReassignmentRequest::create([
+                'quotation_id' => $quotation->id,
+                'as_id' => auth()->id(),
+                'reason' => $request->reason,
+                'additional_details' => $request->additional_details,
+                'status' => 'PENDING'
+            ]);
+
+            return $this->success('Reassignment request submitted successfully', $reassignmentRequest, 200);
+        }
     }
 
     /**

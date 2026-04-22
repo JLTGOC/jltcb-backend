@@ -88,6 +88,11 @@ class JobOrderPolicy
 
     public function reassignOps(User $user, JobOrder $jobOrder): bool
     {
-        return $user->hasRole('Lead Operations') || ($user->hasRole('Operations') && $jobOrder->operations_id === $user->id);
+        return $user->hasRole('Lead Operations');
+    }
+
+    public function requestReassignment(User $user, JobOrder $jobOrder): bool
+    {
+        return $user->id === $jobOrder->operations_id;
     }
 }

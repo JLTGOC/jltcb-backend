@@ -71,6 +71,10 @@ class Quotation extends Model implements Searchable
         return $this->hasOne(IssuedQuotation::class);
     }
 
+    public function reassignmentRequests() {
+        return $this->hasMany(ReassignmentRequest::class);
+    }
+
     protected $casts = [
         'client_id' => 'integer',
         'as_id' => 'integer',
