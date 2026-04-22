@@ -179,6 +179,22 @@ class QuotationController extends Controller
                         $as = null;
                     }
 
+                    $quotationCard = Message::where('reference_id', $quotation->id)
+                        ->where('type', 'QUOTATION_CARD')
+                        ->first();
+                    if ($quotationCard) {
+                        $conversationId = $quotationCard->conversation_id;
+                    }
+
+                    if ($quotation->shipment) {
+                        $shipmentCard = Message::where('reference_id', $quotation->shipment?->id)
+                            ->where('type', 'SHIPMENT_CARD')
+                            ->first();
+                        if ($shipmentCard) {
+                            $conversationId = $shipmentCard->conversation_id;
+                        }
+                    }
+
                     return [
                         'id' => $quotation->id,
                         'reference_number' => $quotation->reference_number,
@@ -256,6 +272,23 @@ class QuotationController extends Controller
                             'date' => $clientQuotations->first()->created_at->format($dateFormat),
                             'quotations' => $clientQuotations->map(function ($quotation) use ($dateFormat) {
                                 $issuedQuotation = IssuedQuotation::where('quotation_id', $quotation->id)->value('id');
+                                $quotationCard = Message::where('reference_id', $quotation->id)
+                                    ->where('type', 'QUOTATION_CARD')
+                                    ->first();
+                                if ($quotationCard) {
+                                    $conversationId = $quotationCard->conversation_id;
+                                } else {
+                                    $conversationId = null;
+                                }
+
+                                if ($quotation->shipment) {
+                                    $shipmentCard = Message::where('reference_id', $quotation->shipment?->id)
+                                        ->where('type', 'SHIPMENT_CARD')
+                                        ->first();
+                                    if ($shipmentCard) {
+                                        $conversationId = $shipmentCard->conversation_id;
+                                    }
+                                }
 
                                 return [
                                     'id' => $quotation->id,
@@ -301,6 +334,8 @@ class QuotationController extends Controller
                                 ->first();
                             if ($quotationCard) {
                                 $conversationId = $quotationCard->conversation_id;
+                            } else {
+                                $conversationId = null;
                             }
 
                             if ($result->shipment) {
@@ -835,35 +870,67 @@ class QuotationController extends Controller
             }
 
             $request->validate([
-                'as_id' => ['required', 'integer', 'exists:users,id']
+                'status' => ['required', 'in:APPROVED,REJECTED'],
+                'as_id' => ['required_if:status,APPROVED', 'integer', 'exists:users,id']
             ]);
 
-            $user = User::find($request->as_id);
+            if ($request->status === 'REJECTED') {
+                $quotation->update([
+                    'assignment_status' => 'ASSIGNED',
+                ]);
 
-            if (!$user->hasRole('Account Specialist')) {
-                return $this->error('The selected user must have an Account Specialist role.', 422);
+                return $this->success('Reassignment request rejected, previous Account Specialist retained', new QuotationResource($quotation), 200);
+            } elseif ($request->status === 'APPROVED') {
+                $user = User::find($request->as_id);
+
+                if (!$user->hasRole('Account Specialist')) {
+                    return $this->error('The selected user must have an Account Specialist role.', 422);
+                }
+                if ((int) $request->as_id === $quotation->as_id) {
+                    return $this->error('The selected Account Specialist is already assigned to this quotation.', 422);
+                }
+
+                $quotation->update([
+                    'as_id' => $request->as_id,
+                    'assignment_status' => 'ASSIGNED',
+                    'assigned_at' => Carbon::now()
+                ]);
+
+                return $this->success('Account Specialist reassigned successfully', new QuotationResource($quotation), 200);
             }
-            if ((int) $request->as_id === $quotation->as_id) {
-                return $this->error('The selected Account Specialist is already assigned to this quotation.', 422);
-            }
-
-            $quotation->update([
-                'as_id' => $request->as_id,
-                'assignment_status' => 'ASSIGNED',
-                'assigned_at' => Carbon::now()
-            ]);
-
-            return $this->success('Account Specialist reassigned successfully', new QuotationResource($quotation), 200);
-        } elseif (auth()->user()->id === $quotation->as_id) {
-            $quotation->update([
-                'assignment_status' => 'REASSIGNMENT REQUESTED',
-                'assigned_at' => null
-            ]);
-
-            return $this->success('Account Specialist unassigned successfully', new QuotationResource($quotation), 200);
         } else {
             return $this->error('Unauthorized', 403);
         }
+    }
+
+    /**
+     * Request Reassignment
+     * 
+     * Allows Account Specialist to request for reassignment of a quotation to another Account Specialist, changing the assignment status to REASSIGNMENT REQUESTED
+     */
+    public function requestReassignment(Quotation $quotation, Request $request) {
+        if (auth()->user()->id !== $quotation->as_id) {
+            return $this->error('Only the assigned Account Specialist can request for reassignment', 403);
+        }
+
+        $request->validate([
+            'reason' => ['required', 'string'],
+            'additional_details' => ['nullable', 'string']
+        ]);
+
+        $quotation->update([
+            'assignment_status' => 'REASSIGNMENT REQUESTED',
+        ]);
+
+        $reassignmentRequest = ReassignmentRequest::create([
+            'quotation_id' => $quotation->id,
+            'as_id' => auth()->id(),
+            'reason' => $request->reason,
+            'additional_details' => $request->additional_details,
+            'status' => 'PENDING'
+        ]);
+
+        return $this->success('Reassignment request submitted successfully', new QuotationResource($quotation), 200);
     }
 
     /**
