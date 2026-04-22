@@ -172,6 +172,12 @@ class QuotationController extends Controller
             if ($isWeb) {
                 $formatQuotation = function ($quotation) use ($dateFormat) {
                     $issuedQuotation = IssuedQuotation::where('quotation_id', $quotation->id)->value('id');
+                    
+                    if ($quotation->accountSpecialist) {
+                        $as = (mb_strtoupper($quotation->accountSpecialist?->username) . ' ' . $quotation->accountSpecialist?->full_name);
+                    } else {
+                        $as = null;
+                    }
 
                     return [
                         'id' => $quotation->id,
@@ -180,8 +186,7 @@ class QuotationController extends Controller
                         'client_full_name' => $quotation->client->full_name,
                         'status' => $quotation->status,
                         'assignment_status' => $quotation->assignment_status,
-                        'as_username' => $quotation->accountSpecialist->username ?? 'Available',
-                        'as_full_name' => $quotation->accountSpecialist->full_name ?? null,
+                        'account_specialist' =>  $as,
                         'assigned_at' => $quotation->assigned_at ? Carbon::parse($quotation->assigned_at)->format($dateFormat) : null,
                         'service' => $quotation->logisticsService ? 'LOGISTICS' : ($quotation->regulatoryService ? 'REGULATORY' : null),
                         'logistics_service' => $quotation->logisticsService ? [
