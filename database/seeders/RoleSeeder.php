@@ -18,7 +18,7 @@ class RoleSeeder extends Seeder
 
         $guard = 'sanctum';
 
-        $roles = ['Client', 'Lead Account Specialist', 'Account Specialist', 'Marketing', 'Human Resource', 'Operations', 'Finance', 'IT'];
+        $roles = ['Client', 'Lead Account Specialist', 'Account Specialist', 'Marketing', 'Human Resource', 'Lead Operations','Operations', 'Lead Finance', 'Finance', 'IT'];
         $permissions = [
             'dashboard.view',
             'leads.view',
@@ -87,12 +87,27 @@ class RoleSeeder extends Seeder
                         'dashboard.view'
                     ])->get());
                     break;
+                case 'Lead Operations':
+                    $role->syncPermissions(Permission::query()->where('guard_name', $guard)->whereIn('name', [
+                        'dashboard.view',
+                        'job_orders.view',
+                        'job_orders.create',
+                        'shipments.view',
+                        'shipments.create'
+                    ])->get());
+                    break;
                 case 'Operations':
                     $role->syncPermissions(Permission::query()->where('guard_name', $guard)->whereIn('name', [
                         'dashboard.view',
                         'job_orders.view',
+                        'job_orders.create',
                         'shipments.view',
                         'shipments.create'
+                    ])->get());
+                    break;
+                case 'Lead Finance':
+                    $role->syncPermissions(Permission::query()->where('guard_name', $guard)->whereIn('name', [
+                        'dashboard.view',
                     ])->get());
                     break;
                 case 'Finance':

@@ -13,7 +13,7 @@ class JobOrderPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(['Account Specialist', 'Operations', 'Lead Account Specialist', 'Finance']);
+        return $user->hasRole(['Account Specialist', 'Lead Operations', 'Operations', 'Lead Account Specialist', 'Finance']);
     }
 
     /**
@@ -21,7 +21,7 @@ class JobOrderPolicy
      */
     public function view(User $user, JobOrder $jobOrder): bool
     {
-        return $user->id === $jobOrder->client_id || $user->id === $jobOrder->as_id || $user->id === $jobOrder->operations_id || $user->id === $jobOrder->finance_id || $user->hasRole(['Lead Account Specialist']);
+        return $user->id === $jobOrder->client_id || $user->id === $jobOrder->as_id || $user->id === $jobOrder->operations_id || $user->id === $jobOrder->finance_id || $user->hasRole(['Lead Operations', 'Lead Account Specialist']);
     }
 
     /**
