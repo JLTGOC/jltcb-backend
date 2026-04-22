@@ -843,6 +843,9 @@ class QuotationController extends Controller
             if (!$user->hasRole('Account Specialist')) {
                 return $this->error('The selected user must have an Account Specialist role.', 422);
             }
+            if ((int) $request->as_id === $quotation->as_id) {
+                return $this->error('The selected Account Specialist is already assigned to this quotation.', 422);
+            }
 
             $quotation->update([
                 'as_id' => $request->as_id,

@@ -398,6 +398,9 @@ class JobOrderController extends Controller
             if (!$ops->hasRole('Operations')) {
                 return $this->error('The selected user is not an Operations user', 422);
             }
+            if ($jobOrder->operations_id === (int) $request->operations_id) {
+                return $this->error('The Job Order is already assigned to this user', 422);
+            }
 
             $jobOrder->update([
                 'operations_id' => $request->operations_id,
