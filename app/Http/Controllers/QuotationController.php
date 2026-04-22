@@ -343,7 +343,7 @@ class QuotationController extends Controller
             $results = $results->map(function ($result) use ($user, $request, $dateFormat) {
                 if ($request->has('filter.status')) {
                     $status = null;
-                    if ($user->hasRole('Client') && $request->filter['status'] === 'RESPONDED') {
+                    if ($request->filter['status'] === 'RESPONDED') {
                         if ($result->status === 'RESPONDED') {
                             $status = 'NEW';
                         } else {
@@ -381,6 +381,11 @@ class QuotationController extends Controller
                     ];
                 }
             });
+
+            return $this->success('All quotations fetched', [
+                'quotations' => $results->values(),
+                'pagination' => $pagination,
+            ], 200);
         }
     }
 
@@ -742,7 +747,8 @@ class QuotationController extends Controller
 
             $quotation->update([
                 'status' => 'RESPONDED',
-                'created_by' => $user->id
+                'created_by' => $user->id,
+                'updated_at' => Carbon::now()
             ]);
             
             $message = $quotationFile->wasRecentlyCreated 
@@ -859,7 +865,8 @@ class QuotationController extends Controller
      */
     public function acceptQuotation(Quotation $quotation, Request $request) {
         $quotation->update([
-            'status' => 'ACCEPTED'
+            'status' => 'ACCEPTED',
+            'updated_at' => Carbon::now()
         ]);
 
         return $this->success('Quotation accepted successfully', new QuotationResource($quotation), 200);

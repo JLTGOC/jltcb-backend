@@ -51,7 +51,7 @@ class QuotationSeeder extends Seeder
             } elseif ($status === 'RESPONDED') {
                 $assignmentStatus = fake()->randomElement(['ASSIGNED', 'REASSIGNMENT REQUESTED']);
             } elseif ($status === 'REQUESTED') {
-                $assignmentStatus = fake()->randomElement(['AVAILABLE', 'ASSIGNED', 'REASSIGNMENT REQUESTED']);
+                $assignmentStatus = fake()->randomElement(['AVAILABLE', 'AVAILABLE', 'ASSIGNED', 'REASSIGNMENT REQUESTED']);
             }
 
             $assignedAt = $assignmentStatus === 'ASSIGNED' || $assignmentStatus === 'REASSIGNMENT REQUESTED' ? Carbon::now() : null;
@@ -75,6 +75,8 @@ class QuotationSeeder extends Seeder
                 'position' => User::find($client)->position,
                 'assignment_status' => $assignmentStatus,
                 'assigned_at' => $assignedAt,
+                'created_at' => Carbon::now()->subDays(fake()->numberBetween(20, 30)),
+                'updated_at' => Carbon::now()->subDays(fake()->numberBetween(10, 20)),
             ]);
 
             $quotation->files()->updateOrCreate([
@@ -115,6 +117,8 @@ class QuotationSeeder extends Seeder
                     'origin' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
                     'destination' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
                     'remarks' => fake()->sentence(),
+                    'created_at' => $quotation->created_at,
+                    'updated_at' => $quotation->created_at,
                 ]);
             } else {
                 RegulatoryService::create([
@@ -126,6 +130,8 @@ class QuotationSeeder extends Seeder
                     'type_of_regulatory_assistance' => fake()->randomElement(RegulatoryAssistanceType::pluck('name')->toArray()),
                     'application_type' => fake()->randomElement(['NEW', 'RENEWAL']),
                     'message' => fake()->sentence(),
+                    'created_at' => $quotation->created_at,
+                    'updated_at' => $quotation->created_at,
                 ]);
             }
 
@@ -143,10 +149,14 @@ class QuotationSeeder extends Seeder
                         'type' => 'PROPOSAL',
                         'original_file_name' => 'QUOTATION.pdf',
                         'file_type' => 'pdf',
+                        'created_at' => $quotation->updated_at,
+                        'updated_at' => $quotation->updated_at,
                     ]);
                 } else {
                     $quotation->files()->where('file_path', 'files/QuotationFile.pdf')->where('quotation_id', $quotation->id)->update([
                         'type' => 'PROPOSAL',
+                        'created_at' => $quotation->updated_at,
+                        'updated_at' => $quotation->updated_at,
                     ]);
                 }
             }
@@ -169,6 +179,8 @@ class QuotationSeeder extends Seeder
                     'subject' => fake()->sentence(),
                     'email_body' => fake()->paragraph(),
                     'shipment_creation_status' => fake()->randomElement(['PENDING', 'CREATED']),
+                    'created_at' => Carbon::now()->subDays(fake()->numberBetween(5, 10)),
+                    'updated_at' => Carbon::now()->subDays(fake()->numberBetween(1, 5)),
                 ]);
 
                 if ($quotation->logisticsService) {
@@ -183,6 +195,8 @@ class QuotationSeeder extends Seeder
                     'client_type' => fake()->randomElement(['NEW', 'RENEWAL']),
                     'accredited' => fake()->randomElement(['REGULAR', 'EXPEDITED']),
                     'client_remarks' => fake()->sentence(),
+                    'created_at' => $jobOrder->created_at,
+                    'updated_at' => $jobOrder->created_at,
                 ]);
 
                 if ($quotation->logisticsService) {
@@ -197,6 +211,8 @@ class QuotationSeeder extends Seeder
                         'target_delivery_date' => Carbon::now()->addDays(fake()->numberBetween(1, 30)),
                         'target_completion_date' => Carbon::now()->addDays(fake()->numberBetween(30, 60)),
                         'commitment_remarks' => fake()->sentence(),
+                        'created_at' => $jobOrder->created_at,
+                        'updated_at' => $jobOrder->created_at,
                     ]);
 
                     JobOrderBilling::create([
@@ -204,6 +220,8 @@ class QuotationSeeder extends Seeder
                         'terms_of_payment' => fake()->sentence(),
                         'billing_date' => Carbon::now()->addDays(fake()->numberBetween(60, 90)),
                         'shall_be_billed' => fake()->randomElement(BillingMode::pluck('name')->toArray()),
+                        'created_at' => $jobOrder->created_at,
+                        'updated_at' => $jobOrder->created_at,
                     ]);
                 }
 

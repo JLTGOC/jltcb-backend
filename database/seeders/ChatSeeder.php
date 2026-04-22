@@ -30,6 +30,16 @@ class ChatSeeder extends Seeder
                 ->whereIn('status', ['RESPONDED', 'ACCEPTED'])
                 ->orderBy('created_at', 'asc')
                 ->get();
+
+            $requestedQuotations = Quotation::where('client_id', $client->id)
+                ->where('status', 'REQUESTED')
+                ->where('as_id', '!=', null)
+                ->orderBy('created_at', 'asc')
+                ->get();
+
+            $num = fake()->numberBetween(0, $requestedQuotations->count());
+            $requestedQuotations = $requestedQuotations->slice(0, $num);
+            $quotations = $quotations->concat($requestedQuotations)->sortBy('created_at');
             
             if (! $quotations->isEmpty()) {
                 $date = Carbon::now()->subDays($quotations->count());
