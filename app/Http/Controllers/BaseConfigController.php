@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DetailsConfiguration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -19,6 +20,10 @@ abstract class BaseConfigController extends Controller
         $grouped = $configs->groupBy('type');
 
         $response = $grouped->map(function ($configs) {
+            if ($this->model() === DetailsConfiguration::class) {
+                $configs->load('dropdownOptions');
+            } 
+
             return $this->resource()::collection(
                 $configs->values()
             );
