@@ -61,9 +61,16 @@ class ReassignmentRequestController extends Controller
      */
     public function enums(Request $request) {
         $this->authorize('enums', ReassignmentRequest::class);
+
         $reassignmentReasons = [];
         $accountSpecialists = [];
         $operations = [];
+
+        $request->validate([
+            'reasons' => 'sometimes',
+            'as' => 'sometimes',
+            'ops' => 'sometimes',
+        ]);
         
         if ($request->has('reasons')) {
             $reassignmentReasons = ['WORKLOAD', 'EMERGENCY / LEAVE', 'CLIENT REQUEST'];
