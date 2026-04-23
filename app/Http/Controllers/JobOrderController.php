@@ -61,7 +61,8 @@ class JobOrderController extends Controller
         $isWeb = $platform === 'web';
 
         $request->validate([
-            'search' => 'sometimes|string'
+            'search' => 'sometimes|string',
+            'client_type' => 'sometimes|string|in:OLD,NEW',
         ]);
 
         $user = auth()->user();
@@ -90,12 +91,40 @@ class JobOrderController extends Controller
             $mergedIds = $search->pluck('id')->merge($clientJobOrderIds)->unique();
 
             $jobOrders = $jobOrders
-                ->whereIn('id', $mergedIds)
-                ->values();
+                ->whereIn('id', $mergedIds);
 
             if ($myJobOrders) {
-                $myJobOrders = $myJobOrders->whereIn('id', $mergedIds)->values();
+                $myJobOrders = $myJobOrders->whereIn('id', $mergedIds);
             }
+        }
+
+        if (isset($request->client_type) && $request->client_type === 'OLD') {
+            $oldClientIds = [];
+            foreach (User::role('Client')->get() as $client) {
+                if ($client->jobOrders->count() > 1) {
+                    $oldClientIds[] = $client->id;
+                }
+            }
+            $jobOrders = $jobOrders->whereIn('client_id', $oldClientIds);
+            if ($myJobOrders) {
+                $myJobOrders = $myJobOrders->whereIn('client_id', $oldClientIds);
+            }
+        } elseif (isset($request->client_type) && $request->client_type === 'NEW') {
+            $newClientIds = [];
+            foreach (User::role('Client')->get() as $client) {
+                if ($client->jobOrders->count() === 1) {
+                    $newClientIds[] = $client->id;
+                }
+            }
+            $jobOrders = $jobOrders->whereIn('client_id', $newClientIds);
+            if ($myJobOrders) {
+                $myJobOrders = $myJobOrders->whereIn('client_id', $newClientIds);
+            }
+        }
+
+        $jobOrders = $jobOrders->sortByDesc('created_at')->values();
+        if ($myJobOrders) {
+            $myJobOrders = $myJobOrders->sortByDesc('created_at')->values();
         }
 
         $jobOrders = $jobOrders->map(function ($j) use ($user, $isWeb) {

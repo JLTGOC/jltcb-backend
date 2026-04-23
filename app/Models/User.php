@@ -96,4 +96,8 @@ class User extends Authenticatable
     public function reassignmentRequests() {
         return $this->hasMany(ReassignmentRequest::class);
     }
+
+    public function jobOrders() {
+        return $this->hasMany(JobOrder::class, 'client_id');
+    }
 }
