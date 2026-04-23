@@ -54,6 +54,7 @@ class DatabaseSeeder extends Seeder
             ConfigurationSeeder::class,
             QuotationFieldSeeder::class,
             TemplateSeeder::class,
+            ReassignmentRequestSeeder::class
         ]);
     }
 }

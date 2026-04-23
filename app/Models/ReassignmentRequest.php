@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ReassignmentRequest extends Model
 {
+    use HasFactory;
+    
     protected $fillable = [
         'quotation_id',
         'job_order_id',
