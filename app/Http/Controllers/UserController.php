@@ -158,6 +158,25 @@ class UserController extends Controller
     }
 
     /**
+     * Index Operations
+     * 
+     * Display a listing of operations users.
+     */
+    public function indexOperations() {
+        $this->authorize('indexOperations', User::class);
+
+        $operations = User::role('Operations')->get();
+        $operations = $operations->map(function ($o) {
+            return [
+                'id' => $o->id,
+                'full_name' => $o->full_name,
+            ];
+        });
+
+        return $this->success('Operations users fetched successfully', $operations, 200);
+    }
+
+    /**
      * Index Client Accounts
      * 
      * Display a listing of client accounts with ongoing and completed shipments count.

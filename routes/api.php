@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('reels', ReelController::class)->only(['store', 'update', 'destroy']);
 
     Route::get('/users/account-specialists', [UserController::class, 'indexAccountSpecialists']);
+    Route::get('/users/operations', [UserController::class, 'indexOperations']);
     Route::get('/users/clients', [UserController::class, 'indexClientAccounts']);
     Route::get('/users/clients/{client}/shipments', [UserController::class, 'indexClientShipments']);
     Route::apiResource('users', UserController::class)->only(['show', 'update']);
