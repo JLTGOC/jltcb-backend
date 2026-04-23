@@ -75,6 +75,10 @@ class Quotation extends Model implements Searchable
         return $this->hasMany(ReassignmentRequest::class);
     }
 
+    public function latestReassignmentRequest() {
+        return $this->hasOne(ReassignmentRequest::class)->latestOfMany();
+    }
+
     protected $casts = [
         'client_id' => 'integer',
         'as_id' => 'integer',

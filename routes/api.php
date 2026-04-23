@@ -52,9 +52,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('dashboard', [DashboardController::class, 'index']);
 
+    Route::post('/quotations/{quotation}/request-reassignment', [QuotationController::class, 'requestReassignment']);
     Route::get('quotations/enum-options', [QuotationController::class, 'enumQuotationOptions']);
     Route::put('/quotations/{quotation}/reassign-specialist', [QuotationController::class, 'reassignSpecialist']);
-    Route::post('/quotations/{quotation}/request-reassignment', [QuotationController::class, 'requestReassignment']);
     Route::put('/quotations/{quotation}/accept', [QuotationController::class, 'acceptQuotation']);
     Route::apiResource('quotations', QuotationController::class)->except(['update']);
     Route::post('/quotations/{quotation}', [QuotationController::class, 'update']);
