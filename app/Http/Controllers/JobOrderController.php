@@ -74,6 +74,18 @@ class JobOrderController extends Controller
 
         $myJobOrders = null;
 
+        $allJobOrdersCount = JobOrder::count();
+
+        $oldUsers = User::role('Client')->get()->filter(function ($client) {
+            return $client->jobOrders->count() > 1;
+        })->pluck('id');
+        $oldUserJobOrdersCount = JobOrder::whereIn('client_id', $oldUsers)->count();
+
+        $newUsers = User::role('Client')->with('jobOrders')->get()->filter(function ($user) {
+            return $user->jobOrders->count() === 1;
+        })->pluck('id');
+        $newUserJobOrdersCount = JobOrder::whereIn('client_id', $newUsers)->count();
+
         if ($user->hasRole(['Lead Account Specialist', 'Lead Operations'])) {
             $jobOrders = JobOrder::get();
         } elseif ($user->hasRole('Account Specialist')) {
@@ -323,6 +335,11 @@ class JobOrderController extends Controller
         }
 
         return $this->success('Job Orders fetched successfully', [
+            'counts' => [
+                'all_job_orders' => $allJobOrdersCount,
+                'old_user_job_orders' => $oldUserJobOrdersCount,
+                'new_user_job_orders' => $newUserJobOrdersCount,
+            ],
             'job_orders' => $jobOrders,
             'my_job_orders' => $myJobOrders,
             'pagination' => $pagination,
