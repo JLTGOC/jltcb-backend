@@ -26,6 +26,8 @@ use App\Http\Resources\{
 use Spatie\Searchable\Search;
 use Carbon\Carbon;
 use App\Enums\ServiceLevelEnum;
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedFilter;
 
 class JobOrderController extends Controller
 {
@@ -62,6 +64,8 @@ class JobOrderController extends Controller
         $isWeb = $platform === 'web';
 
         $request->validate([
+            'filter.service' => 'sometimes|string|in:LOGISTICS,REGULATORY',
+            'filter.assignment_status' => 'sometimes|string|in:AVAILABLE,ASSIGNED,REASSIGNMENT REQUESTED',
             'search' => 'sometimes|string',
             'client_type' => 'sometimes|string|in:OLD,NEW',
             'per_page' => 'sometimes|integer|min:1|max:100',
@@ -87,15 +91,31 @@ class JobOrderController extends Controller
         $newUserJobOrdersCount = JobOrder::whereIn('client_id', $newUsers)->count();
 
         if ($user->hasRole(['Lead Account Specialist', 'Lead Operations'])) {
-            $jobOrders = JobOrder::get();
+            $jobOrdersQuery = JobOrder::query();
+            $myJobOrdersQuery = null;
         } elseif ($user->hasRole('Account Specialist')) {
-            $jobOrders = JobOrder::where('as_id', $user->id)->get();
-        } else if ($user->hasRole('Operations')) {
-            $jobOrders = JobOrder::get();
-            $myJobOrders = JobOrder::where('operations_id', $user->id)->get();
+            $jobOrdersQuery = JobOrder::query()->where('as_id', $user->id);
+            $myJobOrdersQuery = null;
+        } elseif ($user->hasRole('Operations')) {
+            $jobOrdersQuery = JobOrder::query();
+            $myJobOrdersQuery = JobOrder::query()->where('operations_id', $user->id);
         } else {
-            $jobOrders = JobOrder::where('client_id', $user->id)->get();
+            $jobOrdersQuery = JobOrder::query()->where('client_id', $user->id);
+            $myJobOrdersQuery = null;
         }
+
+        $jobOrders = QueryBuilder::for($jobOrdersQuery)
+            ->allowedFilters([
+                AllowedFilter::exact('service', 'job_type'),
+                AllowedFilter::exact('assignment_status'),
+            ]);
+
+        $myJobOrders = $myJobOrdersQuery
+            ? QueryBuilder::for($myJobOrdersQuery)->allowedFilters([
+                AllowedFilter::exact('service', 'job_type'),
+                AllowedFilter::exact('assignment_status'),
+            ])
+            : null;
 
         if ($request->has('search')) {
             $search = (new Search())
@@ -107,8 +127,7 @@ class JobOrderController extends Controller
             $clientJobOrderIds = JobOrder::whereIn('client_id', $clientIds)->pluck('id');
             $mergedIds = $search->pluck('id')->merge($clientJobOrderIds)->unique();
 
-            $jobOrders = $jobOrders
-                ->whereIn('id', $mergedIds);
+            $jobOrders = $jobOrders->whereIn('id', $mergedIds);
 
             if ($myJobOrders) {
                 $myJobOrders = $myJobOrders->whereIn('id', $mergedIds);
@@ -139,9 +158,9 @@ class JobOrderController extends Controller
             }
         }
 
-        $jobOrders = $jobOrders->sortByDesc('created_at')->values();
+        $jobOrders = $jobOrders->orderBy('created_at', 'desc')->get()->values();
         if ($myJobOrders) {
-            $myJobOrders = $myJobOrders->sortByDesc('created_at')->values();
+            $myJobOrders = $myJobOrders->orderBy('created_at', 'desc')->get()->values();
         }
 
         $pagination = null;
