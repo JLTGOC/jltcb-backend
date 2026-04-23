@@ -57,8 +57,8 @@ class QuotationController extends Controller
         $user = auth()->user();
         $platform = strtolower((string) $request->header('Platform', 'mobile'));
         $isWeb = $platform === 'web';
-        $perPage = $request->input('perPage', 10);
-        $myPerPage = $request->input('myPerPage', $perPage);
+        $perPage = $request->input('per_page', 10);
+        $myPerPage = $request->input('my_per_page', $perPage);
         $dateFormat = $isWeb ? 'F d, Y' : 'Y/m/d';
         $query = Quotation::query();
         $myQuotationsQuery = null;
@@ -77,8 +77,7 @@ class QuotationController extends Controller
             'filter.status' => 'required|in:REQUESTED,RESPONDED,ACCEPTED,DISCARDED',
             'client_type' => 'sometimes|in:OLD,NEW',
             'search' => 'sometimes|string',
-            'per_page' => 'sometimes|integer|min:1|max:100',
-            'my_per_page' => 'sometimes|integer|min:1|max:100',
+            'page' => 'sometimes|integer|min:1',
             'my_page' => 'sometimes|integer|min:1',
             'client_id' => [
                 'sometimes',
