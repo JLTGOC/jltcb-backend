@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreIssuedQuotationRequest;
 use App\Http\Requests\UpdateIssuedQuotationRequest;
 use App\Http\Resources\IssuedQuotationResource;
 use App\Models\AuthorizedSignatories;
 use App\Models\IssuedQuotation;
 use App\Models\Quotation;
-use App\Models\QuotationFile;
-use Exception;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Services\QuotationFileService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +17,13 @@ use Illuminate\Support\Facades\Storage;
 
 class IssuedQuotationController extends Controller
 {
+    protected $quotationFileService;
+
+    public function __construct(QuotationFileService $quotationFileService)
+    {
+        $this->quotationFileService = $quotationFileService;
+    }
+
     /**
      * Index Issued Quotations
      * 
@@ -37,7 +43,7 @@ class IssuedQuotationController extends Controller
 {
         $this->authorize('create', [IssuedQuotation::class, $quotation]);
 
-        $asId = Auth::user()->id;
+        $as = $request->user();
 
         $signatureFilePath = null;
         $quotationFilePath = null;
@@ -47,7 +53,7 @@ class IssuedQuotationController extends Controller
         try {
             $issuedQuotation = $quotation->issuedQuotations()->create([
                 'template_id' => $request->template_id,
-                'issued_by' => $asId,
+                'issued_by' => $as->id,
                 'subject' => $request->subject,
                 'message' => $request->message,
             ]);
@@ -83,18 +89,12 @@ class IssuedQuotationController extends Controller
 
                 $quotationFilePath = $quotationFile->store('files', 'local');
 
-                $quotation->files()->create([
-                    'file_path' => $quotationFilePath,
-                    'uploaded_by' => $asId,
-                    'type' => 'PROPOSAL',
-                    'original_file_name' => $quotationFile->getClientOriginalName(),
-                    'file_type' => $quotationFile->getClientOriginalExtension()
-                ]);
+                $this->quotationFileService->uploadQuotationFile($quotation, $quotationFile, $as);
             }
 
             $quotation->update([
                 'status' => 'RESPONDED',
-                'created_by' => $asId
+                'created_by' => $as->id
             ]);
 
             DB::commit();
@@ -212,13 +212,7 @@ class IssuedQuotationController extends Controller
                 $quotationFile = $request->file('issued_quotation_file');
                 $newQuotationFilePath = $quotationFile->store('files', 'local');
 
-                $quotation->files()->create([
-                    'file_path' => $newQuotationFilePath,
-                    'uploaded_by' => Auth::user()->id,
-                    'type' => 'PROPOSAL',
-                    'original_file_name' => $quotationFile->getClientOriginalName(),
-                    'file_type' => $quotationFile->getClientOriginalExtension(),
-                ]);
+                $this->quotationFileService->uploadQuotationFile($quotation, $quotationFile, $request->user());
             }
 
             DB::commit();

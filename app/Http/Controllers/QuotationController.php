@@ -24,6 +24,7 @@ use App\Models\{
     ContainerSize,
     ReassignmentRequest
 };
+use App\Services\QuotationFileService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Faker\Factory as Faker;
@@ -35,13 +36,16 @@ use Spatie\QueryBuilder\AllowedFilter;
 
 class QuotationController extends Controller
 {
+    protected $quotationFileService;
 
-    public function __construct() {
+    public function __construct(QuotationFileService $quotationFileService) {
         $this->authorizeResource(Quotation::class, 'quotation');
         $this->middleware('can:enumQuotationOptions,' . Quotation::class)->only('enumQuotationOptions');
         $this->middleware('can:upload,quotation')->only('upload');
         $this->middleware('can:showFile,quotation')->only('showFile');
         $this->middleware('can:acceptQuotation,quotation')->only('acceptQuotation');
+
+        $this->quotationFileService = $quotationFileService;
     }
 
     /**
@@ -527,12 +531,8 @@ class QuotationController extends Controller
             }
 
             // Upload client documents
-            $newFiles = $request->file('documents');
-
-            $fileUploaded = $this->uploadClientDocuments(
-                $quotation,
-                $request->user(), 
-                $newFiles =  $newFiles
+            $fileUploaded = $this->quotationFileService->syncClientDocuments(
+                $quotation, $user, newFiles: $request->file('documents')
             );
 
             if ($fileUploaded !== true) {
@@ -661,14 +661,11 @@ class QuotationController extends Controller
                 }
 
                  // Re-upload client documents
-                $removedFileIds = $request->input('removed_documents', []);
-                $newFiles = $request->file('documents', []);
-
-                $fileUploaded = $this->uploadClientDocuments(
-                    $quotation,
-                    $request->user(), 
-                    $newFiles = $newFiles, 
-                    $removedFileIds = $removedFileIds
+                $fileUploaded = $this->quotationFileService->syncClientDocuments(
+                    $quotation, 
+                    $user,
+                    newFiles: $request->file('documents', []), 
+                    removedFileIds: $request->input('removed_documents', []) 
                 );
 
                 if ($fileUploaded !== true) {
@@ -753,47 +750,12 @@ class QuotationController extends Controller
             'file' => ['required', 'file', 'mimes:pdf,xls,xlsx']
         ]);
 
-        $user = $request->user();
-
-        $file = $request->file('file');
-        $directory = 'files';
-        $originalFileName = $file->getClientOriginalName();
-        $type = 'PROPOSAL';
-        $fileType = $file->getClientOriginalExtension();
-  
-
-        $existingFile = $quotation->files()->where('type', $type)->first();
-
-        if ($existingFile) {
-            $existingFileName = str_replace('/files/', '', $existingFile->file_path);
-            $filename = $existingFileName;
-        } else {
-            $filename = $file->hashName();
-        }
-       
         DB::beginTransaction();
         try {
 
-            $path = $file->storeAs($directory, $filename, 'local');
-
-            $quotationFile = QuotationFile::updateOrCreate(
-                [
-                    'quotation_id' => $quotation->id,
-                    'uploaded_by' => $user->id
-                ],
-                [
-                    'file_path' => $path,
-                    'type' => $type,
-                    'original_file_name' => $originalFileName,
-                    'file_type' => $fileType
-                ],
+            $quotationFile = $this->quotationFileService->uploadQuotationFile(
+                $quotation, $request->file('file'), $request->user()
             );
-
-            $quotation->update([
-                'status' => 'RESPONDED',
-                'created_by' => $user->id,
-                'updated_at' => Carbon::now()
-            ]);
             
             $message = $quotationFile->wasRecentlyCreated 
                 ? 'Quotation file uploaded successfully' 
