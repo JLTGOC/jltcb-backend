@@ -63,6 +63,18 @@ class QuotationController extends Controller
         $query = Quotation::query();
         $myQuotationsQuery = null;
 
+        $allQuotationsCount = Quotation::count();
+
+        $oldUsers = User::role('Client')->with('quotations')->get()->filter(function ($user) {
+            return $user->quotations->count() > 1;
+        })->pluck('id');
+        $oldUserQuotationsCount = Quotation::whereIn('client_id', $oldUsers)->count();
+
+        $newUsers = User::role('Client')->with('quotations')->get()->filter(function ($user) {
+            return $user->quotations->count() === 1;
+        })->pluck('id');
+        $newUserQuotationsCount = Quotation::whereIn('client_id', $newUsers)->count();
+
         if ($user->hasRole('Client')) {
             $query->where('client_id', $user->id);
         } elseif ($user->hasRole('Lead Account Specialist')) {
@@ -253,6 +265,11 @@ class QuotationController extends Controller
 
                 if ($quotations->isEmpty()) {
                     return $this->success('No quotations found', [
+                        'counts' => [
+                            'all_quotations' => $allQuotationsCount,
+                            'old_user_quotations' => $oldUserQuotationsCount,
+                            'new_user_quotations' => $newUserQuotationsCount,
+                        ],
                         'quotations' => [],
                         'my_quotations' => $myQuotationsResults,
                         'pagination' => $pagination,
@@ -261,6 +278,11 @@ class QuotationController extends Controller
                 }
 
                 return $this->success('All quotations fetched', [
+                    'counts' => [
+                        'all_quotations' => $allQuotationsCount,
+                        'old_user_quotations' => $oldUserQuotationsCount,
+                        'new_user_quotations' => $newUserQuotationsCount,
+                    ],
                     'quotations' => $quotations->values(),
                     'my_quotations' => $myQuotationsResults,
                     'pagination' => $pagination,
@@ -438,6 +460,11 @@ class QuotationController extends Controller
             });
 
             return $this->success('All quotations fetched', [
+                'counts' => [
+                    'all_quotations' => $allQuotationsCount,
+                    'old_user_quotations' => $oldUserQuotationsCount,
+                    'new_user_quotations' => $newUserQuotationsCount,
+                ],
                 'quotations' => $results->values(),
                 'pagination' => $pagination,
             ], 200);
