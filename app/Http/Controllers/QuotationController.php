@@ -960,7 +960,8 @@ class QuotationController extends Controller
     public function acceptQuotation(Quotation $quotation, Request $request) {
         $quotation->update([
             'status' => 'ACCEPTED',
-            'updated_at' => Carbon::now()
+            'assignment_status' => 'ASSIGNED',
+            'assigned_at' => Carbon::now(),
         ]);
 
         return $this->success('Quotation accepted successfully', new QuotationResource($quotation), 200);

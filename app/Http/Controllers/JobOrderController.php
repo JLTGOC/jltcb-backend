@@ -75,9 +75,6 @@ class JobOrderController extends Controller
         } else if ($user->hasRole('Operations')) {
             $jobOrders = JobOrder::get();
             $myJobOrders = JobOrder::where('operations_id', $user->id)->get();
-        } else if ($user->hasRole('Finance')) {
-            $jobOrders = JobOrder::get();
-            $myJobOrders = JobOrder::where('finance_id', $user->id)->get();
         } else {
             $jobOrders = JobOrder::where('client_id', $user->id)->get();
         }
@@ -110,19 +107,18 @@ class JobOrderController extends Controller
                 $service = 'N/A';
             }
 
-            $assignedTo = null;
-            if ($user->hasRole('Operations')) {
-                $assignedTo = $j->operations ? $j->operations->username : 'Available';
-            } elseif ($user->hasRole('Finance')) {
-                $assignedTo = $j->finance ? $j->finance->username : 'Available';
-            } elseif ($user->hasRole('Lead Account Specialist') || $user->hasRole('Account Specialist')) {
-                $assignedTo = $j->operations ? $j->operations->username : 'Available';
-            }
+            $assignedTo = $j->operations ? $j->operations->username : 'Available';
 
             if ($isWeb) {
                 if ($j->job_type === 'LOGISTICS') {
                     $serviceLevel = $j->jobOrderShipment->service_level ?? null;
                     $serviceLevel = $this->normalizeServiceLevel($serviceLevel);
+
+                    if ($j->operations) {
+                        $assignedTo = mb_strtoupper($j->operations->full_name);
+                    } else {
+                        $assignedTo = null;
+                    }
 
                     return [
                         'id' => $j->id,
@@ -140,7 +136,7 @@ class JobOrderController extends Controller
                         'quotation_id' => $j->quotation_id,
                         'quotation_reference_number' => $j->quotation->reference_number,
                         'assignment_status' => $j->assignment_status,
-                        'assigned_to' => $j->operations->full_name ?? null,
+                        'assigned_to' => $assignedTo,
                         'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
                     ];
                 } elseif ($j->job_type === 'REGULATORY') {
@@ -187,16 +183,18 @@ class JobOrderController extends Controller
                     $service = 'N/A';
                 }
 
-                if ($user->hasRole('Operations') || $user->hasRole('Lead Account Specialist') || $user->hasRole('Account Specialist')) {
-                    $assignedTo = $j->operations ? $j->operations->username : 'Available';
-                } elseif ($user->hasRole('Finance')) {
-                    $assignedTo = $j->finance ? $j->finance->username : 'Available';
-                }
+                $assignedTo = $j->operations ? $j->operations->username : 'Available';
 
                 if ($isWeb) {
                     if ($j->job_type === 'LOGISTICS') {
                         $serviceLevel = $j->jobOrderShipment->service_level ?? null;
                         $serviceLevel = $this->normalizeServiceLevel($serviceLevel);
+
+                        if ($j->operations) {
+                            $assignedTo = mb_strtoupper($j->operations->full_name);
+                        } else {
+                            $assignedTo = null;
+                        }
 
                         return [
                             'id' => $j->id,
@@ -214,7 +212,7 @@ class JobOrderController extends Controller
                             'quotation_id' => $j->quotation_id,
                             'quotation_reference_number' => $j->quotation->reference_number,
                             'assignment_status' => $j->assignment_status,
-                            'assigned_to' => $j->operations->full_name ?? null,
+                            'assigned_to' => $assignedTo,
                             'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
                         ];
                     } elseif ($j->job_type === 'REGULATORY') {
@@ -470,7 +468,7 @@ class JobOrderController extends Controller
     /**
      * Accept Job Order
      * 
-     * Accept a Job Order and assign it to the authenticated Operations or finance user
+     * Accept a Job Order and assign it to the authenticated Operations user
      */
     public function acceptJobOrder(JobOrder $jobOrder) {
         $this->authorize('acceptJobOrder', $jobOrder);
@@ -482,11 +480,9 @@ class JobOrderController extends Controller
         $user = auth()->user();
         if ($user->hasRole('Operations')) {
             $jobOrder->update([
-                'operations_id' => $user->id
-            ]);
-        } else if ($user->hasRole('Finance')) {
-            $jobOrder->update([
-                'finance_id' => $user->id
+                'operations_id' => $user->id,
+                'assignment_status' => 'ASSIGNED',
+                'assigned_at' => Carbon::now(),
             ]);
         }
 

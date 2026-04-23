@@ -186,7 +186,6 @@ class QuotationSeeder extends Seeder
                     'client_id' => $quotation->client_id,
                     'as_id' => $quotation->as_id,
                     'operations_id' => $assignedOps?->id,
-                    'finance_id' => User::role('Finance')->inRandomOrder()->first()->id,
                     'quotation_id' => $quotation->id,
                     'subject' => fake()->sentence(),
                     'email_body' => fake()->paragraph(),

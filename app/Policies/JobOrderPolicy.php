@@ -13,7 +13,7 @@ class JobOrderPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(['Account Specialist', 'Lead Operations', 'Operations', 'Lead Account Specialist', 'Finance']);
+        return $user->hasRole(['Account Specialist', 'Lead Operations', 'Operations', 'Lead Account Specialist']);
     }
 
     /**
@@ -21,7 +21,7 @@ class JobOrderPolicy
      */
     public function view(User $user, JobOrder $jobOrder): bool
     {
-        return $user->id === $jobOrder->client_id || $user->id === $jobOrder->as_id || $user->id === $jobOrder->operations_id || $user->id === $jobOrder->finance_id || $user->hasRole(['Lead Operations', 'Lead Account Specialist']);
+        return $user->id === $jobOrder->as_id || $user->id === $jobOrder->operations_id || $user->hasRole(['Lead Operations', 'Lead Account Specialist']);
     }
 
     /**
@@ -71,19 +71,17 @@ class JobOrderPolicy
 
     public function showJobOrderQuotation(User $user, JobOrder $jobOrder): bool
     {
-        return $user->id === $jobOrder->client_id || $user->id === $jobOrder->as_id || $user->id === $jobOrder->operations_id || $user->id === $jobOrder->finance_id || $user->hasRole(['Lead Account Specialist']);
+        return $user->id === $jobOrder->client_id || $user->id === $jobOrder->as_id || $user->id === $jobOrder->operations_id || $user->hasRole(['Lead Account Specialist']);
     }
 
     public function acceptJobOrder(User $user, JobOrder $jobOrder): bool
     {
         if ($user->hasRole('Operations')) {
-            $opsOrFinanceExists = $jobOrder->operations_id !== null;
-        } elseif ($user->hasRole('Finance')) {
-            $opsOrFinanceExists = $jobOrder->finance_id !== null;
+            $opsExists = $jobOrder->operations_id !== null;
         } else {
             return false;
         }
-        return !$opsOrFinanceExists;
+        return !$opsExists;
     }
 
     public function reassignOps(User $user, JobOrder $jobOrder): bool

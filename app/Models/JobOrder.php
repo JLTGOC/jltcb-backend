@@ -14,7 +14,6 @@ class JobOrder extends Model implements Searchable
         'client_id',
         'as_id',
         'operations_id',
-        'finance_id',
         'quotation_id',
         'subject',
         'email_body',
@@ -27,7 +26,6 @@ class JobOrder extends Model implements Searchable
         'client_id' => 'integer',
         'as_id' => 'integer',
         'operations_id' => 'integer',
-        'finance_id' => 'integer',
         'quotation_id' => 'integer',
         'assignment_status' => 'string',
         'assigned_at' => 'datetime',
@@ -55,11 +53,6 @@ class JobOrder extends Model implements Searchable
     public function operations()
     {
         return $this->belongsTo(User::class, 'operations_id');
-    }
-
-    public function finance()
-    {
-        return $this->belongsTo(User::class, 'finance_id');
     }
 
     public function quotation()
