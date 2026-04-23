@@ -87,6 +87,9 @@ class QuotationController extends Controller
 
         $request->validate([
             'filter.status' => 'required|in:REQUESTED,RESPONDED,ACCEPTED,DISCARDED',
+            'filter.created_at' => 'sometimes|date_format:Y-m-d',
+            'filter.assignment_status' => 'sometimes|in:AVAILABLE,ASSIGNED,REASSIGNMENT REQUESTED',
+            'filter.service' => 'sometimes|in:LOGISTICS,REGULATORY',
             'client_type' => 'sometimes|in:OLD,NEW',
             'search' => 'sometimes|string',
             'page' => 'sometimes|integer|min:1',
@@ -106,10 +109,36 @@ class QuotationController extends Controller
         ]);
 
         $quotations = QueryBuilder::for($query)
-            ->allowedFilters([AllowedFilter::exact('status')]);
+            ->allowedFilters([
+                AllowedFilter::exact('status'),
+                AllowedFilter::callback('created_at', function ($query, $value) {
+                    $query->whereDate('created_at', $value);
+                }),
+                AllowedFilter::exact('assignment_status'),
+                AllowedFilter::callback('service', function ($query, $value) {
+                    if ($value === 'LOGISTICS') {
+                        $query->whereHas('logisticsService');
+                    } elseif ($value === 'REGULATORY') {
+                        $query->whereHas('regulatoryService');
+                    }
+                }),
+            ]);
 
         $myQuotations = $myQuotationsQuery
-            ? QueryBuilder::for($myQuotationsQuery)->allowedFilters([AllowedFilter::exact('status')])
+            ? QueryBuilder::for($myQuotationsQuery)->allowedFilters([
+                AllowedFilter::exact('status'),
+                AllowedFilter::callback('created_at', function ($query, $value) {
+                    $query->whereDate('created_at', $value);
+                }),
+                AllowedFilter::exact('assignment_status'),
+                AllowedFilter::callback('service', function ($query, $value) {
+                    if ($value === 'LOGISTICS') {
+                        $query->whereHas('logisticsService');
+                    } elseif ($value === 'REGULATORY') {
+                        $query->whereHas('regulatoryService');
+                    }
+                }),
+            ])
             : null;
 
         $applyQueryConstraints = function ($builder) use ($request) {
@@ -117,6 +146,26 @@ class QuotationController extends Controller
             if ($status) {
                 $builder->where('status', $status);
             }
+
+            $created_at = $request->input('filter.created_at');
+            if ($created_at) {
+                $builder->whereDate('created_at', $created_at);
+            }
+
+            $assignment_status = $request->input('filter.assignment_status');
+            if ($assignment_status) {
+                $builder->where('assignment_status', $assignment_status);
+            }
+
+            $service = $request->input('filter.service');
+            if ($service) {
+                if ($service === 'LOGISTICS') {
+                    $builder->whereHas('logisticsService');
+                } elseif ($service === 'REGULATORY') {
+                    $builder->whereHas('regulatoryService');
+                }
+            }
+
 
             if ($request->filled('client_id')) {
                 $builder->where('client_id', $request->input('client_id'));
