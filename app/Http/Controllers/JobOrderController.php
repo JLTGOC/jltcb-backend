@@ -18,6 +18,7 @@ use App\Models\{
     ReassignmentRequest,
 };
 use Illuminate\Support\Facades\DB;
+use Illuminate\Pagination\LengthAwarePaginator;
 use App\Http\Resources\{
     JobOrderResource,
     QuotationResource,
@@ -63,6 +64,10 @@ class JobOrderController extends Controller
         $request->validate([
             'search' => 'sometimes|string',
             'client_type' => 'sometimes|string|in:OLD,NEW',
+            'per_page' => 'sometimes|integer|min:1|max:100',
+            'my_per_page' => 'sometimes|integer|min:1|max:100',
+            'page' => 'sometimes|integer|min:1',
+            'my_page' => 'sometimes|integer|min:1',
         ]);
 
         $user = auth()->user();
@@ -125,6 +130,38 @@ class JobOrderController extends Controller
         $jobOrders = $jobOrders->sortByDesc('created_at')->values();
         if ($myJobOrders) {
             $myJobOrders = $myJobOrders->sortByDesc('created_at')->values();
+        }
+
+        $pagination = null;
+        $myJobOrdersPagination = null;
+
+        if ($isWeb) {
+            $paginateCollection = function ($items, int $perPage, int $page, string $pageName) use ($request) {
+                return new LengthAwarePaginator(
+                    $items->forPage($page, $perPage)->values(),
+                    $items->count(),
+                    $perPage,
+                    $page,
+                    [
+                        'path' => $request->url(),
+                        'pageName' => $pageName,
+                    ]
+                );
+            };
+
+            $jobPage = (int) $request->input('page', 1);
+            $jobPerPage = (int) $request->input('per_page', 10);
+            $jobOrdersPaginator = $paginateCollection($jobOrders, $jobPerPage, $jobPage, 'page');
+            $jobOrders = $jobOrdersPaginator->getCollection();
+            $pagination = $this->pagePaginationData($jobOrdersPaginator);
+
+            if ($myJobOrders) {
+                $myPage = (int) $request->input('my_page', 1);
+                $myPerPage = (int) $request->input('my_per_page', $jobPerPage);
+                $myJobOrdersPaginator = $paginateCollection($myJobOrders, $myPerPage, $myPage, 'my_page');
+                $myJobOrders = $myJobOrdersPaginator->getCollection();
+                $myJobOrdersPagination = $this->pagePaginationData($myJobOrdersPaginator);
+            }
         }
 
         $jobOrders = $jobOrders->map(function ($j) use ($user, $isWeb) {
@@ -287,7 +324,9 @@ class JobOrderController extends Controller
 
         return $this->success('Job Orders fetched successfully', [
             'job_orders' => $jobOrders,
-            'my_job_orders' => $myJobOrders
+            'my_job_orders' => $myJobOrders,
+            'pagination' => $pagination,
+            'my_job_orders_pagination' => $myJobOrdersPagination,
         ], 200);
     }
 
