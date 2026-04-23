@@ -536,7 +536,7 @@ class JobOrderController extends Controller
             return $this->error('A reassignment request is already pending for this Job Order', 422);
         } else {
             $request->validate([
-                'reason' => 'required|string',
+                'reason' => 'required|string|in:WORKLOAD,EMERGENCY / LEAVE,CLIENT REQUEST',
                 'additional_details' => 'sometimes|string',
             ]);
 
