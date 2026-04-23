@@ -16,6 +16,13 @@ class ReassignmentRequest extends Model
         'status',
     ];
 
+    protected $casts = [
+        'quotation_id' => 'integer',
+        'job_order_id' => 'integer',
+        'as_id' => 'integer',
+        'ops_id' => 'integer',
+    ];
+
     public function quotation()
     {
         return $this->belongsTo(Quotation::class, 'quotation_id');

@@ -138,45 +138,6 @@ class UserController extends Controller
     }
 
     /**
-     * Index Account Specialists
-     * 
-     * Display a listing of account specialists.
-     */
-    public function indexAccountSpecialists()
-    {
-        $this->authorize('indexAccountSpecialists', User::class);
-
-        $accountSpecialists = User::role('Account Specialist')->get();
-        $accountSpecialists = $accountSpecialists->map(function ($s) {
-            return [
-                'id' => $s->id,
-                'full_name' => $s->full_name,
-            ];
-        });
-
-        return $this->success('Account specialists fetched successfully', $accountSpecialists, 200);
-    }
-
-    /**
-     * Index Operations
-     * 
-     * Display a listing of operations users.
-     */
-    public function indexOperations() {
-        $this->authorize('indexOperations', User::class);
-
-        $operations = User::role('Operations')->get();
-        $operations = $operations->map(function ($o) {
-            return [
-                'id' => $o->id,
-                'full_name' => $o->full_name,
-            ];
-        });
-
-        return $this->success('Operations users fetched successfully', $operations, 200);
-    }
-
-    /**
      * Index Client Accounts
      * 
      * Display a listing of client accounts with ongoing and completed shipments count.

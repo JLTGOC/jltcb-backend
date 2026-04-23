@@ -167,6 +167,7 @@ class JobOrderController extends Controller
                         'assignment_status' => $j->assignment_status,
                         'assigned_to' => $assignedTo,
                         'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
+                        'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
                     ];
                 } elseif ($j->job_type === 'REGULATORY') {
                     if ($j->operations) {
@@ -186,6 +187,7 @@ class JobOrderController extends Controller
                         'assignment_status' => $j->assignment_status,
                         'assigned_to' => $assignedTo,
                         'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
+                        'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
                     ];
                 }
             }
@@ -199,6 +201,7 @@ class JobOrderController extends Controller
                 'quotation_id' => $j->quotation_id,
                 'quotation_reference_number' => $j->quotation->reference_number,
                 'assigned_to' => $assignedTo,
+                'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
             ];
         });
 
@@ -243,6 +246,7 @@ class JobOrderController extends Controller
                             'assignment_status' => $j->assignment_status,
                             'assigned_to' => $assignedTo,
                             'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
+                            'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
                         ];
                     } elseif ($j->job_type === 'REGULATORY') {
                         if ($j->operations) {
@@ -262,6 +266,7 @@ class JobOrderController extends Controller
                             'assignment_status' => $j->assignment_status,
                             'assigned_to' => $assignedTo,
                             'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
+                            'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
                         ];
                     }
                 }
@@ -275,6 +280,7 @@ class JobOrderController extends Controller
                     'quotation_id' => $j->quotation_id,
                     'quotation_reference_number' => $j->quotation->reference_number,
                     'assigned_to' => $assignedTo,
+                    'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
                 ];
             });
         }
@@ -536,7 +542,7 @@ class JobOrderController extends Controller
             return $this->error('A reassignment request is already pending for this Job Order', 422);
         } else {
             $request->validate([
-                'reason' => 'required|string',
+                'reason' => 'required|string|in:WORKLOAD,EMERGENCY / LEAVE,CLIENT REQUEST',
                 'additional_details' => 'sometimes|string',
             ]);
 
@@ -590,6 +596,15 @@ class JobOrderController extends Controller
 
             return $this->success('Reassignment request rejected', $reassignmentRequest, 200);
         } elseif ($request->status === 'APPROVED') {
+            $user = User::find($request->operations_id);
+            
+            if (!$user || !$user->hasRole('Operations')) {
+                return $this->error('The selected user is not an Operations user', 422);
+            }
+            if ((int) $request->operations_id === $jobOrder->operations_id) {
+                return $this->error('The Job Order is already assigned to this Operations user', 422);
+            }
+
             $jobOrder->update([
                 'operations_id' => $request->operations_id,
                 'assigned_at' => Carbon::now(),

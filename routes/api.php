@@ -21,6 +21,7 @@ use App\Http\Controllers\QuotationTemplateController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StandardConfigurationController;
 use App\Http\Controllers\ServiceOptionController;
+use App\Http\Controllers\ReassignmentRequestController;
 use Illuminate\Support\Facades\Broadcast;
 
 require __DIR__ . '/public_routes.php';
@@ -43,8 +44,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('reels', ReelController::class)->only(['store', 'update', 'destroy']);
 
-    Route::get('/users/account-specialists', [UserController::class, 'indexAccountSpecialists']);
-    Route::get('/users/operations', [UserController::class, 'indexOperations']);
     Route::get('/users/clients', [UserController::class, 'indexClientAccounts']);
     Route::get('/users/clients/{client}/shipments', [UserController::class, 'indexClientShipments']);
     Route::apiResource('users', UserController::class)->only(['show', 'update']);
@@ -53,9 +52,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('dashboard', [DashboardController::class, 'index']);
 
+    Route::post('/quotations/{quotation}/request-reassignment', [QuotationController::class, 'requestReassignment']);
     Route::get('quotations/enum-options', [QuotationController::class, 'enumQuotationOptions']);
     Route::put('/quotations/{quotation}/reassign-specialist', [QuotationController::class, 'reassignSpecialist']);
-    Route::post('/quotations/{quotation}/request-reassignment', [QuotationController::class, 'requestReassignment']);
     Route::put('/quotations/{quotation}/accept', [QuotationController::class, 'acceptQuotation']);
     Route::apiResource('quotations', QuotationController::class)->except(['update']);
     Route::post('/quotations/{quotation}', [QuotationController::class, 'update']);
@@ -120,4 +119,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('sub-services', ServiceOptionController::class)->only(['index', 'store']);
     Route::put('/sub-services/{serviceOption}', [ServiceOptionController::class, 'update']);
     Route::delete('/sub-services/{serviceOption}', [ServiceOptionController::class, 'destroy']);
+
+    // Reassignment Request Routes
+    Route::get('reassignment-requests/enums', [ReassignmentRequestController::class, 'enums']);
+    Route::apiResource('reassignment-requests', ReassignmentRequestController::class)->only(['show']);
 });

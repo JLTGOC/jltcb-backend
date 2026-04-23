@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\ReassignmentRequest;
+use App\Models\{
+    ReassignmentRequest,
+    User
+};
 
 class ReassignmentRequestController extends Controller
 {
@@ -49,5 +52,40 @@ class ReassignmentRequestController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Get Reassignment Request Enums
+     *
+     * This method returns the enum options for reassignment requests, such as reasons for reassignment. 
+     */
+    public function enums(Request $request) {
+        $this->authorize('enums', ReassignmentRequest::class);
+
+        $reassignmentReasons = [];
+        $accountSpecialists = [];
+        $operations = [];
+
+        $request->validate([
+            'reasons' => 'sometimes',
+            'as' => 'sometimes',
+            'ops' => 'sometimes',
+        ]);
+        
+        if ($request->has('reasons')) {
+            $reassignmentReasons = ['WORKLOAD', 'EMERGENCY / LEAVE', 'CLIENT REQUEST'];
+        }
+        if ($request->has('as')) {
+            $accountSpecialists = User::role('Account Specialist')->get(['id', 'username', 'full_name']);
+        }
+        if ($request->has('ops')) {
+            $operations = User::role('Operations')->get(['id', 'username', 'full_name']);
+        }
+
+        return $this->success('Reassignment request enums retrieved successfully', [
+            'reassignment_reasons' => $reassignmentReasons,
+            'account_specialists' => $accountSpecialists,
+            'operations' => $operations
+        ], 200);
     }
 }

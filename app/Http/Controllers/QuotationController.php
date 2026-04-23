@@ -21,7 +21,8 @@ use App\Models\{
     IssuedQuotation,
     BusinessType,
     RegulatoryAssistanceType,
-    ContainerSize
+    ContainerSize,
+    ReassignmentRequest
 };
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -203,6 +204,7 @@ class QuotationController extends Controller
                         'assignment_status' => $quotation->assignment_status,
                         'account_specialist' =>  $as,
                         'assigned_at' => $quotation->assigned_at ? mb_strtoupper(Carbon::parse($quotation->assigned_at)->format($dateFormat)) : null,
+                        'reassignment_request_id' => $quotation->latestReassignmentRequest ? $quotation->latestReassignmentRequest->id : null,
                         'service' => $quotation->logisticsService ? 'LOGISTICS' : ($quotation->regulatoryService ? 'REGULATORY' : null),
                         'logistics_service' => $quotation->logisticsService ? [
                             'commodity' => $quotation->logisticsService->commodity,
@@ -299,6 +301,7 @@ class QuotationController extends Controller
                                     'as_username' => $quotation->accountSpecialist->username ?? 'Available',
                                     'as_full_name' => $quotation->accountSpecialist->full_name ?? null,
                                     'assigned_at' => $quotation->assigned_at ? mb_strtoupper(Carbon::parse($quotation->assigned_at)->format($dateFormat)) : null,
+                                    'reassignment_request_id' => $quotation->latestReassignmentRequest ? $quotation->latestReassignmentRequest->id : null,
                                     'service' => $quotation->logisticsService ? 'LOGISTICS' : ($quotation->regulatoryService ? 'REGULATORY' : null),
                                     'logistics_service' => $quotation->logisticsService ? [
                                         'commodity' => $quotation->logisticsService->commodity,
@@ -357,6 +360,7 @@ class QuotationController extends Controller
                                 'prepared_by' => $result->created_by ? User::where('id', $result->created_by)->value('full_name') : null,
                                 'service' => $result->logisticsService ? 'LOGISTICS' : ($result->regulatoryService ? 'REGULATORY' : null),
                                 'service_type' => $result->logisticsService ? $result->logisticsService->service_type : ($result->regulatoryService ? $result->regulatoryService->type_of_regulatory_assistance : null),
+                                'reassignment_request_id' => $result->latestReassignmentRequest ? $result->latestReassignmentRequest->id : null,
                             ];
                         }
                     });
@@ -417,6 +421,7 @@ class QuotationController extends Controller
                         'commodity' => $result->logisticsService?->commodity ?? $result->regulatoryService?->type_of_regulatory_assistance ?? null,
                         'date' => $result->created_at->format($dateFormat),
                         'conversation_id' => $conversationId ?? null,
+                        'reassignment_request_id' => $result->latestReassignmentRequest ? $result->latestReassignmentRequest->id : null,
                     ];
                 }
             });
@@ -932,7 +937,7 @@ class QuotationController extends Controller
             return $this->error('A reassignment request is already pending for this quotation', 422);
         } else {
             $request->validate([
-                'reason' => ['required', 'string'],
+                'reason' => ['required', 'string', 'in:WORKLOAD,EMERGENCY / LEAVE,CLIENT REQUEST'],
                 'additional_details' => ['nullable', 'string']
             ]);
 
