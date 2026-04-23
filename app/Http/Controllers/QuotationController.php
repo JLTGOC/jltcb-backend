@@ -54,6 +54,7 @@ class QuotationController extends Controller
         $platform = strtolower((string) $request->header('Platform', 'mobile'));
         $isWeb = $platform === 'web';
         $perPage = $request->input('perPage', 10);
+        $myPerPage = $request->input('myPerPage', $perPage);
         $dateFormat = $isWeb ? 'F d, Y' : 'Y/m/d';
         $query = Quotation::query();
         $myQuotationsQuery = null;
@@ -72,7 +73,9 @@ class QuotationController extends Controller
             'filter.status' => 'required|in:REQUESTED,RESPONDED,ACCEPTED,DISCARDED',
             'client_type' => 'sometimes|in:OLD,NEW',
             'search' => 'sometimes|string',
-            'perPage' => 'sometimes|integer|min:1|max:100',
+            'per_page' => 'sometimes|integer|min:1|max:100',
+            'my_per_page' => 'sometimes|integer|min:1|max:100',
+            'my_page' => 'sometimes|integer|min:1',
             'client_id' => [
                 'sometimes',
                 'integer',
@@ -167,6 +170,7 @@ class QuotationController extends Controller
         }
 
         $pagination = null;
+        $myQuotationsPagination = null;
 
         if ($user->hasRole('Account Specialist') || $user->hasRole('Lead Account Specialist')) {
             if ($isWeb) {
@@ -232,12 +236,14 @@ class QuotationController extends Controller
 
                 $myQuotationsResults = collect();
                 if ($myQuotations) {
-                    $myQuotationsResults = $myQuotations
+                    $myPage = $request->input('my_page', 1);
+                    $myPaginated = $myQuotations
                         ->with(['client', 'accountSpecialist', 'logisticsService', 'regulatoryService'])
                         ->orderBy('created_at', 'desc')
-                        ->get()
-                        ->map($formatQuotation)
-                        ->values();
+                        ->paginate($myPerPage, ['*'], 'my_page', $myPage);
+
+                    $myQuotationsResults = $myPaginated->getCollection()->map($formatQuotation)->values();
+                    $myQuotationsPagination = $this->pagePaginationData($myPaginated);
                 }
 
                 $pagination = $this->pagePaginationData($paginated);
@@ -247,6 +253,7 @@ class QuotationController extends Controller
                         'quotations' => [],
                         'my_quotations' => $myQuotationsResults,
                         'pagination' => $pagination,
+                        'my_quotations_pagination' => $myQuotationsPagination,
                     ], 200);
                 }
 
@@ -254,6 +261,7 @@ class QuotationController extends Controller
                     'quotations' => $quotations->values(),
                     'my_quotations' => $myQuotationsResults,
                     'pagination' => $pagination,
+                    'my_quotations_pagination' => $myQuotationsPagination,
                 ], 200);
             } else {
                 if ($request->filter['status'] === 'REQUESTED') {
