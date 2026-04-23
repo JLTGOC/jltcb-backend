@@ -86,6 +86,11 @@ class UserPolicy
         return $user->hasRole('Lead Account Specialist');
     }
 
+    public function indexOperations(User $user): bool
+    {
+        return $user->hasRole('Lead Operations');
+    }
+
     public function indexClientAccounts(User $user): bool
     {
         return $user->hasRole(['Lead Account Specialist', 'Account Specialist']);
