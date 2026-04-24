@@ -208,14 +208,21 @@ class QuotationController extends Controller
                     ->pluck('id');
 
                 $clientSearchIds = Quotation::query()
-                    ->leftJoin('users', 'quotations.client_id', '=', 'users.id')
-                    ->where('users.full_name', 'like', "%{$search}%")
+                    ->leftJoin('users as clients', 'quotations.client_id', '=', 'clients.id')
+                    ->where('clients.full_name', 'like', "%{$search}%")
+                    ->select('quotations.id')
+                    ->pluck('id');
+
+                $asSearchIds = Quotation::query()
+                    ->leftJoin('users as specialists', 'quotations.as_id', '=', 'specialists.id')
+                    ->where('specialists.full_name', 'like', "%{$search}%")
                     ->select('quotations.id')
                     ->pluck('id');
 
                 $mergedIds = $searchIds
                     ->merge($commoditySearchIds)
                     ->merge($clientSearchIds)
+                    ->merge($asSearchIds)
                     ->unique()
                     ->values();
 
