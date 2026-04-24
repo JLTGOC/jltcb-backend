@@ -153,10 +153,8 @@ class QuotationController extends Controller
                     $query->whereDate('created_at', $value);
                 }),
                 AllowedFilter::callback('assignment_status', function ($query, $value) {
-                    if ($value === 'ALL') {
-                        return;
-                    }
-                    $query->where('assignment_status', $value);
+                    // Accept this filter key for shared request shape, but do not apply it to my_quotations.
+                    return;
                 }),
                 AllowedFilter::callback('service', function ($query, $value) {
                     if ($value === 'LOGISTICS') {
@@ -170,7 +168,7 @@ class QuotationController extends Controller
             ])
             : null;
 
-        $applyQueryConstraints = function ($builder) use ($request) {
+        $applyQueryConstraints = function ($builder, bool $applyAssignmentStatus = true) use ($request) {
             $status = $request->input('filter.status');
             if ($status) {
                 $builder->where('status', $status);
@@ -182,7 +180,7 @@ class QuotationController extends Controller
             }
 
             $assignment_status = $request->input('filter.assignment_status');
-            if ($assignment_status && $assignment_status !== 'ALL') {
+            if ($applyAssignmentStatus && $assignment_status && $assignment_status !== 'ALL') {
                 $builder->where('assignment_status', $assignment_status);
             }
 
@@ -282,7 +280,7 @@ class QuotationController extends Controller
 
         $applyQueryConstraints($quotations);
         if ($myQuotations) {
-            $applyQueryConstraints($myQuotations);
+            $applyQueryConstraints($myQuotations, false);
         }
 
         $pagination = null;
