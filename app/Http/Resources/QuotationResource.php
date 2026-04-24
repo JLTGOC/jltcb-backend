@@ -23,6 +23,7 @@ class QuotationResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $user = auth()->user();
         $platform = strtolower((string) $request->header('Platform', 'mobile'));
         $isWeb = $platform === 'web';
         $logisticsService = $this->logisticsService;
@@ -38,6 +39,10 @@ class QuotationResource extends JsonResource
             $conversationId = null;
         } else {
             $conversationId = Conversation::where('id', $message->conversation_id)->value('id');
+        }
+
+        if ($user->id !== $this->as_id && $user->id !== $this->client_id) {
+            $conversationId = null;
         }
         
         $options = [];
