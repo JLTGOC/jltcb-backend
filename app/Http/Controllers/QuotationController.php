@@ -395,7 +395,7 @@ class QuotationController extends Controller
 
                     $results = $resultsQuery->get();
 
-                    $groupedByClient = $results->groupBy('client_id')->map(function ($clientQuotations) use ($dateFormat) {
+                    $groupedByClient = $results->groupBy('client_id')->map(function ($clientQuotations) use ($dateFormat, $user) {
                         $client = $clientQuotations->first()->client;
 
                         return [
@@ -403,7 +403,7 @@ class QuotationController extends Controller
                             'client_full_name' => $client->full_name,
                             'quotations_count' => $clientQuotations->count(),
                             'date' => $clientQuotations->first()->created_at->format($dateFormat),
-                            'quotations' => $clientQuotations->map(function ($quotation) use ($dateFormat) {
+                            'quotations' => $clientQuotations->map(function ($quotation) use ($dateFormat, $user) {
                                 $issuedQuotation = IssuedQuotation::where('quotation_id', $quotation->id)->value('id');
                                 $quotationCard = Message::where('reference_id', $quotation->id)
                                     ->where('type', 'QUOTATION_CARD')
@@ -421,6 +421,10 @@ class QuotationController extends Controller
                                     if ($shipmentCard) {
                                         $conversationId = $shipmentCard->conversation_id;
                                     }
+                                }
+
+                                if ($user->hasRole('Lead Account Specialist') && $user->id !== $quotation->as_id) {
+                                    $conversationId = null;
                                 }
 
                                 return [
@@ -479,6 +483,10 @@ class QuotationController extends Controller
                                 if ($shipmentCard) {
                                     $conversationId = $shipmentCard->conversation_id;
                                 }
+                            }
+
+                            if ($user->hasRole('Lead Account Specialist') && $user->id !== $result->as_id) {
+                                $conversationId = null;
                             }
 
                             return [
