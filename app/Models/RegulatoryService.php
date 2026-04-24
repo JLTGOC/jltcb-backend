@@ -11,6 +11,7 @@ class RegulatoryService extends Model
         'full_name',
         'contact_person_contact_number',
         'business_type',
+        'position',
         'type_of_regulatory_assistance',
         'application_type',
         'message'

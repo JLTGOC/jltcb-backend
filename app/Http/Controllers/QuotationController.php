@@ -80,7 +80,11 @@ class QuotationController extends Controller
         } elseif ($user->hasRole('Lead Account Specialist')) {
             // No additional query constraints needed.
         } elseif ($user->hasRole('Account Specialist')) {
-            $query->whereNot('assignment_status', 'ASSIGNED');
+            if ($isWeb) {
+                $query->whereNot('assignment_status', 'ASSIGNED');
+            } else {
+                $query->where('as_id', $user->id);
+            }
             $myQuotationsQuery = Quotation::query()->where('assignment_status', 'ASSIGNED')->where('as_id', $user->id);
         } else {
             return $this->error('Unauthorized', 403);
@@ -760,6 +764,7 @@ class QuotationController extends Controller
                         ['quotation_id' => $quotation->id],
                         [
                             'business_type' => $request->input('company.business_type', $quotation->regulatoryService?->business_type),
+                            'position' => $request->input('company.position', $quotation->regulatoryService?->position),
                             'type_of_regulatory_assistance' => $typeOfRegulatoryAssistance,
                             'application_type' => $request->input('service_level', $quotation->regulatoryService?->application_type),
                             'message' => $request->input('message', $quotation->regulatoryService?->message),
