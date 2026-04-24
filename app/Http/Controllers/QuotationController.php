@@ -362,7 +362,7 @@ class QuotationController extends Controller
 
                 $pagination = $this->pagePaginationData($paginated);
 
-                if ($quotations->isEmpty()) {
+                if ($quotations->isEmpty() && $myQuotationsResults->isEmpty()) {
                     return $this->success('No quotations found', [
                         'counts' => [
                             'all_quotations' => $allQuotationsCount,
