@@ -910,56 +910,6 @@ class QuotationController extends Controller
     } 
 
     /**
-     * Upload Client Documents
-     * 
-     * Upload files for client documents
-     */
-    private function uploadClientDocuments(
-        Quotation $quotation,
-        User $user,
-        array $newFiles = [],
-        array $removedFileIds = []
-    ) {
-        $type = 'REQUESTED';
-
-        DB::beginTransaction();
-        try {
-            // Delete only the files explicitly marked for removal
-            if (!empty($removedFileIds)) {
-                $filesToRemove = $quotation->files()->whereIn('id', $removedFileIds)->get();
-                foreach ($filesToRemove as $file) {
-                    Storage::disk('local')->delete($file->file_path);
-                    $file->delete();
-                }
-            }
-
-            // Upload new files if provided
-            if (!empty($newFiles)) {
-                foreach ($newFiles as $file) {
-                    $filename = $file->hashName();
-                    $path = $file->storeAs('files', $filename, 'local');
-                    $originalFileName = $file->getClientOriginalName();
-
-                    QuotationFile::create([
-                        'quotation_id' => $quotation->id,
-                        'file_path' => $path,
-                        'original_file_name' => $originalFileName,
-                        'uploaded_by' => $user->id,
-                        'type' => $type,
-                        'file_type' => $file->getClientOriginalExtension()
-                    ]);
-                }
-            }
-
-            DB::commit();
-            return true; // success
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return $e; // return exception for error handling
-        }
-    }
-
-    /**
      * Reassign Account Specialist
      * 
      * Allows Lead Account Specialist to reassign the Account Specialist in charge of a quotation
