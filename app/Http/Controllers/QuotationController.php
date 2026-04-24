@@ -80,6 +80,7 @@ class QuotationController extends Controller
         } elseif ($user->hasRole('Lead Account Specialist')) {
             // No additional query constraints needed.
         } elseif ($user->hasRole('Account Specialist')) {
+            $query->whereNot('as_id', $user->id);
             $myQuotationsQuery = Quotation::query()->where('as_id', $user->id);
         } else {
             return $this->error('Unauthorized', 403);
@@ -92,6 +93,7 @@ class QuotationController extends Controller
             'filter.service' => 'sometimes|in:LOGISTICS,REGULATORY',
             'client_type' => 'sometimes|in:OLD,NEW',
             'search' => 'sometimes|string',
+            'as_search' => 'sometimes|string',
             'page' => 'sometimes|integer|min:1',
             'my_page' => 'sometimes|integer|min:1',
             'client_id' => [
@@ -213,16 +215,16 @@ class QuotationController extends Controller
                     ->select('quotations.id')
                     ->pluck('id');
 
-                $asSearchIds = Quotation::query()
-                    ->leftJoin('users as specialists', 'quotations.as_id', '=', 'specialists.id')
-                    ->where('specialists.full_name', 'like', "%{$search}%")
-                    ->select('quotations.id')
-                    ->pluck('id');
+                // $asSearchIds = Quotation::query()
+                //     ->leftJoin('users as specialists', 'quotations.as_id', '=', 'specialists.id')
+                //     ->where('specialists.full_name', 'like', "%{$search}%")
+                //     ->select('quotations.id')
+                //     ->pluck('id');
 
                 $mergedIds = $searchIds
                     ->merge($commoditySearchIds)
                     ->merge($clientSearchIds)
-                    ->merge($asSearchIds)
+                    // ->merge($asSearchIds)
                     ->unique()
                     ->values();
 
@@ -232,6 +234,22 @@ class QuotationController extends Controller
                 }
 
                 $builder->whereIn('id', $mergedIds);
+            }
+
+            if ($request->has('as_search')) {
+                $asSearch = $request->input('as_search');
+                $asSearchIds = Quotation::query()
+                    ->leftJoin('users as specialists', 'quotations.as_id', '=', 'specialists.id')
+                    ->where('specialists.full_name', 'like', "%{$asSearch}%")
+                    ->select('quotations.id')
+                    ->pluck('id');
+
+                if ($asSearchIds->isEmpty()) {
+                    $builder->whereRaw('1 = 0');
+                    return;
+                }
+
+                $builder->whereIn('id', $asSearchIds);
             }
         };
 
