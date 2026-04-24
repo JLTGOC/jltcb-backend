@@ -80,8 +80,8 @@ class QuotationController extends Controller
         } elseif ($user->hasRole('Lead Account Specialist')) {
             // No additional query constraints needed.
         } elseif ($user->hasRole('Account Specialist')) {
-            $query->whereNot('as_id', $user->id);
-            $myQuotationsQuery = Quotation::query()->where('as_id', $user->id);
+            $query->whereNot('assignment_status', 'ASSIGNED');
+            $myQuotationsQuery = Quotation::query()->where('assignment_status', 'ASSIGNED')->where('as_id', $user->id);
         } else {
             return $this->error('Unauthorized', 403);
         }
@@ -89,8 +89,21 @@ class QuotationController extends Controller
         $request->validate([
             'filter.status' => 'required|in:REQUESTED,RESPONDED,ACCEPTED,DISCARDED',
             'filter.created_at' => 'sometimes|date_format:Y-m-d',
-            'filter.assignment_status' => 'sometimes|in:AVAILABLE,ASSIGNED,REASSIGNMENT REQUESTED',
-            'filter.service' => 'sometimes|in:LOGISTICS,REGULATORY',
+            'filter.assignment_status' => ['sometimes', function ($attribute, $value, $fail) use ($user) {
+                $allowedStatuses = [];
+                if ($user->hasRole('Lead Account Specialist')) {
+                    $allowedStatuses = ['AVAILABLE', 'ASSIGNED', 'REASSIGNMENT REQUESTED','ALL'];
+                } elseif ($user->hasRole('Account Specialist')) {
+                    $allowedStatuses = ['AVAILABLE', 'REASSIGNMENT REQUESTED','ALL'];
+                } else {
+                    $fail("The {$attribute} filter is not applicable for your role.");
+                    return;
+                }
+                if (!in_array($value, $allowedStatuses)) {
+                    $fail("The {$attribute} must be one of: " . implode(', ', $allowedStatuses) . '.');
+                }
+            }],
+            'filter.service' => 'sometimes|in:LOGISTICS,REGULATORY,ALL',
             'client_type' => 'sometimes|in:OLD,NEW',
             'search' => 'sometimes|string',
             'as_search' => 'sometimes|string',
@@ -116,12 +129,19 @@ class QuotationController extends Controller
                 AllowedFilter::callback('created_at', function ($query, $value) {
                     $query->whereDate('created_at', $value);
                 }),
-                AllowedFilter::exact('assignment_status'),
+                AllowedFilter::callback('assignment_status', function ($query, $value) use ($user) {
+                    if ($value === 'ALL') {
+                        return;
+                    }
+                    $query->where('assignment_status', $value);
+                }),
                 AllowedFilter::callback('service', function ($query, $value) {
                     if ($value === 'LOGISTICS') {
                         $query->whereHas('logisticsService');
                     } elseif ($value === 'REGULATORY') {
                         $query->whereHas('regulatoryService');
+                    } elseif ($value === 'ALL') {
+                        return;
                     }
                 }),
             ]);
@@ -132,12 +152,19 @@ class QuotationController extends Controller
                 AllowedFilter::callback('created_at', function ($query, $value) {
                     $query->whereDate('created_at', $value);
                 }),
-                AllowedFilter::exact('assignment_status'),
+                AllowedFilter::callback('assignment_status', function ($query, $value) {
+                    if ($value === 'ALL') {
+                        return;
+                    }
+                    $query->where('assignment_status', $value);
+                }),
                 AllowedFilter::callback('service', function ($query, $value) {
                     if ($value === 'LOGISTICS') {
                         $query->whereHas('logisticsService');
                     } elseif ($value === 'REGULATORY') {
                         $query->whereHas('regulatoryService');
+                    } elseif ($value === 'ALL') {
+                        return;
                     }
                 }),
             ])
@@ -155,7 +182,7 @@ class QuotationController extends Controller
             }
 
             $assignment_status = $request->input('filter.assignment_status');
-            if ($assignment_status) {
+            if ($assignment_status && $assignment_status !== 'ALL') {
                 $builder->where('assignment_status', $assignment_status);
             }
 
