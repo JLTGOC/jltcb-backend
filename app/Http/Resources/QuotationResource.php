@@ -109,6 +109,8 @@ class QuotationResource extends JsonResource
                                 'file' => $file->id
                             ]),
                         'file_type' => $file->file_type,
+                        'created_at' => $file->created_at,
+                        'updated_at' => $file->updated_at,
                     ];
                 })
                 : 'No file available.',
@@ -123,7 +125,9 @@ class QuotationResource extends JsonResource
                             [
                                 'file' => $file->id
                             ]),
-                        'file_type' => $file->file_type
+                        'file_type' => $file->file_type,
+                        'created_at' => $file->created_at,
+                        'updated_at' => $file->updated_at,
                     ];
                 })
                 : 'No documents available.',
