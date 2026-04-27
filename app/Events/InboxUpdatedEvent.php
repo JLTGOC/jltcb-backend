@@ -4,9 +4,7 @@ namespace App\Events;
 
 use App\Http\Resources\ConversationResource;
 use App\Models\Conversation;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -16,14 +14,12 @@ class InboxUpdatedEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    private $inboxData;
-
     /**
      * Create a new event instance.
      */
-    public function __construct(private $user_id, Conversation $conversation)
+    public function __construct(private $user_id, private Conversation $conversation)
     {
-        $this->inboxData = new ConversationResource($conversation, $user_id);
+        //
     }
 
     /**
@@ -44,7 +40,7 @@ class InboxUpdatedEvent implements ShouldBroadcast
 
     public function broadcastWith() {
         return [
-            "inbox" => $this->inboxData
+            "inbox" => new ConversationResource($this->conversation, $this->user_id),
         ];
     }
 }
