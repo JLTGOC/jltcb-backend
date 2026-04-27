@@ -214,12 +214,22 @@ class ChatController extends Controller
      * Send message to either GROUP or DIRECT
      */
     public function sendMessage(Request $request, Conversation $conversation) {
-        $request->validate([
+        $rules = [
             'type' => 'required|in:TEXT,IMAGE,FILE',
             'content' => 'required_if:type,TEXT|nullable|string',
-            'file' => 'required_if:type,IMAGE,FILE|file|max:5120', // Max 5MB
-            'client_id' => 'sometimes|string' // For frontend's optimistic message update (sabe ni vince)
-        ]);
+            'file' => 'required_if:type,IMAGE,FILE|file|max:5120',
+            'client_id' => 'sometimes|string',
+        ];
+
+        if ($request->type === 'IMAGE') {
+            $rules['file'] .= '|mimes:jpg,jpeg,png,gif,webp,heic';
+        }
+
+        if ($request->type === 'FILE') {
+            $rules['file'] .= '|mimes:pdf,doc,docx,xls,xlsx';
+        }
+
+        $request->validate($rules);
  
         $attachmentPath = null;
 
