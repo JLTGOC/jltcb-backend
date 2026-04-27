@@ -78,7 +78,7 @@ class QuotationController extends Controller
         if ($user->hasRole('Client')) {
             $query->where('client_id', $user->id);
         } elseif ($user->hasRole('Lead Account Specialist')) {
-            // No additional query constraints needed.
+            $myQuotationsQuery = Quotation::query()->where('assignment_status', 'ASSIGNED')->where('as_id', $user->id);
         } elseif ($user->hasRole('Account Specialist')) {
             if ($isWeb) {
                 $query->whereNot('assignment_status', 'ASSIGNED');
