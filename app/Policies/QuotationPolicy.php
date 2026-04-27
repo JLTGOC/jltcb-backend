@@ -108,8 +108,13 @@ class QuotationPolicy
         return $user->id === $quotation->as_id;
     }
 
-    public function acceptQuotation(User $user, Quotation $quotation): bool
+    public function acceptQuotationProposal(User $user, Quotation $quotation): bool
     {
         return $user->id === $quotation->client_id;
+    }
+
+    public function acceptQuotationAssignment(User $user, Quotation $quotation): bool
+    {
+        return $user->hasRole(['Account Specialist', 'Lead Account Specialist']);
     }
 }

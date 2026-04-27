@@ -1016,15 +1016,35 @@ class QuotationController extends Controller
     }
 
     /**
-     * Accept Quotation
+     * Accept Quotation Assignment
+     * 
+     * Allows Account Specialist to accept a quotation assignment, changing the assignment status to ASSIGNED
+     */
+    public function acceptQuotationAssignment(Quotation $quotation, Request $request) {
+        $this->authorize('acceptQuotationAssignment', $quotation);
+
+        if ($quotation->assignment_status !== 'AVAILABLE') {
+            return $this->error('This quotation is not available for acceptance', 422);
+        }
+
+        $quotation->update([
+            'assignment_status' => 'ASSIGNED',
+            'assigned_at' => Carbon::now()
+        ]);
+
+        return $this->success('Quotation assignment accepted successfully', new QuotationResource($quotation), 200);
+    }
+
+    /**
+     * Accept Quotation Proposal
      * 
      * Allows Client to accept a quotation, changing its status to ACCEPTED
      */
-    public function acceptQuotation(Quotation $quotation, Request $request) {
+    public function acceptQuotationProposal(Quotation $quotation, Request $request) {
+        $this->authorize('acceptQuotationProposal', $quotation);
+
         $quotation->update([
             'status' => 'ACCEPTED',
-            'assignment_status' => 'ASSIGNED',
-            'assigned_at' => Carbon::now(),
         ]);
 
         return $this->success('Quotation accepted successfully', new QuotationResource($quotation), 200);
