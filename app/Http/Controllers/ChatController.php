@@ -145,12 +145,7 @@ class ChatController extends Controller
             'Messages retrieved successfully.', 
             [
                 'messages' => MessageResource::collection($paginated),
-                'pagination' => [
-                    'prev_cursor' => $paginated->previousCursor()?->encode(),
-                    'next_cursor' => $paginated->nextCursor()?->encode(),
-                    'prev_page_url' => $paginated->previousPageUrl(),
-                    'next_page_url' => $paginated->nextPageUrl()
-                ]
+                'pagination' => $this->cursorPaginationData($paginated)
             ]
         );
     }
