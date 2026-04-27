@@ -285,11 +285,9 @@ class ChatController extends Controller
     }
 
     private function broadcastChatEvents(Conversation $conversation, Message $message, string $clientId) {
-        $participants = $conversation->participants()->get();
-
-        foreach($participants as $participant) {
-            broadcast(new InboxUpdatedEvent($participant->id, $conversation));
-        }
+        $conversation->participants()->pluck('user_id')->each(function ($userId) use ($conversation) {
+            broadcast(new InboxUpdatedEvent($userId, $conversation));
+        });
 
         broadcast(new ChatEvent($message, $clientId));
     }
@@ -310,3 +308,4 @@ class ChatController extends Controller
         return Storage::disk('local')->response($message->attachment_path);
     }
 }
+
