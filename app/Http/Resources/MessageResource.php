@@ -68,9 +68,9 @@ class MessageResource extends JsonResource
             case 'IMAGE':
                 $data['content'] = $this->content;
                 $data['file_name'] = $this->file_name;
-                $data['file_url'] = asset(Storage::url($this->attachment_path));
+                $data['file_url'] = route('chat.attachments.view', $this->id);
 
-                $absolutePath = Storage::disk('public')->path($this->attachment_path);
+                $absolutePath = Storage::disk('local')->path($this->attachment_path);
                 [$width, $height] = getimagesize($absolutePath); 
 
                 $data['width'] = $width;  
@@ -80,7 +80,7 @@ class MessageResource extends JsonResource
             case 'FILE':
                 $data['content'] = $this->content;
                 $data['file_name'] = $this->file_name;
-                $data['file_url'] = asset(Storage::url($this->attachment_path));
+                $data['file_url'] = route('chat.attachments.view', $this->id);
                 break;
 
             default:

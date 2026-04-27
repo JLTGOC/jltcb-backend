@@ -2,21 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Message;
 use App\Events\ChatEvent;
 use App\Events\InboxUpdatedEvent;
-use App\Models\Quotation;
-use App\Models\Participant;
-use App\Models\Conversation;
-use Illuminate\Http\Request;
-use Spatie\Searchable\Search;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ConversationResource;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Gate;
 use App\Http\Resources\MessageResource;
+use App\Models\Conversation;
+use App\Models\Message;
+use App\Models\Participant;
+use App\Models\Quotation;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Spatie\Searchable\Search;
 
 class ChatController extends Controller
 {
@@ -222,27 +221,23 @@ class ChatController extends Controller
             'client_id' => 'sometimes|string' // For frontend's optimistic message update (sabe ni vince)
         ]);
  
-        // Set user's unread count to 0 as they send a message
-        $this->markAsRead($conversation);
-
-        $senderId = Auth::id();
-
         $attachmentPath = null;
-        $fileName = null;
 
-        if ($request->type !== 'TEXT') {
-            $fileName = $request->file('file')->getClientOriginalName();
+        DB::beginTransaction();
+        try {
+            $fileName = null;
 
-            $attachmentPath = match($request->type) {
-                'IMAGE' => upload_image($request, 'file', 'chat_images'),
-                'FILE' => $request->file('file')->store('chat_files', 'public')
-            };
-        }
+            if ($request->type !== 'TEXT') {
+                $fileName = $request->file('file')->getClientOriginalName();
 
-        // CREATE MESSAGE
-        $message = DB::transaction(function () use ($conversation, $request, $senderId, $attachmentPath, $fileName) {
-            $msg = $conversation->messages()->create([
-                'sender_id' => $senderId,
+                $attachmentPath = match($request->type) {
+                    'IMAGE' => upload_image($request, 'file', 'chat_images', disk: 'private'),
+                    'FILE' => $request->file('file')->store('chat_files', 'local')
+                };
+            }
+
+            $message = $conversation->messages()->create([
+                'sender_id' => $request->user()->id,
                 'content' => $request['content'],
                 'type' => $request['type'],
                 'file_name' => $fileName,
@@ -250,9 +245,18 @@ class ChatController extends Controller
             ]);
 
             $conversation->update(['last_message_at' => now()]);
+            $message->load('sender');
 
-            return $msg->load('sender');
-        });
+            // Set user's unread count to 0 as they send a message
+            $this->markAsRead($conversation);
+
+            DB::commit();
+        } catch(\Exception $e) {
+            DB::rollBack();
+            Storage::disk('local')->delete($attachmentPath);
+
+            return $this->error($e->getMessage());
+        }
         
         $this->broadcastChatEvents($conversation, $message, $request->client_id);
 
@@ -278,5 +282,21 @@ class ChatController extends Controller
         }
 
         broadcast(new ChatEvent($message, $clientId));
+    }
+
+    /**
+     * View Chat Attachments 
+     * 
+     * Show chat files/images sent to chat participants only
+     */
+    public function viewAttachments(Message $message) {
+        if (!in_array($message->type, ['IMAGE', 'FILE'])) {
+            return $this->error('Attachment not found', statusCode: 404);
+        }
+
+        $conversation = $message->conversation;
+        $this->authorize('view', $conversation);
+
+        return Storage::disk('local')->response($message->attachment_path);
     }
 }
