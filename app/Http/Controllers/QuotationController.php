@@ -1028,6 +1028,7 @@ class QuotationController extends Controller
         }
 
         $quotation->update([
+            'as_id' => auth()->id(),
             'assignment_status' => 'ASSIGNED',
             'assigned_at' => Carbon::now()
         ]);
