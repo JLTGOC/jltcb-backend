@@ -5,9 +5,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 if (!function_exists('upload_image')) {
-    function upload_image(Request $request, string $keyName, string $folderName)
+    function upload_image(Request $request, string $keyName, string $folderName, string $disk = 'public')
     {
-        $directory = storage_path("app/public/{$folderName}");
+        $directory = storage_path("app/{$disk}/{$folderName}");
         if (!file_exists($directory)) {
             mkdir($directory, 0755, true);
         }
