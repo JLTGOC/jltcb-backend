@@ -7,7 +7,7 @@ use App\Repositories\BaseRepository;
 
 class AcceptQuotationProposalRepository extends BaseRepository
 {
-    public function execute($quotation, $request){
+    public function execute($quotation){
         $quotation->update([
             'status' => 'ACCEPTED',
         ]);

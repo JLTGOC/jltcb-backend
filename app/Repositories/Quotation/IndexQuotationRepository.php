@@ -17,6 +17,7 @@ class IndexQuotationRepository extends BaseRepository
 {
     public function execute($request){
         $user = auth()->user();
+        $request->validated();
         $platform = strtolower((string) $request->header('Platform', 'mobile'));
         $isWeb = $platform === 'web';
         $perPage = $request->input('per_page', 10);
@@ -51,43 +52,6 @@ class IndexQuotationRepository extends BaseRepository
         } else {
             return $this->error('Unauthorized', 403);
         }
-
-        $request->validate([
-            'filter.status' => 'required|in:REQUESTED,RESPONDED,ACCEPTED,DISCARDED',
-            'filter.created_at' => 'sometimes|date_format:Y-m-d',
-            'filter.assignment_status' => ['sometimes', function ($attribute, $value, $fail) use ($user) {
-                $allowedStatuses = [];
-                if ($user->hasRole('Lead Account Specialist')) {
-                    $allowedStatuses = ['AVAILABLE', 'ASSIGNED', 'REASSIGNMENT REQUESTED','ALL'];
-                } elseif ($user->hasRole('Account Specialist')) {
-                    $allowedStatuses = ['AVAILABLE', 'REASSIGNMENT REQUESTED','ALL'];
-                } else {
-                    $fail("The {$attribute} filter is not applicable for your role.");
-                    return;
-                }
-                if (!in_array($value, $allowedStatuses)) {
-                    $fail("The {$attribute} must be one of: " . implode(', ', $allowedStatuses) . '.');
-                }
-            }],
-            'filter.service' => 'sometimes|in:LOGISTICS,REGULATORY,ALL',
-            'client_type' => 'sometimes|in:OLD,NEW',
-            'search' => 'sometimes|string',
-            'as_search' => 'sometimes|string',
-            'page' => 'sometimes|integer|min:1',
-            'my_page' => 'sometimes|integer|min:1',
-            'client_id' => [
-                'sometimes',
-                'integer',
-                'exists:users,id',
-                function ($attribute, $value, $fail) {
-                    $isClient = User::role('Client')->where('id', $value)->exists();
-
-                    if (!$isClient) {
-                        $fail('The selected client must have a Client role.');
-                    }
-                },
-            ],
-        ]);
 
         $quotations = QueryBuilder::for($query)
             ->allowedFilters([

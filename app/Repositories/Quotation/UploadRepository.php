@@ -17,15 +17,13 @@ class UploadRepository extends BaseRepository
     }
 
     public function execute($quotation, $request){
-        $request->validate([
-            'file' => ['required', 'file', 'mimes:pdf,xls,xlsx']
-        ]);
+        $validated = $request->validated();
 
         DB::beginTransaction();
         try {
 
             $quotationFile = $this->quotationFileService->uploadQuotationFile(
-                $quotation, $request->file('file'), $request->user()
+                $quotation, $validated['file'], $request->user()
             );
             
             $message = $quotationFile->wasRecentlyCreated 

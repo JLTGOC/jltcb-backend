@@ -8,7 +8,7 @@ use Carbon\Carbon;
 
 class AcceptQuotationAssignmentRepository extends BaseRepository
 {
-    public function execute($quotation, $request){
+    public function execute($quotation){
         if ($quotation->assignment_status !== 'AVAILABLE') {
             return $this->error('This quotation is not available for acceptance', 422);
         }

@@ -2,9 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Http\Requests\StoreQuotationRequest;
-use App\Http\Requests\UpdateQuotationRequest;
+use App\Http\Requests\{
+    IndexQuotationRequest,
+    StoreQuotationRequest,
+    UpdateQuotationRequest,
+    RequestQuotationReassignmentRequest,
+    ReassignQuotationSpecialistRequest,
+    QuotationClientInputsRequest,
+    QuotationUploadRequest,
+};
 use App\Http\Resources\ClientInputResource;
 use App\Http\Resources\QuotationFileResource;
 use App\Http\Resources\QuotationResource;
@@ -39,14 +45,6 @@ use App\Repositories\Quotation\{
     ClientInputsRepository
 };
 use App\Services\QuotationFileService;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
-use Faker\Factory as Faker;
-use Carbon\Carbon;
-use Illuminate\Validation\ValidationException;
-use Spatie\Searchable\Search;
-use Spatie\QueryBuilder\QueryBuilder;
-use Spatie\QueryBuilder\AllowedFilter;
 
 class QuotationController extends Controller
 {
@@ -94,7 +92,7 @@ class QuotationController extends Controller
      * 
      * Display a listing of the resource.
      */
-    public function index(Request $request) {
+    public function index(IndexQuotationRequest $request) {
         return $this->index->execute($request);
     }
 
@@ -151,16 +149,16 @@ class QuotationController extends Controller
      * 
      * Uploads a file for the quotation
      */
-    public function upload(Quotation $quotation, Request $request) {
-        return $this->quotationFileService->upload($quotation, $request);
-    } 
+    public function upload(Quotation $quotation, QuotationUploadRequest $request) {
+        return $this->upload->execute($quotation, $request);
+    }
 
     /**
      * Reassign Account Specialist
      * 
      * Allows Lead Account Specialist to reassign the Account Specialist in charge of a quotation
      */
-    public function reassignSpecialist(Quotation $quotation, Request $request) {
+    public function reassignSpecialist(Quotation $quotation, ReassignQuotationSpecialistRequest $request) {
         $this->authorize('reassignSpecialist', $quotation);
 
         return $this->reassignSpecialist->execute($quotation, $request);
@@ -171,7 +169,7 @@ class QuotationController extends Controller
      * 
      * Allows Account Specialist to request for reassignment of a quotation to another Account Specialist, changing the assignment status to REASSIGNMENT REQUESTED
      */
-    public function requestReassignment(Quotation $quotation, Request $request) {
+    public function requestReassignment(Quotation $quotation, RequestQuotationReassignmentRequest $request) {
         $this->authorize('requestReassignment', $quotation);
 
         return $this->requestReassignment->execute($quotation, $request);
@@ -182,10 +180,10 @@ class QuotationController extends Controller
      * 
      * Allows Account Specialist to accept a quotation assignment, changing the assignment status to ASSIGNED
      */
-    public function acceptQuotationAssignment(Quotation $quotation, Request $request) {
+    public function acceptQuotationAssignment(Quotation $quotation) {
         $this->authorize('acceptQuotationAssignment', $quotation);
 
-        return $this->acceptQuotationAssignment->execute($quotation, $request);
+        return $this->acceptQuotationAssignment->execute($quotation);
     }
 
     /**
@@ -193,10 +191,10 @@ class QuotationController extends Controller
      * 
      * Allows Client to accept a quotation, changing its status to ACCEPTED
      */
-    public function acceptQuotationProposal(Quotation $quotation, Request $request) {
+    public function acceptQuotationProposal(Quotation $quotation) {
         $this->authorize('acceptQuotationProposal', $quotation);
 
-        return $this->acceptQuotationProposal->execute($quotation, $request);
+        return $this->acceptQuotationProposal->execute($quotation);
     }
 
     /**
@@ -204,7 +202,7 @@ class QuotationController extends Controller
      * 
      * Show specific client quotation details based on quotation template configured
      */
-    public function clientInputs(Quotation $quotation, Request $request) {
+    public function clientInputs(Quotation $quotation, QuotationClientInputsRequest $request) {
         return $this->clientInputs->execute($quotation, $request);
     }
 }
