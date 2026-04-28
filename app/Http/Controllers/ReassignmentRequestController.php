@@ -37,7 +37,32 @@ class ReassignmentRequestController extends Controller
             return $this->error('Reassignment request not found', 404);
         }
 
-        return $this->success('Reassignment request retrieved successfully', $reassignmentRequest, 200);
+        if ($reassignmentRequest->quotation) {
+            $data = [
+                'id' => $reassignmentRequest->id,
+                'quotation_reference_number' => $reassignmentRequest->quotation ? $reassignmentRequest->quotation->reference_number : null,
+                'account_specialist' => $reassignmentRequest->accountSpecialist ? 
+                    mb_strtoupper($reassignmentRequest->accountSpecialist->username) . ' ' . $reassignmentRequest->accountSpecialist->full_name :
+                    null,
+                'reason' => $reassignmentRequest->reason,
+                'additional_details' => $reassignmentRequest->additional_details,
+                'status' => $reassignmentRequest->status,
+            ];
+        } elseif ($reassignmentRequest->jobOrder) {
+            $data = [
+                'id' => $reassignmentRequest->id,
+                'job_order_reference_number' => $reassignmentRequest->jobOrder ? $reassignmentRequest->jobOrder->reference_number : null,
+                'operations' => $reassignmentRequest->operations ? mb_strtoupper($reassignmentRequest->operations->username) . ' ' . $reassignmentRequest->operations->full_name : null,
+                'reason' => $reassignmentRequest->reason,
+                'additional_details' => $reassignmentRequest->additional_details,
+                'status' => $reassignmentRequest->status,
+            ];
+        } else {
+            return $this->error('Associated quotation or job order not found for this reassignment request', 404);
+        }
+        
+
+        return $this->success('Reassignment request retrieved successfully', $data, 200);
     }
 
     /**
