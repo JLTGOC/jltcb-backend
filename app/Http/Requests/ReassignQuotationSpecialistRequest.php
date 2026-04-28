@@ -23,7 +23,7 @@ class ReassignQuotationSpecialistRequest extends FormRequest
     {
         return [
             'status' => ['required', 'in:APPROVED,REJECTED'],
-            'as_id' => ['required_if:status,APPROVED', 'integer', 'exists:users,id'],
+            'as_id' => ['nullable', 'required_if:status,APPROVED', 'integer', 'exists:users,id'],
         ];
     }
 }
