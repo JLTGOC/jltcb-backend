@@ -48,11 +48,17 @@ class ServiceOptionController extends Controller
         $this->authorize('create', ServiceOption::class);
 
         $request->validate([
-            'name' => 'required|string|unique:service_options,name',
+            'name' => 'required|string',
+            'service_type' => 'required|in:IMPORT,EXPORT,BUSINESS SOLUTION',
         ]);
+
+        if (ServiceOption::where('name', $request->name)->where('service_type_id', ServiceType::where('name', $request->service_type)->first()->id)->exists()) {
+            return $this->error('A sub-service with the same name already exists for the specified service type.', 422);
+        }
 
         $serviceOption = ServiceOption::create([
             'name' => $request->name,
+            'service_type_id' => ServiceType::where('name', $request->service_type)->first()->id,
             'status' => 'ENABLED',
         ]);
 
