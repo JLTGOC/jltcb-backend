@@ -45,9 +45,9 @@ class ReassignmentRequestFactory extends Factory
 
             $status = $this->faker->randomElement(['APPROVED', 'REJECTED']);
             if ($status === 'APPROVED') {
-                $opsId = $this->faker->randomElement(User::role('Operations')->whereNot('id', $jobOrder->as_id)->pluck('id'));
+                $opsId = $this->faker->randomElement(User::role('Operations')->whereNot('id', $jobOrder->operations_id)->pluck('id'));
             } elseif ($status === 'REJECTED') {
-                $opsId = $jobOrder->as_id;
+                $opsId = $jobOrder->operations_id;
             }
 
             return [
