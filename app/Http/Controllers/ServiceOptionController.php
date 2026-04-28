@@ -85,12 +85,16 @@ class ServiceOptionController extends Controller
         $serviceOption = ServiceOption::findOrFail($serviceOption->id);
 
         $request->validate([
-            'name' => 'sometimes|string|unique:service_options,name,' . $serviceOption->id,
+            'name' => 'sometimes|string',
             'status' => 'sometimes|in:ENABLED,DISABLED',
         ]);
 
         if ($serviceOption->name === 'ALL IN') {
             return $this->error('The ALL IN sub-service cannot be updated.', 403);
+        }
+
+        if (isset($request->name) && ServiceOption::where('name', $request->name)->where('service_type_id', $serviceOption->service_type_id)->where('id', '!=', $serviceOption->id)->exists()) {
+            return $this->error('A sub-service with the same name already exists for the specified service type.', 422);
         }
 
         $serviceOption->update([
