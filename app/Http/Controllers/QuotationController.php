@@ -10,6 +10,7 @@ use App\Http\Requests\{
     ReassignQuotationSpecialistRequest,
     QuotationClientInputsRequest,
     QuotationUploadRequest,
+    EnumQuotationOptionsRequest,
 };
 use App\Http\Resources\ClientInputResource;
 use App\Http\Resources\QuotationFileResource;
@@ -140,8 +141,8 @@ class QuotationController extends Controller
      * 
      * Fetch enumeration options for quotations
      */
-    public function enumQuotationOptions() {
-        return $this->enumOptions->execute();
+    public function enumQuotationOptions(EnumQuotationOptionsRequest $request) {
+        return $this->enumOptions->execute($request);
     }
 
     /**

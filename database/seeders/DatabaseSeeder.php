@@ -42,6 +42,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             ArticleSeeder::class,
             ReelSeeder::class,
+            ServiceTypeSeeder::class,
             ServiceOptionSeeder::class,
             BusinessTypeSeeder::class,
             RegulatoryAssistanceTypeSeeder::class,
@@ -54,7 +55,7 @@ class DatabaseSeeder extends Seeder
             ConfigurationSeeder::class,
             QuotationFieldSeeder::class,
             TemplateSeeder::class,
-            ReassignmentRequestSeeder::class
+            ReassignmentRequestSeeder::class,
         ]);
     }
 }

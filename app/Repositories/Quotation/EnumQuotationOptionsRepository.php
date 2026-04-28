@@ -6,12 +6,15 @@ use App\Models\BusinessType;
 use App\Models\ContainerSize;
 use App\Models\RegulatoryAssistanceType;
 use App\Models\ServiceOption;
+use App\Models\ServiceType;
 use App\Repositories\BaseRepository;
 
 class EnumQuotationOptionsRepository extends BaseRepository
 {
-    public function execute(){
+    public function execute($request){
+        $validated = $request->validated();
         $user = auth()->user();
+
         $autofillDetails = [
             'full_name' => $user->full_name,
             'company' => [
@@ -23,13 +26,34 @@ class EnumQuotationOptionsRepository extends BaseRepository
                 'business_type' => $user->business_type,
             ],
         ];
-        $businessTypes = BusinessType::pluck('name');
-        $regulatoryAssistanceTypes = RegulatoryAssistanceType::pluck('name');
-        $serviceTypes = ['IMPORT', 'EXPORT'];
-        $transportModes = ['AIR', 'SEA'];
-        $serviceOptions = ServiceOption::where('status', 'ENABLED')->pluck('name');
-        $cargoType = ['CONTAINERIZED', 'LCL'];
-        $containerSize = ContainerSize::pluck('size');
+        $businessTypes = [];
+        $regulatoryAssistanceTypes = [];
+        $serviceTypes = [];
+        $transportModes = [];
+        $serviceOptions = [];
+        $cargoType = [];
+        $containerSize = [];
+
+        if (isset($validated['service'])) {
+            if ($validated['service'] === 'REGULATORY') {
+                $serviceTypes = ServiceType::where('service', 'REGULATORY')->pluck('name');
+                $businessTypes = BusinessType::pluck('name');
+                $regulatoryAssistanceTypes = RegulatoryAssistanceType::pluck('name');
+            } elseif ($validated['service'] === 'LOGISTICS') {
+                $serviceTypes = ServiceType::where('service', 'LOGISTICS')->pluck('name');
+                $transportModes = ['AIR', 'SEA'];
+                if (isset($validated['service_type'])) {
+                    $serviceOptions = ServiceOption::where('status', 'ENABLED')
+                        ->where('service_type_id', null)
+                        ->orWhere('service_type_id', ServiceType::where('name', $validated['service_type'])->first()->id)
+                        ->pluck('name');
+                } else {
+                    $serviceOptions = ServiceOption::where('status', 'ENABLED')->pluck('name');
+                }
+                $cargoType = ['CONTAINERIZED', 'LCL'];
+                $containerSize = ContainerSize::pluck('size');
+            }
+        }
 
         $quotationOptions = [
             'autofill_details' => $autofillDetails,

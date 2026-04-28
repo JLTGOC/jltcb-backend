@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\ServiceOption;
+use App\Models\ServiceType;
 
 class ServiceOptionController extends Controller
 {
@@ -12,11 +13,28 @@ class ServiceOptionController extends Controller
      * 
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $this->authorize('viewAny', ServiceOption::class);
 
-        $serviceOptions = ServiceOption::whereNot('name', 'ALL IN')->get();
+        $request->validate([
+            'service_type' => 'required|in:IMPORT,EXPORT,BUSINESS SOLUTION',
+        ]);
+
+        $serviceOptions = ServiceOption::whereNot('name', 'ALL IN')
+            ->where('service_type_id', ServiceType::where('name', $request->service_type)->first()->id)
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $serviceOptions = $serviceOptions->map(function ($option) {
+            return [
+                'id' => $option->id,
+                'name' => $option->name,
+                'status' => $option->status,
+                'service_type' => $option->serviceType->name,
+            ];
+        });
+        
         return $this->success('Sub-services fetched successfully', $serviceOptions, 200);
     }
 

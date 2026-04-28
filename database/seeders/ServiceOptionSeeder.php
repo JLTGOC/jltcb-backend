@@ -14,7 +14,6 @@ class ServiceOptionSeeder extends Seeder
     public function run(): void
     {
         $names = [
-            'ALL IN',
             'CUSTOMS CLEARANCE',
             'PEZA PROCESSING & COMPLIANCE',
             'CUSTOMS DISPUTE RESOLUTION',
@@ -27,10 +26,23 @@ class ServiceOptionSeeder extends Seeder
             'PROJECT CARGO'
         ];
 
+        ServiceOption::create([
+            'name' => 'ALL IN',
+            'status' => 'ENABLED',
+            'service_type_id' => null
+        ]);
+
         foreach ($names as $name) {
             ServiceOption::create([
                 'name' => $name,
                 'status' => 'ENABLED',
+                'service_type_id' => 1
+            ]);
+
+            ServiceOption::create([
+                'name' => $name,
+                'status' => 'ENABLED',
+                'service_type_id' => 2
             ]);
         }
     }

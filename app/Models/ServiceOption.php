@@ -8,11 +8,17 @@ class ServiceOption extends Model
 {
     protected $fillable = [
         'name',
-        'status'
+        'status',
+        'service_type_id',
     ];
 
     protected $hidden = [
         'created_at',
         'updated_at',
     ];
+
+    public function serviceType()
+    {
+        return $this->belongsTo(ServiceType::class, 'service_type_id');
+    }
 }

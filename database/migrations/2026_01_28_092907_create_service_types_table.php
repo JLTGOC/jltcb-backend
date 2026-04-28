@@ -11,11 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('service_options', function (Blueprint $table) {
+        Schema::create('service_types', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->enum('status', ['ENABLED', 'DISABLED'])->default('ENABLED');
-            $table->foreignId('service_type_id')->nullable()->constrained('service_types')->onDelete('cascade');
+            $table->enum('service', ['LOGISTICS', 'REGULATORY'])->default('LOGISTICS');
             $table->timestamps();
         });
     }
@@ -25,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('service_options');
+        Schema::dropIfExists('service_types');
     }
 };
