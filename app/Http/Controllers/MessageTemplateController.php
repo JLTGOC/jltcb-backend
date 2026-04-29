@@ -13,7 +13,7 @@ class MessageTemplateController extends Controller
 
     public function __construct()
     {
-        $this->authorizeResource(MessageTemplate::class, 'record');
+        $this->authorizeResource(MessageTemplate::class, 'message');
     }
 
     /**
