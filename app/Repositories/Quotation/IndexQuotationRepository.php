@@ -251,8 +251,9 @@ class IndexQuotationRepository extends BaseRepository
                         'status' => $quotation->status,
                         'assignment_status' => $quotation->assignment_status,
                         'account_specialist' =>  $as,
-                        'assigned_at' => $quotation->assigned_at ? mb_strtoupper(Carbon::parse($quotation->assigned_at)->format($dateFormat)) : null,
+                        'assigned_at' => $quotation->assigned_at ? Carbon::parse($quotation->assigned_at)->format($dateFormat) : null,
                         'reassignment_request_id' => $quotation->latestReassignmentRequest ? $quotation->latestReassignmentRequest->id : null,
+                        'requested_at' => $quotation->latestReassignmentRequest ? Carbon::parse($quotation->latestReassignmentRequest->created_at)->format($dateFormat) : null,
                         'service' => $quotation->logisticsService ? 'LOGISTICS' : ($quotation->regulatoryService ? 'REGULATORY' : null),
                         'logistics_service' => $quotation->logisticsService ? [
                             'commodity' => $quotation->logisticsService->commodity,
@@ -366,8 +367,9 @@ class IndexQuotationRepository extends BaseRepository
                                     'assignment_status' => $quotation->assignment_status,
                                     'as_username' => $quotation->accountSpecialist->username ?? 'Available',
                                     'as_full_name' => $quotation->accountSpecialist->full_name ?? null,
-                                    'assigned_at' => $quotation->assigned_at ? mb_strtoupper(Carbon::parse($quotation->assigned_at)->format($dateFormat)) : null,
+                                    'assigned_at' => $quotation->assigned_at ? Carbon::parse($quotation->assigned_at)->format($dateFormat) : null,
                                     'reassignment_request_id' => $quotation->latestReassignmentRequest ? $quotation->latestReassignmentRequest->id : null,
+                                    'requested_at' => $quotation->latestReassignmentRequest ? Carbon::parse($quotation->latestReassignmentRequest->created_at)->format($dateFormat) : null,
                                     'service' => $quotation->logisticsService ? 'LOGISTICS' : ($quotation->regulatoryService ? 'REGULATORY' : null),
                                     'logistics_service' => $quotation->logisticsService ? [
                                         'commodity' => $quotation->logisticsService->commodity,
