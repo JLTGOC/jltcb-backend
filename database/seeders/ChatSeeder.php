@@ -150,7 +150,7 @@ class ChatSeeder extends Seeder
                 $filePath = str_replace(
                     'storage/',
                     '',
-                    $this->copySeederFile($attachments[$type]['location'], $fileName)
+                    $this->copySeederFile($attachments[$type]['location'], $fileName, disk: 'private')
                 );
             }
 
