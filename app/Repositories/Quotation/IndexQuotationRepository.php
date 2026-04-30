@@ -255,6 +255,7 @@ class IndexQuotationRepository extends BaseRepository
                         'status' => $quotation->status,
                         'assignment_status' => $quotation->assignment_status,
                         'account_specialist' =>  $as,
+                        'as_profile_image' => $quotation->accountSpecialist->image_path ? asset($quotation->accountSpecialist?->image_path) : null,
                         'assigned_at' => $quotation->assigned_at ? Carbon::parse($quotation->assigned_at)->format($dateFormat) : null,
                         'reassignment_request_id' => $quotation->latestReassignmentRequest ? $quotation->latestReassignmentRequest->id : null,
                         'requested_at' => $quotation->latestReassignmentRequest ? Carbon::parse($quotation->latestReassignmentRequest->created_at)->format($dateFormat) : null,
