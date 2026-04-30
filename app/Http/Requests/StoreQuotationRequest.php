@@ -65,7 +65,7 @@ class StoreQuotationRequest extends FormRequest
                 'company.name' => 'required|string',
                 'company.address' => 'required|string',
                 'company.position' => 'required|string',
-                'company.contact_number' => 'sometimes|string|min:11|max:11|regex:/^09\d{9}$/',
+                'company.contact_number' => 'required|string|min:11|max:11|regex:/^09\d{9}$/',
                 'company.email' => 'required|email',
                 'company.business_type' => ['required', Rule::in(BusinessType::pluck('name')->toArray())],
                 'type_of_regulatory_assistance' => 'required|array',
