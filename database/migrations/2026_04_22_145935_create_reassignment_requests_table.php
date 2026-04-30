@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('ops_id')->nullable()->constrained('users')->onDelete('cascade');
             $table->text('reason');
             $table->text('additional_details')->nullable();
-            $table->enum('status', ['PENDING', 'APPROVED', 'REJECTED'])->default('PENDING');
+            $table->enum('status', ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED'])->default('PENDING');
             $table->timestamps();
         });
     }

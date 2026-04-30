@@ -123,5 +123,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Reassignment Request Routes
     Route::get('reassignment-requests/enums', [ReassignmentRequestController::class, 'enums']);
+    Route::post('/reassignment-requests/{reassignmentRequest}/cancel', [ReassignmentRequestController::class, 'cancel']);
     Route::apiResource('reassignment-requests', ReassignmentRequestController::class)->only(['show']);
+
 });

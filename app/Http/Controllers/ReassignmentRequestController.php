@@ -76,7 +76,7 @@ class ReassignmentRequestController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(ReassignmentRequest $reassignmentRequest)
     {
         //
     }
@@ -114,5 +114,30 @@ class ReassignmentRequestController extends Controller
             'account_specialists' => $accountSpecialists,
             'operations' => $operations
         ], 200);
+    }
+
+    /**
+     * Cancel Reassignment Request
+     * 
+     * This method allows the requester to cancel a pending reassignment request. Only the user who created the request can cancel it, and only if the request is still pending.
+     */
+    public function cancel(Request $request, ReassignmentRequest $reassignmentRequest) {
+        $this->authorize('cancel', $reassignmentRequest);
+
+        if ($reassignmentRequest->status !== 'PENDING') {
+            return $this->error('Only pending reassignment requests can be cancelled', 422);
+        }
+
+        $quotation = $reassignmentRequest->quotation;
+
+        $reassignmentRequest->update([
+            'status' => 'CANCELLED'
+        ]);
+
+        $quotation->update([
+            'assignment_status' => 'ASSIGNED',
+        ]);
+
+        return $this->success('Reassignment request cancelled successfully', $reassignmentRequest, 200);
     }
 }

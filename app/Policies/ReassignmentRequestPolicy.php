@@ -68,4 +68,9 @@ class ReassignmentRequestPolicy
     {
         return $user->hasRole(['Lead Account Specialist', 'Account Specialist', 'Lead Operations', 'Operations']);
     }
+
+    public function cancel(User $user, ReassignmentRequest $reassignmentRequest): bool
+    {
+        return $user->id === $reassignmentRequest->as_id || $user->id === $reassignmentRequest->ops_id;
+    }
 }

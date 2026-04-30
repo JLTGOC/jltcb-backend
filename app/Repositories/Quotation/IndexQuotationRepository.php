@@ -171,16 +171,9 @@ class IndexQuotationRepository extends BaseRepository
                     ->select('quotations.id')
                     ->pluck('id');
 
-                // $asSearchIds = Quotation::query()
-                //     ->leftJoin('users as specialists', 'quotations.as_id', '=', 'specialists.id')
-                //     ->where('specialists.full_name', 'like', "%{$search}%")
-                //     ->select('quotations.id')
-                //     ->pluck('id');
-
                 $mergedIds = $searchIds
                     ->merge($commoditySearchIds)
                     ->merge($clientSearchIds)
-                    // ->merge($asSearchIds)
                     ->unique()
                     ->values();
 
@@ -246,6 +239,11 @@ class IndexQuotationRepository extends BaseRepository
 
                     $clientType = $quotation->client->quotations()->count() > 1 ? 'OLD' : 'NEW';
 
+                    $reassignmentRequest = $quotation->latestReassignmentRequest;
+                    if ($reassignmentRequest && $reassignmentRequest->status !== 'PENDING') {
+                        $reassignmentRequest = null;
+                    }
+
                     return [
                         'id' => $quotation->id,
                         'reference_number' => $quotation->reference_number,
@@ -257,8 +255,8 @@ class IndexQuotationRepository extends BaseRepository
                         'account_specialist' =>  $as,
                         'as_profile_image' => $quotation->accountSpecialist->image_path ? asset($quotation->accountSpecialist?->image_path) : null,
                         'assigned_at' => $quotation->assigned_at ? Carbon::parse($quotation->assigned_at)->format($dateFormat) : null,
-                        'reassignment_request_id' => $quotation->latestReassignmentRequest ? $quotation->latestReassignmentRequest->id : null,
-                        'requested_at' => $quotation->latestReassignmentRequest ? Carbon::parse($quotation->latestReassignmentRequest->created_at)->format($dateFormat) : null,
+                        'reassignment_request_id' => $reassignmentRequest ? $reassignmentRequest->id : null,
+                        'requested_at' => $reassignmentRequest ? Carbon::parse($reassignmentRequest->created_at)->format($dateFormat) : null,
                         'service' => $quotation->logisticsService ? 'LOGISTICS' : ($quotation->regulatoryService ? 'REGULATORY' : null),
                         'logistics_service' => $quotation->logisticsService ? [
                             'commodity' => $quotation->logisticsService->commodity,
@@ -363,6 +361,11 @@ class IndexQuotationRepository extends BaseRepository
                                     $conversationId = null;
                                 }
 
+                                $reassignmentRequest = $quotation->latestReassignmentRequest;
+                                if ($reassignmentRequest && $reassignmentRequest->status !== 'PENDING') {
+                                    $reassignmentRequest = null;
+                                }
+
                                 return [
                                     'id' => $quotation->id,
                                     'reference_number' => $quotation->reference_number,
@@ -373,8 +376,8 @@ class IndexQuotationRepository extends BaseRepository
                                     'as_username' => $quotation->accountSpecialist->username ?? 'Available',
                                     'as_full_name' => $quotation->accountSpecialist->full_name ?? null,
                                     'assigned_at' => $quotation->assigned_at ? Carbon::parse($quotation->assigned_at)->format($dateFormat) : null,
-                                    'reassignment_request_id' => $quotation->latestReassignmentRequest ? $quotation->latestReassignmentRequest->id : null,
-                                    'requested_at' => $quotation->latestReassignmentRequest ? Carbon::parse($quotation->latestReassignmentRequest->created_at)->format($dateFormat) : null,
+                                    'reassignment_request_id' => $reassignmentRequest ? $reassignmentRequest->id : null,
+                                    'requested_at' => $reassignmentRequest ? Carbon::parse($reassignmentRequest->created_at)->format($dateFormat) : null,
                                     'service' => $quotation->logisticsService ? 'LOGISTICS' : ($quotation->regulatoryService ? 'REGULATORY' : null),
                                     'logistics_service' => $quotation->logisticsService ? [
                                         'commodity' => $quotation->logisticsService->commodity,
