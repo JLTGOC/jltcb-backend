@@ -41,6 +41,7 @@ class IndexQuotationRepository extends BaseRepository
         if ($user->hasRole('Client')) {
             $query->where('client_id', $user->id);
         } elseif ($user->hasRole('Lead Account Specialist')) {
+            $query->whereNot('as_id', $user->id);
             $myQuotationsQuery = Quotation::query()->where('assignment_status', 'ASSIGNED')->where('as_id', $user->id);
         } elseif ($user->hasRole('Account Specialist')) {
             if ($isWeb) {
@@ -243,14 +244,18 @@ class IndexQuotationRepository extends BaseRepository
                         }
                     }
 
+                    $clientType = $quotation->client->quotations()->count() > 1 ? 'OLD' : 'NEW';
+
                     return [
                         'id' => $quotation->id,
                         'reference_number' => $quotation->reference_number,
                         'date' => $quotation->created_at->format($dateFormat),
                         'client_full_name' => $quotation->client->full_name,
+                        'client_type' => $clientType,
                         'status' => $quotation->status,
                         'assignment_status' => $quotation->assignment_status,
                         'account_specialist' =>  $as,
+                        'as_profile_image' => $quotation->accountSpecialist->image_path ? asset($quotation->accountSpecialist?->image_path) : null,
                         'assigned_at' => $quotation->assigned_at ? Carbon::parse($quotation->assigned_at)->format($dateFormat) : null,
                         'reassignment_request_id' => $quotation->latestReassignmentRequest ? $quotation->latestReassignmentRequest->id : null,
                         'requested_at' => $quotation->latestReassignmentRequest ? Carbon::parse($quotation->latestReassignmentRequest->created_at)->format($dateFormat) : null,
