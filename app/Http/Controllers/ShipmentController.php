@@ -33,16 +33,27 @@ class ShipmentController extends Controller
      */     
     public function index(Request $request)
     {
+        $shipmentCounts = [
+            'ALL' => $allShipmentsCount = Shipment::count(),
+            'NOT YET DEPARTED' => $notYetDepartedCount = Shipment::where('status', 'NOT YET DEPARTED')->count(),
+            'IN TRANSIT' => $inTransitCount = Shipment::where('status', 'IN TRANSIT')->count(),
+            'ARRIVED' => $arrivedCount = Shipment::where('status', 'ARRIVED')->count(),
+            'BERTHED' => $berthedCount = Shipment::where('status', 'BERTHED')->count(),
+            'DISCHARGED' => $dischargedCount = Shipment::where('status', 'DISCHARGED')->count(),
+            'DELIVERED' => $deliveredCount = Shipment::where('status', 'DELIVERED')->count(),
+        ];
+
         $perPage = $request->input('perPage', 10);
         $search = $request->input('search');
         $platform = $request->header('Platform', 'mobile');
         $request->validate([
-            'filter.status' => 'sometimes|in:ONGOING,DELIVERED',
+            'filter.status' => 'sometimes|in:ALL,NOT YET DEPARTED,IN TRANSIT,ARRIVED,BERTHED,DISCHARGED,DELIVERED',
+            'search' => 'sometimes|string|max:255',
+            'filter.eta' => 'sometimes|date',
         ]);
 
         $user = $request->user();
         $status = $request->input('filter.status');
-        $ongoingStatuses = ['PENDING', 'NOT YET DELIVERED', 'IN TRANSIT', 'ARRIVED', 'BERTHED', 'DISCHARGED'];
 
         // Allows conditional base query depending on role
         $baseQuery = $user->hasRole('Client') ? Shipment::where('client_id', $user->id) : Shipment::class;
@@ -50,10 +61,8 @@ class ShipmentController extends Controller
             ->defaultSort('-created_at', '-id');
 
         if (isset($request->filter['status'])) {
-            if ($status === 'ONGOING') {
-                $shipmentsQuery->whereIn('status', $ongoingStatuses);
-            } else {
-                $shipmentsQuery->where('status', 'DELIVERED');
+            if ($status !== 'ALL') {
+                $shipmentsQuery->where('status', $status);
             }
         } 
 
@@ -63,6 +72,10 @@ class ShipmentController extends Controller
                     ->orWhere('status', 'LIKE', '%' . $search . '%')
                     ->orWhere('commodity', 'LIKE', '%' . $search . '%');
             });
+
+            $clientIds = User::where('full_name', 'LIKE', '%' . $search . '%')->pluck('id');
+
+            $shipmentsQuery->orWhereIn('client_id', $clientIds);
         }
 
         // Normal pagination for web platform
@@ -81,7 +94,8 @@ class ShipmentController extends Controller
             $message,
             [
                 'shipments' => ShipmentResource::collection($paginated),
-                'pagination' => $pagination
+                'pagination' => $pagination,
+                'shipment_counts' => $shipmentCounts
             ]
         );
 
@@ -144,6 +158,7 @@ class ShipmentController extends Controller
                 'quotation_id' => $quotation->id,
                 'client_id' => $quotation->client_id,
                 'as_id' => $quotation->as_id,
+                'operations_id' => $jobOrder->operations_id,
                 'status' => 'PENDING',
                 'company_name' => $quotation->company_name,
                 'contact_person' => $quotation->contact_person,

@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Carbon\Carbon;
 
 class ShipmentResource extends JsonResource
 {
@@ -18,17 +19,27 @@ class ShipmentResource extends JsonResource
             'general_info' => [
                 'id' => $this->id,
                 'reference_number' => $this->reference_number,
-                // 'quotation_id' => $this->quotation_id,
                 'job_order_id' => $this->job_order_id,
                 'quotation_file' => asset($this->quotation->files()->where('type', 'PROPOSAL')->first()->file_path) ?? null,
                 'client' => $this->client->full_name,
+                'person_in_charge' => mb_strtoupper($this->operations?->username) . ' ' . $this->operations?->last_name,
+                'person_in_charge_image' => $this->operations->image_path ? asset($this->operations->image_path) : null,
                 'status' => $this->status,
                 'commodity' => $this->commodity,
-                'destination' => $this->destination,
-                'eta' => $this->jobOrder->jobOrderShipment->eta ?? null,
-                'etd' => $this->jobOrder->jobOrderShipment->etd ?? null,
                 'date' => $this->created_at->format('Y-m-d'),
             ],
+            'shipment_information' => [
+                'bl_number' => $this->jobOrder->jobOrderShipment->bl_no ?? null,
+                'origin' => $this->origin,
+                'destination' => $this->destination,
+                'eta' => (Carbon::parse($this->jobOrder->jobOrderShipment->eta))->format('F d, Y') ?? null,
+                'etd' => (Carbon::parse($this->jobOrder->jobOrderShipment->etd))->format('F d, Y') ?? null,
+                'service_type' => $this->quotation->logisticsService->service_type ?? null,
+                'transport_mode' => $this->quotation->logisticsService->transport_mode ?? null,
+                'account_handler' => $this->accountSpecialist->full_name,
+                'created_at' => $this->created_at->format('m/d/Y'),
+                'updated_at' => $this->updated_at->format('m/d/Y'),
+            ]
         ];
         
         // Only include full details for mobile OR if this is a show route
@@ -44,14 +55,6 @@ class ShipmentResource extends JsonResource
                 'full_name' => $this->contact_person,
                 'contact_number' => $this->contact_number,
                 'email' => $this->email,
-            ];
-            
-            $data['shipment_information'] = [
-                'origin' => $this->origin,
-                'destination' => $this->destination,
-                'account_handler' => $this->accountSpecialist->full_name,
-                'created_at' => $this->created_at->format('m/d/Y'),
-                'updated_at' => $this->updated_at->format('m/d/Y'),
             ];
         }
 
