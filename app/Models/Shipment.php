@@ -14,6 +14,7 @@ class Shipment extends Model implements Searchable
         'job_order_id',
         'client_id',
         'as_id',
+        'operations_id',
         'status',
         'contact_person',
         'contact_number',
@@ -61,9 +62,14 @@ class Shipment extends Model implements Searchable
         return $this->belongsTo(JobOrder::class, 'job_order_id');
     }
 
+    public function operations() {
+        return $this->belongsTo(User::class, 'operations_id');
+    }
+
     protected $casts = [
         'quotation_id' => 'integer',
         'client_id' => 'integer',
         'as_id' => 'integer',
+        'operations_id' => 'integer',
     ];
 }

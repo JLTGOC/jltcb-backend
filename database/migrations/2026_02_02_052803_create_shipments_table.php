@@ -22,7 +22,8 @@ return new class extends Migration
             $table->foreign('client_id')->references('id')->on('users')->constrained()->cascadeOnDelete();
             $table->unsignedBigInteger('as_id');
             $table->foreign('as_id')->references('id')->on('users')->constrained();
-            $table->enum('status', ['PENDING', 'NOT YET DELIVERED', 'IN TRANSIT', 'ARRIVED', 'BERTHED', 'DISCHARGED', 'DELIVERED'])->default('PENDING');
+            $table->foreignId('operations_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->enum('status', ['PENDING', 'NOT YET DEPARTED', 'IN TRANSIT', 'ARRIVED', 'BERTHED', 'DISCHARGED', 'DELIVERED'])->default('PENDING');
             $table->string('contact_person');
             $table->string('contact_number');
             $table->string('email');
