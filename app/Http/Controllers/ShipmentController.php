@@ -33,6 +33,7 @@ class ShipmentController extends Controller
      */     
     public function index(Request $request)
     {
+        $opsNames = User::role(['Operations', 'Lead Operations'])->pluck('full_name');
         $shipmentCounts = [
             'ALL' => $allShipmentsCount = Shipment::count(),
             'NOT YET DEPARTED' => $notYetDepartedCount = Shipment::where('status', 'NOT YET DEPARTED')->count(),
@@ -50,6 +51,7 @@ class ShipmentController extends Controller
             'filter.status' => 'sometimes|in:ALL,NOT YET DEPARTED,IN TRANSIT,ARRIVED,BERTHED,DISCHARGED,DELIVERED',
             'search' => 'sometimes|string|max:255',
             'filter.eta' => 'sometimes|date',
+            'filter.person_in_charge' => 'sometimes|in:' . implode(',', User::role(['Operations', 'Lead Operations'])->pluck('full_name')->toArray()),
         ]);
 
         $user = $request->user();
@@ -78,6 +80,16 @@ class ShipmentController extends Controller
             $shipmentsQuery->orWhereIn('client_id', $clientIds);
         }
 
+        if ($request->has('filter.eta')) {
+            $shipmentsQuery->whereHas('jobOrder.jobOrderShipment', function ($query) use ($request) {
+                $query->whereDate('eta', $request->input('filter.eta'));
+            });
+        }
+
+        if ($request->has('filter.person_in_charge')) {
+            $shipmentsQuery->where('operations_id', User::where('full_name', $request->input('filter.person_in_charge'))->value('id'));
+        }
+
         // Normal pagination for web platform
         if ($platform === 'web') {
             $paginated = $shipmentsQuery->paginate($perPage);
@@ -93,6 +105,7 @@ class ShipmentController extends Controller
         return $this->success(
             $message,
             [
+                'ops_names' => $opsNames,
                 'shipments' => ShipmentResource::collection($paginated),
                 'pagination' => $pagination,
                 'shipment_counts' => $shipmentCounts
