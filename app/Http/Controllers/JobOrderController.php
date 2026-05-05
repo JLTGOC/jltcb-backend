@@ -240,6 +240,7 @@ class JobOrderController extends Controller
                         'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
                         'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
                         'generate_shipment' => $j->operations_id === $user->id && !$j->shipment && $j->assignment_status === 'ASSIGNED' ? true : false,
+                        'shipment_creation_status' => $j->shipment_creation_status,
                     ];
                 } elseif ($j->job_type === 'REGULATORY') {
                     if ($j->operations) {
@@ -261,6 +262,7 @@ class JobOrderController extends Controller
                         'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
                         'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
                         'generate_shipment' => false, // REGULATORY job orders should not have the option to generate shipment
+                        'shipment_creation_status' => $j->shipment_creation_status,
                     ];
                 }
             }
@@ -321,6 +323,7 @@ class JobOrderController extends Controller
                             'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
                             'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
                             'generate_shipment' => $j->operations_id === $user->id && !$j->shipment && $j->assignment_status === 'ASSIGNED' ? true : false,
+                            'shipment_creation_status' => $j->shipment_creation_status,
                         ];
                     } elseif ($j->job_type === 'REGULATORY') {
                         if ($j->operations) {
@@ -342,6 +345,7 @@ class JobOrderController extends Controller
                             'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
                             'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
                             'generate_shipment' => false, // REGULATORY job orders should not have the option to generate shipment
+                            'shipment_creation_status' => $j->shipment_creation_status,
                         ];
                     }
                 }
