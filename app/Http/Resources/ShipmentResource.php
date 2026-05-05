@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
+use App\Http\Resources\QuotationFileResource;
 
 class ShipmentResource extends JsonResource
 {
@@ -15,6 +16,8 @@ class ShipmentResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $shipmentFiles = $this->shipmentFile;
+
         $data = [
             'general_info' => [
                 'id' => $this->id,
@@ -39,7 +42,8 @@ class ShipmentResource extends JsonResource
                 'account_handler' => $this->accountSpecialist->full_name,
                 'created_at' => $this->created_at->format('m/d/Y'),
                 'updated_at' => $this->updated_at->format('m/d/Y'),
-            ]
+            ],
+            'files' => QuotationFileResource::collection($shipmentFiles->pluck('quotationFile')->flatten()),
         ];
         
         // Only include full details for mobile OR if this is a show route

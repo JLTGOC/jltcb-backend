@@ -20,7 +20,8 @@ use App\Models\{
     RegulatoryAssistanceType,
     ContainerSize,
     ServiceLevel,
-    BillingMode
+    BillingMode,
+    ShipmentFile,
 };
 use Carbon\Carbon;
 
@@ -286,6 +287,14 @@ class QuotationSeeder extends Seeder
                         'destination' => $logisticsService->destination,
                         'remarks' => $logisticsService->remarks,
                     ]);
+
+                    $quotationFiles = $quotation->files;
+                    foreach ($quotationFiles as $file) {
+                        ShipmentFile::create([
+                            'shipment_id' => Shipment::latest('id')->value('id'),
+                            'quotation_file_id' => $file->id,
+                        ]);
+                    }
                 }
             }
 
