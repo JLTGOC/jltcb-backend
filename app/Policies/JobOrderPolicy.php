@@ -76,7 +76,7 @@ class JobOrderPolicy
 
     public function acceptJobOrder(User $user, JobOrder $jobOrder): bool
     {
-        if ($user->hasRole('Operations')) {
+        if ($user->hasRole(['Operations', 'Lead Operations'])) {
             $opsExists = $jobOrder->operations_id !== null;
         } else {
             return false;

@@ -90,14 +90,17 @@ class JobOrderController extends Controller
         })->pluck('id');
         $newUserJobOrdersCount = JobOrder::whereIn('client_id', $newUsers)->count();
 
-        if ($user->hasRole(['Lead Account Specialist', 'Lead Operations'])) {
+        if ($user->hasRole('Lead Account Specialist')) {
             $jobOrdersQuery = JobOrder::query();
             $myJobOrdersQuery = null;
         } elseif ($user->hasRole('Account Specialist')) {
             $jobOrdersQuery = JobOrder::query()->where('as_id', $user->id);
             $myJobOrdersQuery = null;
-        } elseif ($user->hasRole('Operations')) {
+        } elseif ($user->hasRole('Lead Operations')) {
             $jobOrdersQuery = JobOrder::query();
+            $myJobOrdersQuery = JobOrder::query()->where('operations_id', $user->id);
+        } elseif ($user->hasRole('Operations')) {
+            $jobOrdersQuery = JobOrder::query()->whereNot('assignment_status', 'ASSIGNED');
             $myJobOrdersQuery = JobOrder::query()->where('operations_id', $user->id);
         } else {
             $jobOrdersQuery = JobOrder::query()->where('client_id', $user->id);
@@ -236,6 +239,7 @@ class JobOrderController extends Controller
                         'assigned_to' => $assignedTo,
                         'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
                         'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
+                        'generate_shipment' => $j->operations_id === $user->id && !$j->shipment && $j->assignment_status === 'ASSIGNED' ? true : false,
                     ];
                 } elseif ($j->job_type === 'REGULATORY') {
                     if ($j->operations) {
@@ -256,6 +260,7 @@ class JobOrderController extends Controller
                         'assigned_to' => $assignedTo,
                         'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
                         'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
+                        'generate_shipment' => false, // REGULATORY job orders should not have the option to generate shipment
                     ];
                 }
             }
@@ -315,6 +320,7 @@ class JobOrderController extends Controller
                             'assigned_to' => $assignedTo,
                             'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
                             'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
+                            'generate_shipment' => $j->operations_id === $user->id && !$j->shipment && $j->assignment_status === 'ASSIGNED' ? true : false,
                         ];
                     } elseif ($j->job_type === 'REGULATORY') {
                         if ($j->operations) {
@@ -335,6 +341,7 @@ class JobOrderController extends Controller
                             'assigned_to' => $assignedTo,
                             'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
                             'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
+                            'generate_shipment' => false, // REGULATORY job orders should not have the option to generate shipment
                         ];
                     }
                 }
@@ -383,6 +390,9 @@ class JobOrderController extends Controller
         }
         if (JobOrder::where('quotation_id', $quotation->id)->exists()) {
             return $this->error('A Job Order has already been created for this quotation', 400);
+        }
+        if ($quotation->status !== 'ACCEPTED') {
+            return $this->error('Job Orders can only be created for quotations in ACCEPTED status', 400);
         }
         
         $idSection = str_pad(((JobOrder::latest('id')->value('id') ?? 0) + 1), 3, '0', STR_PAD_LEFT);
@@ -588,13 +598,11 @@ class JobOrderController extends Controller
         }
 
         $user = auth()->user();
-        if ($user->hasRole('Operations')) {
-            $jobOrder->update([
-                'operations_id' => $user->id,
-                'assignment_status' => 'ASSIGNED',
-                'assigned_at' => Carbon::now(),
-            ]);
-        }
+        $jobOrder->update([
+            'operations_id' => $user->id,
+            'assignment_status' => 'ASSIGNED',
+            'assigned_at' => Carbon::now(),
+        ]);
 
         return $this->success('Job Order accepted successfully', new JobOrderResource($jobOrder), 200);
     }
