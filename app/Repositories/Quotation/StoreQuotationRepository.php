@@ -26,8 +26,9 @@ class StoreQuotationRepository extends BaseRepository
         DB::beginTransaction();
 
         try {
+            $serviceSection = $request->input('services') === 'LOGISTICS' ? 'LOG' : 'REG';
+            $dateSection = Carbon::now()->format('mdY');
             $lastId = Quotation::max('id') ?? 0;
-            $dateSection = Carbon::now()->format('m-Y');
             $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
 
             $previousQuotation = Quotation::where('client_id', $user->id)->latest()->first();
@@ -59,7 +60,7 @@ class StoreQuotationRepository extends BaseRepository
             }
 
             $quotation = Quotation::create([
-                'reference_number' => "QT-{$dateSection}-{$idSection}",
+                'reference_number' => "RQ-{$serviceSection}-{$dateSection}-{$idSection}",
                 'client_id' => $user->id,
                 'as_id' => $assignedSpecialist->id ?? null,
                 'company_name' => $request->input('company.name'),

@@ -40,8 +40,10 @@ class QuotationSeeder extends Seeder
 
         $i = 0;
         do {
+            $serviceDomain = fake()->randomElement(['LOGISTICS', 'LOGISTICS', 'REGULATORY']);
+            $serviceSection = $serviceDomain === 'LOGISTICS' ? 'LOG' : 'REG';
+            $dateSection = Carbon::now()->format('mdY');
             $lastId = Quotation::max('id') ?? 0;
-            $dateSection = Carbon::now()->format('m-Y');
             $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
 
             $lastName = fake()->lastName();
@@ -67,7 +69,7 @@ class QuotationSeeder extends Seeder
             }
 
             $quotation = Quotation::create([
-                'reference_number' => "QT-{$dateSection}-{$idSection}",
+                'reference_number' => "RQ-{$serviceSection}-{$dateSection}-{$idSection}",
                 'status' => $status,
                 'client_id' => $client,
                 'as_id' => $assignedSpecialist,
@@ -92,8 +94,6 @@ class QuotationSeeder extends Seeder
                 'original_file_name' => 'DOCUMENT.pdf',
                 'file_type' => 'pdf',
             ]);
-
-            $serviceDomain = fake()->randomElement(['LOGISTICS', 'LOGISTICS', 'REGULATORY']);
 
             if ($serviceDomain === 'LOGISTICS') {
                 $num = fake()->numberBetween(1, 5);
