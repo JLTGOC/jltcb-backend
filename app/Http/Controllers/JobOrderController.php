@@ -65,8 +65,9 @@ class JobOrderController extends Controller
 
         $request->validate([
             'filter.service' => 'sometimes|string|in:LOGISTICS,REGULATORY',
-            'filter.assignment_status' => 'sometimes|string|in:AVAILABLE,ASSIGNED,REASSIGNMENT REQUESTED',
+            // 'filter.assignment_status' => 'sometimes|string|in:AVAILABLE,ASSIGNED,REASSIGNMENT REQUESTED',
             'search' => 'sometimes|string',
+            'ops_search' => 'sometimes|string',
             'client_type' => 'sometimes|string|in:OLD,NEW',
             'per_page' => 'sometimes|integer|min:1|max:100',
             'my_per_page' => 'sometimes|integer|min:1|max:100',
@@ -110,13 +111,13 @@ class JobOrderController extends Controller
         $jobOrders = QueryBuilder::for($jobOrdersQuery)
             ->allowedFilters([
                 AllowedFilter::exact('service', 'job_type'),
-                AllowedFilter::exact('assignment_status'),
+                // AllowedFilter::exact('assignment_status'),
             ]);
 
         $myJobOrders = $myJobOrdersQuery
             ? QueryBuilder::for($myJobOrdersQuery)->allowedFilters([
                 AllowedFilter::exact('service', 'job_type'),
-                AllowedFilter::exact('assignment_status'),
+                // AllowedFilter::exact('assignment_status'),
             ])
             : null;
 
@@ -135,6 +136,19 @@ class JobOrderController extends Controller
             if ($myJobOrders) {
                 $myJobOrders = $myJobOrders->whereIn('id', $mergedIds);
             }
+        }
+
+        if ($request->has('ops_search')) {
+            $opsSearch = (new Search())
+                ->registerModel(User::class, ['full_name'])
+                ->search($request->ops_search)
+                ->pluck('searchable');
+
+            $opsJobOrderIds = JobOrder::whereIn('operations_id', $opsSearch->pluck('id'))->pluck('id');
+            if ($myJobOrders) {
+                $myJobOrders = $myJobOrders->whereIn('id', $opsJobOrderIds);
+            }
+            $jobOrders = $jobOrders->whereIn('id', $opsJobOrderIds);
         }
 
         if (isset($request->client_type) && $request->client_type === 'OLD') {
