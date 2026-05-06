@@ -43,7 +43,8 @@ class ShipmentResource extends JsonResource
                 'created_at' => $this->created_at->format('m/d/Y'),
                 'updated_at' => $this->updated_at->format('m/d/Y'),
             ],
-            'files' => QuotationFileResource::collection($shipmentFiles->pluck('quotationFile')->flatten()),
+            'quotation_proposals' => QuotationFileResource::collection($shipmentFiles->pluck('quotationFile')->where('type', 'PROPOSAL')->flatten()),
+            'client_documents' => QuotationFileResource::collection($shipmentFiles->pluck('quotationFile')->where('type', 'REQUESTED')->flatten()),
         ];
         
         // Only include full details for mobile OR if this is a show route
