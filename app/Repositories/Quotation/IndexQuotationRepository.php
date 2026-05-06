@@ -210,7 +210,7 @@ class IndexQuotationRepository extends BaseRepository
         $pagination = null;
         $myQuotationsPagination = null;
 
-        if ($user->hasRole('Account Specialist') || $user->hasRole('Lead Account Specialist')) {
+        if ($user->hasRole(['Account Specialist', 'Lead Account Specialist', 'Operations', 'Lead Operations'])) {
             if ($isWeb) {
                 $formatQuotation = function ($quotation) use ($dateFormat) {
                     $issuedQuotation = IssuedQuotation::where('quotation_id', $quotation->id)->value('id');
