@@ -16,6 +16,7 @@ use App\Models\{
     ServiceLevel,
     BillingMode,
     ReassignmentRequest,
+    IssuedQuotation,
 };
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -249,8 +250,10 @@ class JobOrderController extends Controller
                         'bl_no' => $j->jobOrderShipment->bl_no ?? null,
                         'quotation_id' => $j->quotation_id,
                         'quotation_reference_number' => $j->quotation->reference_number,
+                        'issued_quotation_id' => IssuedQuotation::where('quotation_id', $j->quotation_id)->value('id'),
                         'assignment_status' => $j->assignment_status,
                         'assigned_to' => $assignedTo,
+                        'ops_image' => $j->operations ? asset($j->operations->image_path) : null,
                         'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
                         'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
                         'generate_shipment' => $j->operations_id === $user->id && !$j->shipment && $j->assignment_status === 'ASSIGNED' ? true : false,
@@ -271,8 +274,10 @@ class JobOrderController extends Controller
                         'application_type' => $j->quotation->regulatoryService->application_type,
                         'quotation_id' => $j->quotation_id,
                         'quotation_reference_number' => $j->quotation->reference_number,
+                        'issued_quotation_id' => IssuedQuotation::where('quotation_id', $j->quotation_id)->value('id'),
                         'assignment_status' => $j->assignment_status,
                         'assigned_to' => $assignedTo,
+                        'ops_image' => $j->operations ? asset($j->operations->image_path) : null,
                         'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
                         'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
                         'generate_shipment' => false, // REGULATORY job orders should not have the option to generate shipment
@@ -290,6 +295,7 @@ class JobOrderController extends Controller
                 'quotation_id' => $j->quotation_id,
                 'quotation_reference_number' => $j->quotation->reference_number,
                 'assigned_to' => $assignedTo,
+                'ops_image' => $j->operations ? asset($j->operations->image_path) : null,
                 'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
             ];
         });
@@ -332,8 +338,10 @@ class JobOrderController extends Controller
                             'bl_no' => $j->jobOrderShipment->bl_no ?? null,
                             'quotation_id' => $j->quotation_id,
                             'quotation_reference_number' => $j->quotation->reference_number,
+                            'issued_quotation_id' => IssuedQuotation::where('quotation_id', $j->quotation_id)->value('id'),
                             'assignment_status' => $j->assignment_status,
                             'assigned_to' => $assignedTo,
+                            'ops_image' => $j->operations ? asset($j->operations->image_path) : null,
                             'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
                             'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
                             'generate_shipment' => $j->operations_id === $user->id && !$j->shipment && $j->assignment_status === 'ASSIGNED' ? true : false,
@@ -354,8 +362,10 @@ class JobOrderController extends Controller
                             'application_type' => $j->quotation->regulatoryService->application_type,
                             'quotation_id' => $j->quotation_id,
                             'quotation_reference_number' => $j->quotation->reference_number,
+                            'issued_quotation_id' => IssuedQuotation::where('quotation_id', $j->quotation_id)->value('id'),
                             'assignment_status' => $j->assignment_status,
                             'assigned_to' => $assignedTo,
+                            'ops_image' => $j->operations ? asset($j->operations->image_path) : null,
                             'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
                             'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
                             'generate_shipment' => false, // REGULATORY job orders should not have the option to generate shipment
@@ -372,7 +382,9 @@ class JobOrderController extends Controller
                     'date_created' => strtoupper($j->created_at->format('F d, Y')),
                     'quotation_id' => $j->quotation_id,
                     'quotation_reference_number' => $j->quotation->reference_number,
+                    'issued_quotation_id' => IssuedQuotation::where('quotation_id', $j->quotation_id)->value('id'),
                     'assigned_to' => $assignedTo,
+                    'ops_image' => $j->operations ? asset($j->operations->image_path) : null,
                     'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
                 ];
             });
