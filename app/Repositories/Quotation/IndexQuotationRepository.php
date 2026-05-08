@@ -42,14 +42,14 @@ class IndexQuotationRepository extends BaseRepository
             $query->where('client_id', $user->id);
         } elseif ($user->hasRole('Lead Account Specialist')) {
             $query->whereNot('as_id', $user->id);
-            $myQuotationsQuery = Quotation::query()->where('assignment_status', 'ASSIGNED')->where('as_id', $user->id);
+            $myQuotationsQuery = Quotation::query()->whereIn('assignment_status', ['ASSIGNED', 'REASSIGNMENT REQUESTED'])->where('as_id', $user->id);
         } elseif ($user->hasRole('Account Specialist')) {
             if ($isWeb) {
                 $query->whereNot('assignment_status', 'ASSIGNED');
             } else {
                 $query->where('as_id', $user->id);
             }
-            $myQuotationsQuery = Quotation::query()->where('assignment_status', 'ASSIGNED')->where('as_id', $user->id);
+            $myQuotationsQuery = Quotation::query()->whereIn('assignment_status', ['ASSIGNED', 'REASSIGNMENT REQUESTED'])->where('as_id', $user->id);
         } else {
             return $this->error('Unauthorized', 403);
         }
