@@ -60,8 +60,18 @@ class StoreQuotationRequest extends FormRequest
             return [
                 'services' => 'required|in:LOGISTICS,REGULATORY',
                 'full_name' => 'required|string',
-                'company.contact_person' => 'sometimes|string',
-                'company.cp_contact_number' => 'sometimes|string|min:11|max:11|regex:/^09\d{9}$/',
+                'company.contact_person' => ['sometimes', 'string', function ($attribute, $value, $fail) {
+                    if ($this->input('company.contact_person') === "" || empty($value)) {
+                        $value = null; // Convert empty string to null
+                        return;
+                    }
+                }],
+                'company.cp_contact_number' => ['sometimes', 'string', 'min:11', 'max:11', 'regex:/^09\d{9}$/', function ($attribute, $value, $fail) {
+                    if ($this->input('company.cp_contact_number') === "" || empty($value)) {
+                        $value = null; // Convert empty string to null
+                        return;
+                    }
+                }],
                 'company.name' => 'required|string',
                 'company.address' => 'required|string',
                 'company.position' => 'required|string',
@@ -71,10 +81,14 @@ class StoreQuotationRequest extends FormRequest
                 'type_of_regulatory_assistance' => 'required|array',
                 'type_of_regulatory_assistance.*' => ['required', 'string'],
                 'service_level' => 'required|string|in:NEW,RENEWAL',
-                'message' => 'nullable|string',
+                'message' => ['nullable', 'string', function ($attribute, $value, $fail) {
+                    if ($this->input('message') === "" || empty($value)) {
+                        $value = null; // Convert empty string to null
+                        return;
+                    }
+                }],
                 'documents' => ['required', 'array'],
                 'documents.*' => ['required', 'file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
-                'remarks' => ['nullable', 'string']
             ];
         }
     }

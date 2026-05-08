@@ -65,6 +65,8 @@ class UpdateQuotationRepository extends BaseRepository
                     $quotation->regulatoryService()->updateOrCreate(
                         ['quotation_id' => $quotation->id],
                         [
+                            'full_name' => $request->input('full_name', $quotation->regulatoryService?->full_name),
+                            'contact_person_contact_number' => $request->input('company.cp_contact_number', $quotation->regulatoryService?->contact_person_contact_number),
                             'business_type' => $request->input('company.business_type', $quotation->regulatoryService?->business_type),
                             'position' => $request->input('company.position', $quotation->regulatoryService?->position),
                             'type_of_regulatory_assistance' => $typeOfRegulatoryAssistance,
