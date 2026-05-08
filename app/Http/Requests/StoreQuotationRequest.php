@@ -69,7 +69,7 @@ class StoreQuotationRequest extends FormRequest
                 'company.email' => 'required|email',
                 'company.business_type' => ['required', Rule::in(BusinessType::pluck('name')->toArray())],
                 'type_of_regulatory_assistance' => 'required|array',
-                'type_of_regulatory_assistance.*' => ['required', 'string', Rule::in(RegulatoryAssistanceType::pluck('name')->toArray())],
+                'type_of_regulatory_assistance.*' => ['required', 'string'],
                 'service_level' => 'required|string|in:NEW,RENEWAL',
                 'message' => 'nullable|string',
                 'documents' => ['required', 'array'],
