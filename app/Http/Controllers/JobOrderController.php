@@ -536,10 +536,6 @@ class JobOrderController extends Controller
      */
     public function show(JobOrder $jobOrder)
     {
-        if (!$jobOrder) {
-            return $this->error('Job Order not found', 404);
-        }
-
         return $this->success('Job Order fetched successfully', new JobOrderResource($jobOrder), 200);
     }
 
@@ -608,10 +604,6 @@ class JobOrderController extends Controller
     public function showJobOrderQuotation(JobOrder $jobOrder) {
         $this->authorize('showJobOrderQuotation', $jobOrder);
         
-        if (!$jobOrder) {
-            return $this->error('Job Order not found', 404);
-        }
-
         $quotation = $jobOrder->quotation;
 
         if (!$quotation) {
@@ -629,16 +621,18 @@ class JobOrderController extends Controller
     public function acceptJobOrder(JobOrder $jobOrder) {
         $this->authorize('acceptJobOrder', $jobOrder);
 
-        if (!$jobOrder) {
-            return $this->error('Job Order not found', 404);
-        }
-
         $user = auth()->user();
         $jobOrder->update([
             'operations_id' => $user->id,
             'assignment_status' => 'ASSIGNED',
             'assigned_at' => Carbon::now(),
         ]);
+
+        if ($jobOrder->latestReassignmentRequest) {
+            $jobOrder->latestReassignmentRequest->update([
+                'status' => 'APPROVED',
+            ]);
+        }
 
         return $this->success('Job Order accepted successfully', new JobOrderResource($jobOrder), 200);
     }
@@ -650,10 +644,6 @@ class JobOrderController extends Controller
      */
     public function requestReassignment(JobOrder $jobOrder, Request $request) {
         $this->authorize('requestReassignment', $jobOrder);
-
-        if (!$jobOrder) {
-            return $this->error('Job Order not found', 404);
-        }
 
         $reassignmentRequest = ReassignmentRequest::where('job_order_id', $jobOrder->id)->where('status', 'PENDING')->latest()->first();
 
@@ -688,10 +678,6 @@ class JobOrderController extends Controller
      */
     public function reassignOps(Request $request, JobOrder $jobOrder) {
         $this->authorize('reassignOps', $jobOrder);
-
-        if (!$jobOrder) {
-            return $this->error('Job Order not found', 404);
-        }
 
         $reassignmentRequest = ReassignmentRequest::where('job_order_id', $jobOrder->id)->where('status', 'PENDING')->latest()->first();
 

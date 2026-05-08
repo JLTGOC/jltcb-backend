@@ -115,6 +115,11 @@ class QuotationPolicy
 
     public function acceptQuotationAssignment(User $user, Quotation $quotation): bool
     {
-        return $user->hasRole(['Account Specialist', 'Lead Account Specialist']);
+        if ($user->hasRole(['Account Specialist', 'Lead Account Specialist'])) {
+            $available = $quotation->assignment_status !== 'ASSIGNED';
+        } else {
+            return false;
+        }
+        return $available;
     }
 }

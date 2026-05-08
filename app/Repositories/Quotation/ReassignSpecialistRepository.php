@@ -11,10 +11,6 @@ use Carbon\Carbon;
 class ReassignSpecialistRepository extends BaseRepository
 {
     public function execute($quotation, $request){
-        if (!$quotation) {
-            return $this->error('Quotation not found', 404);
-        }
-
         $validated = $request->validated();
 
         $reassignmentRequest = ReassignmentRequest::where('quotation_id', $quotation->id)->where('status', 'PENDING')->latest()->first();

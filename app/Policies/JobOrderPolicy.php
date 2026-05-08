@@ -77,11 +77,11 @@ class JobOrderPolicy
     public function acceptJobOrder(User $user, JobOrder $jobOrder): bool
     {
         if ($user->hasRole(['Operations', 'Lead Operations'])) {
-            $opsExists = $jobOrder->operations_id !== null;
+            $available = $jobOrder->assignment_status !== 'ASSIGNED';
         } else {
             return false;
         }
-        return !$opsExists;
+        return $available;
     }
 
     public function reassignOps(User $user, JobOrder $jobOrder): bool
