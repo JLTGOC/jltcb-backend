@@ -275,7 +275,7 @@ class QuotationSeeder extends Seeder
                         'client_id' => $quotation->client_id,
                         'as_id' => $quotation->as_id,
                         'operations_id' => $jobOrder->operations_id,
-                        'status' => fake()->randomElement(['PENDING', 'NOT YET DEPARTED', 'IN TRANSIT', 'ARRIVED', 'BERTHED', 'DISCHARGED', 'DELIVERED']),
+                        'status' => fake()->randomElement(['NOT YET DEPARTED', 'IN TRANSIT', 'ARRIVED', 'BERTHED', 'DISCHARGED', 'DELIVERED']),
                         'company_name' => $quotation->company_name,
                         'contact_person' => $quotation->contact_person,
                         'contact_number' => $quotation->contact_number,

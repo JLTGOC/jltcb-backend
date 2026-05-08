@@ -23,7 +23,7 @@ return new class extends Migration
             $table->unsignedBigInteger('as_id');
             $table->foreign('as_id')->references('id')->on('users')->constrained();
             $table->foreignId('operations_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->enum('status', ['PENDING', 'NOT YET DEPARTED', 'IN TRANSIT', 'ARRIVED', 'BERTHED', 'DISCHARGED', 'DELIVERED'])->default('PENDING');
+            $table->enum('status', ['NOT YET DEPARTED', 'IN TRANSIT', 'ARRIVED', 'BERTHED', 'DISCHARGED', 'DELIVERED'])->default('NOT YET DEPARTED');
             $table->string('contact_person');
             $table->string('contact_number');
             $table->string('email');

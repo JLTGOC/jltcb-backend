@@ -23,9 +23,10 @@ class ShipmentResource extends JsonResource
                 'id' => $this->id,
                 'reference_number' => $this->reference_number,
                 'job_order_id' => $this->job_order_id,
-                'quotation_file' => asset($this->quotation->files()->where('type', 'PROPOSAL')->first()->file_path) ?? null,
                 'client' => $this->client->full_name,
+                'company_name' => $this->company_name,
                 'person_in_charge' => mb_strtoupper($this->operations?->username) . ' ' . $this->operations?->last_name,
+                'person_in_charge_full_name' => $this->operations?->full_name,
                 'person_in_charge_image' => $this->operations->image_path ? asset($this->operations->image_path) : null,
                 'status' => $this->status,
                 'commodity' => $this->commodity,
@@ -38,6 +39,7 @@ class ShipmentResource extends JsonResource
                 'eta' => (Carbon::parse($this->jobOrder->jobOrderShipment->eta))->format('F d, Y') ?? null,
                 'etd' => (Carbon::parse($this->jobOrder->jobOrderShipment->etd))->format('F d, Y') ?? null,
                 'service_type' => $this->quotation->logisticsService->service_type ?? null,
+                'service_level' => $this->jobOrder->jobOrderShipment->service_level ?? null,
                 'transport_mode' => $this->quotation->logisticsService->transport_mode ?? null,
                 'account_handler' => $this->accountSpecialist->full_name,
                 'created_at' => $this->created_at->format('m/d/Y'),
@@ -49,15 +51,49 @@ class ShipmentResource extends JsonResource
         
         // Only include full details for mobile OR if this is a show route
         if ($request->routeIs('shipments.show')) {
+            $data['general_info'] = [
+                'id' => $this->id,
+                'reference_number' => $this->reference_number,
+                'job_order_id' => $this->job_order_id,
+                'client' => $this->client->full_name,
+                'person_in_charge' => mb_strtoupper($this->operations?->username) . ' ' . $this->operations?->last_name,
+                'person_in_charge_full_name' => $this->operations?->full_name,
+                'person_in_charge_image' => $this->operations->image_path ? asset($this->operations->image_path) : null,
+                'status' => $this->status,
+                'date' => $this->created_at->format('Y-m-d'),
+            ];
+
+            $data['contact_person'] = [
+                'company_name' => $this->company_name,
+                'full_name' => $this->contact_person,
+                'contact_number' => $this->contact_number,
+                'email' => $this->email,
+            ];
+
             $data['commodity_details'] = [
                 'commodity' => $this->commodity,
-                'consignee_name' => $this->company_name,
                 'cargo_type' => $this->cargo_type,
                 'container_size' => $this->container_size ?? null,
             ];
 
-            $data['contact_person'] = [
-                'full_name' => $this->contact_person,
+            $data['shipment_information'] = [
+                'bl_number' => $this->jobOrder->jobOrderShipment->bl_no ?? null,
+                'origin' => $this->origin,
+                'destination' => $this->destination,
+                'eta' => (Carbon::parse($this->jobOrder->jobOrderShipment->eta))->format('F d, Y') ?? null,
+                'etd' => (Carbon::parse($this->jobOrder->jobOrderShipment->etd))->format('F d, Y') ?? null,
+                'sub_services' => explode(',', $this->quotation->logisticsService->service_options),
+                'service_type' => $this->quotation->logisticsService->service_type ?? null,
+                'service_level' => $this->jobOrder->jobOrderShipment->service_level ?? null,
+                'transport_mode' => $this->quotation->logisticsService->transport_mode ?? null,
+                'account_handler' => $this->accountSpecialist->full_name,
+                'remarks' => $this->remarks,
+            ];
+
+            $data['consignee_details'] = [
+                'company_name' => $this->company_name,
+                'company_address' => $this->quotation->company_address ?? null,
+                'contact_person' => $this->contact_person,
                 'contact_number' => $this->contact_number,
                 'email' => $this->email,
             ];
