@@ -259,7 +259,7 @@ class JobOrderController extends Controller
                         'reassignment_request_id' => $j->latestReassignmentRequest?->status !== 'PENDING' ? null : $j->latestReassignmentRequest->id,
                         'requested_at' => $j->latestReassignmentRequest?->status === 'PENDING' ? Carbon::parse($j->latestReassignmentRequest?->created_at)->format('F d, Y') : null,
                         'previously_assigned_to' => $j->latestReassignmentRequest?->status === 'APPROVED' 
-                            ? mb_strtoupper($j->latestReassignmentRequest?->operations->username) . ' ' . $j->latestReassignmentRequest?->operations->last_name 
+                            ? mb_strtoupper($j->latestReassignmentRequest?->operations?->username) . ' ' . $j->latestReassignmentRequest?->operations?->last_name 
                             : null,
                         'generate_shipment' => $j->operations_id === $user->id && !$j->shipment && $j->assignment_status === 'ASSIGNED' ? true : false,
                         'shipment_creation_status' => $j->shipment_creation_status,
@@ -288,7 +288,7 @@ class JobOrderController extends Controller
                         'reassignment_request_id' => $j->latestReassignmentRequest?->status !== 'PENDING' ? null : $j->latestReassignmentRequest->id,
                         'requested_at' => $j->latestReassignmentRequest?->status === 'PENDING' ? Carbon::parse($j->latestReassignmentRequest?->created_at)->format('F d, Y') : null,
                         'previously_assigned_to' => $j->latestReassignmentRequest?->status === 'APPROVED' 
-                            ? mb_strtoupper($j->latestReassignmentRequest?->operations->username) . ' ' . $j->latestReassignmentRequest?->operations->last_name 
+                            ? mb_strtoupper($j->latestReassignmentRequest?->operations?->username) . ' ' . $j->latestReassignmentRequest?->operations?->last_name 
                             : null,
                         'generate_shipment' => false, // REGULATORY job orders should not have the option to generate shipment
                         'shipment_creation_status' => $j->shipment_creation_status,
@@ -310,7 +310,7 @@ class JobOrderController extends Controller
                 'reassignment_request_id' => $j->latestReassignmentRequest?->status !== 'PENDING' ? null : $j->latestReassignmentRequest->id,
                 'requested_at' => $j->latestReassignmentRequest?->status === 'PENDING' ? Carbon::parse($j->latestReassignmentRequest?->created_at)->format('F d, Y') : null,
                 'previously_assigned_to' => $j->latestReassignmentRequest?->status === 'APPROVED' 
-                    ? mb_strtoupper($j->latestReassignmentRequest?->operations->username) . ' ' . $j->latestReassignmentRequest?->operations->last_name 
+                    ? mb_strtoupper($j->latestReassignmentRequest?->operations?->username) . ' ' . $j->latestReassignmentRequest?->operations?->last_name 
                     : null,
             ];
         });
@@ -362,7 +362,7 @@ class JobOrderController extends Controller
                             'reassignment_request_id' => $j->latestReassignmentRequest?->status !== 'PENDING' ? null : $j->latestReassignmentRequest->id,
                             'requested_at' => $j->latestReassignmentRequest?->status === 'PENDING' ? Carbon::parse($j->latestReassignmentRequest?->created_at)->format('F d, Y') : null,
                             'previously_assigned_to' => $j->latestReassignmentRequest?->status === 'APPROVED' 
-                                ? mb_strtoupper($j->latestReassignmentRequest?->operations->username) . ' ' . $j->latestReassignmentRequest?->operations->last_name 
+                                ? mb_strtoupper($j->latestReassignmentRequest?->operations?->username) . ' ' . $j->latestReassignmentRequest?->operations?->last_name 
                                 : null,
                             'generate_shipment' => $j->operations_id === $user->id && !$j->shipment && $j->assignment_status === 'ASSIGNED' ? true : false,
                             'shipment_creation_status' => $j->shipment_creation_status,
@@ -391,7 +391,7 @@ class JobOrderController extends Controller
                             'reassignment_request_id' => $j->latestReassignmentRequest?->status !== 'PENDING' ? null : $j->latestReassignmentRequest->id,
                             'requested_at' => $j->latestReassignmentRequest?->status === 'PENDING' ? Carbon::parse($j->latestReassignmentRequest?->created_at)->format('F d, Y') : null,
                             'previously_assigned_to' => $j->latestReassignmentRequest?->status === 'APPROVED' 
-                                ? mb_strtoupper($j->latestReassignmentRequest?->operations->username) . ' ' . $j->latestReassignmentRequest?->operations->last_name 
+                                ? mb_strtoupper($j->latestReassignmentRequest?->operations?->username) . ' ' . $j->latestReassignmentRequest?->operations?->last_name 
                                 : null,
                             'generate_shipment' => false, // REGULATORY job orders should not have the option to generate shipment
                             'shipment_creation_status' => $j->shipment_creation_status,
@@ -414,7 +414,7 @@ class JobOrderController extends Controller
                     'reassignment_request_id' => $j->latestReassignmentRequest?->status !== 'PENDING' ? null : $j->latestReassignmentRequest->id,
                     'requested_at' => $j->latestReassignmentRequest?->status === 'PENDING' ? Carbon::parse($j->latestReassignmentRequest?->created_at)->format('F d, Y') : null,
                     'previously_assigned_to' => $j->latestReassignmentRequest?->status === 'APPROVED' 
-                        ? mb_strtoupper($j->latestReassignmentRequest?->operations->username) . ' ' . $j->latestReassignmentRequest?->operations->last_name 
+                        ? mb_strtoupper($j->latestReassignmentRequest?->operations?->username) . ' ' . $j->latestReassignmentRequest?->operations?->last_name 
                         : null,
                 ];
             });
