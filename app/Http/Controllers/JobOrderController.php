@@ -676,7 +676,12 @@ class JobOrderController extends Controller
         } else {
             $request->validate([
                 'reason' => 'required|string|in:WORKLOAD,EMERGENCY / LEAVE,CLIENT REQUEST',
-                'additional_details' => 'sometimes|string',
+                'additional_details' => ['sometimes', 'nullable', function ($attribute, $value, $fail) use ($request) {
+                    if ($request->additional_details === "" || empty($value)) {
+                        $value = null;
+                        return;
+                    }
+                }],
             ]);
 
             $jobOrder->update([

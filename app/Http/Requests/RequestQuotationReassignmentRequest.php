@@ -23,7 +23,12 @@ class RequestQuotationReassignmentRequest extends FormRequest
     {
         return [
             'reason' => ['required', 'in:WORKLOAD,EMERGENCY / LEAVE,CLIENT REQUEST'],
-            'additional_details' => ['nullable', 'string'],
+            'additional_details' => ['sometimes', 'nullable', function ($attribute, $value, $fail) {
+                if ($this->input('additional_details') === "" || empty($value)) {
+                    $value = null; // Convert empty string to null
+                    return;
+                }
+            }],
         ];
     }
 }
