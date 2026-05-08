@@ -128,13 +128,13 @@ class ReassignmentRequestController extends Controller
             return $this->error('Only pending reassignment requests can be cancelled', 422);
         }
 
-        $quotation = $reassignmentRequest->quotation;
+        $quotationOrJobOrder = $reassignmentRequest->quotation ?? $reassignmentRequest->jobOrder;
 
         $reassignmentRequest->update([
             'status' => 'CANCELLED'
         ]);
 
-        $quotation->update([
+        $quotationOrJobOrder->update([
             'assignment_status' => 'ASSIGNED',
         ]);
 
