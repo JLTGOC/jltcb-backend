@@ -256,7 +256,11 @@ class JobOrderController extends Controller
                         'assigned_to' => $assignedTo,
                         'ops_image' => $j->operations ? asset($j->operations->image_path) : null,
                         'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
-                        'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
+                        'reassignment_request_id' => $j->latestReassignmentRequest?->status !== 'PENDING' ? null : $j->latestReassignmentRequest->id,
+                        'requested_at' => $j->latestReassignmentRequest?->status === 'PENDING' ? Carbon::parse($j->latestReassignmentRequest?->created_at)->format('F d, Y') : null,
+                        'previously_assigned_to' => $j->latestReassignmentRequest?->status === 'APPROVED' 
+                            ? mb_strtoupper($j->latestReassignmentRequest?->accountSpecialist->username) . ' ' . $j->latestReassignmentRequest?->accountSpecialist->last_name 
+                            : null,
                         'generate_shipment' => $j->operations_id === $user->id && !$j->shipment && $j->assignment_status === 'ASSIGNED' ? true : false,
                         'shipment_creation_status' => $j->shipment_creation_status,
                     ];
@@ -281,7 +285,11 @@ class JobOrderController extends Controller
                         'assigned_to' => $assignedTo,
                         'ops_image' => $j->operations ? asset($j->operations->image_path) : null,
                         'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
-                        'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
+                        'reassignment_request_id' => $j->latestReassignmentRequest?->status !== 'PENDING' ? null : $j->latestReassignmentRequest->id,
+                        'requested_at' => $j->latestReassignmentRequest?->status === 'PENDING' ? Carbon::parse($j->latestReassignmentRequest?->created_at)->format('F d, Y') : null,
+                        'previously_assigned_to' => $j->latestReassignmentRequest?->status === 'APPROVED' 
+                            ? mb_strtoupper($j->latestReassignmentRequest?->operations->username) . ' ' . $j->latestReassignmentRequest?->operations->last_name 
+                            : null,
                         'generate_shipment' => false, // REGULATORY job orders should not have the option to generate shipment
                         'shipment_creation_status' => $j->shipment_creation_status,
                     ];
@@ -299,7 +307,11 @@ class JobOrderController extends Controller
                 'quotation_reference_number' => $j->quotation->reference_number,
                 'assigned_to' => $assignedTo,
                 'ops_image' => $j->operations ? asset($j->operations->image_path) : null,
-                'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
+                'reassignment_request_id' => $j->latestReassignmentRequest?->status !== 'PENDING' ? null : $j->latestReassignmentRequest->id,
+                'requested_at' => $j->latestReassignmentRequest?->status === 'PENDING' ? Carbon::parse($j->latestReassignmentRequest?->created_at)->format('F d, Y') : null,
+                'previously_assigned_to' => $j->latestReassignmentRequest?->status === 'APPROVED' 
+                    ? mb_strtoupper($j->latestReassignmentRequest?->operations->username) . ' ' . $j->latestReassignmentRequest?->operations->last_name 
+                    : null,
             ];
         });
 
@@ -347,7 +359,11 @@ class JobOrderController extends Controller
                             'assigned_to' => $assignedTo,
                             'ops_image' => $j->operations ? asset($j->operations->image_path) : null,
                             'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
-                            'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
+                            'reassignment_request_id' => $j->latestReassignmentRequest?->status !== 'PENDING' ? null : $j->latestReassignmentRequest->id,
+                            'requested_at' => $j->latestReassignmentRequest?->status === 'PENDING' ? Carbon::parse($j->latestReassignmentRequest?->created_at)->format('F d, Y') : null,
+                            'previously_assigned_to' => $j->latestReassignmentRequest?->status === 'APPROVED' 
+                                ? mb_strtoupper($j->latestReassignmentRequest?->operations->username) . ' ' . $j->latestReassignmentRequest?->operations->last_name 
+                                : null,
                             'generate_shipment' => $j->operations_id === $user->id && !$j->shipment && $j->assignment_status === 'ASSIGNED' ? true : false,
                             'shipment_creation_status' => $j->shipment_creation_status,
                         ];
@@ -372,7 +388,11 @@ class JobOrderController extends Controller
                             'assigned_to' => $assignedTo,
                             'ops_image' => $j->operations ? asset($j->operations->image_path) : null,
                             'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
-                            'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
+                            'reassignment_request_id' => $j->latestReassignmentRequest?->status !== 'PENDING' ? null : $j->latestReassignmentRequest->id,
+                            'requested_at' => $j->latestReassignmentRequest?->status === 'PENDING' ? Carbon::parse($j->latestReassignmentRequest?->created_at)->format('F d, Y') : null,
+                            'previously_assigned_to' => $j->latestReassignmentRequest?->status === 'APPROVED' 
+                                ? mb_strtoupper($j->latestReassignmentRequest?->operations->username) . ' ' . $j->latestReassignmentRequest?->operations->last_name 
+                                : null,
                             'generate_shipment' => false, // REGULATORY job orders should not have the option to generate shipment
                             'shipment_creation_status' => $j->shipment_creation_status,
                         ];
@@ -391,7 +411,11 @@ class JobOrderController extends Controller
                     'issued_quotation_id' => IssuedQuotation::where('quotation_id', $j->quotation_id)->value('id'),
                     'assigned_to' => $assignedTo,
                     'ops_image' => $j->operations ? asset($j->operations->image_path) : null,
-                    'reassignment_request_id' => $j->latestReassignmentRequest ? $j->latestReassignmentRequest->id : null,
+                    'reassignment_request_id' => $j->latestReassignmentRequest?->status !== 'PENDING' ? null : $j->latestReassignmentRequest->id,
+                    'requested_at' => $j->latestReassignmentRequest?->status === 'PENDING' ? Carbon::parse($j->latestReassignmentRequest?->created_at)->format('F d, Y') : null,
+                    'previously_assigned_to' => $j->latestReassignmentRequest?->status === 'APPROVED' 
+                        ? mb_strtoupper($j->latestReassignmentRequest?->operations->username) . ' ' . $j->latestReassignmentRequest?->operations->last_name 
+                        : null,
                 ];
             });
         }

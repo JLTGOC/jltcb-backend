@@ -240,7 +240,12 @@ class IndexQuotationRepository extends BaseRepository
                     $clientType = $quotation->client->quotations()->count() > 1 ? 'OLD' : 'NEW';
 
                     $reassignmentRequest = $quotation->latestReassignmentRequest;
-                    if ($reassignmentRequest && $reassignmentRequest->status !== 'PENDING') {
+
+                    $previouslyAssignedTo = $reassignmentRequest?->status === 'APPROVED' && $reassignmentRequest->as_id !== $quotation->as_id 
+                        ? mb_strtoupper($reassignmentRequest->accountSpecialist->username) . ' ' . $reassignmentRequest->accountSpecialist->last_name 
+                        : null;
+
+                    if ($reassignmentRequest?->status !== 'PENDING') {
                         $reassignmentRequest = null;
                     }
 
@@ -257,6 +262,7 @@ class IndexQuotationRepository extends BaseRepository
                         'assigned_at' => $quotation->assigned_at ? Carbon::parse($quotation->assigned_at)->format($dateFormat) : null,
                         'reassignment_request_id' => $reassignmentRequest ? $reassignmentRequest->id : null,
                         'requested_at' => $reassignmentRequest ? Carbon::parse($reassignmentRequest->created_at)->format($dateFormat) : null,
+                        'previously_assigned_to' => $previouslyAssignedTo,
                         'service' => $quotation->logisticsService ? 'LOGISTICS' : ($quotation->regulatoryService ? 'REGULATORY' : null),
                         'logistics_service' => $quotation->logisticsService ? [
                             'commodity' => $quotation->logisticsService->commodity,
