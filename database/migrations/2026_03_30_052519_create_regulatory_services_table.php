@@ -18,7 +18,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Quotation::class)->constrained()->onDelete('cascade');
             $table->string('full_name');
-            $table->string('contact_person_contact_number');
+            $table->string('contact_person_contact_number')->nullable();
             $table->string('business_type');
             $table->string('position');
             $table->string('type_of_regulatory_assistance');

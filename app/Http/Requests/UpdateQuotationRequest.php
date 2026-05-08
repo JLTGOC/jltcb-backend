@@ -58,13 +58,13 @@ class UpdateQuotationRequest extends FormRequest
         if ($serviceType === 'REGULATORY') {
             return array_merge($baseRules, [
                 'full_name' => 'sometimes|string',
-                'company.contact_person' => ['sometimes', 'string', function ($attribute, $value, $fail) {
+                'company.contact_person' => ['sometimes', 'nullable', 'string', function ($attribute, $value, $fail) {
                     if ($this->input('company.contact_person') === "" || empty($value)) {
                         $value = null; // Convert empty string to null
                         return;
                     }
                 }],
-                'company.cp_contact_number' => ['sometimes', 'string', 'min:11', 'max:11', 'regex:/^09\d{9}$/', function ($attribute, $value, $fail) {
+                'company.cp_contact_number' => ['sometimes', 'nullable', 'string', 'min:11', 'max:11', 'regex:/^09\d{9}$/', function ($attribute, $value, $fail) {
                     if ($this->input('company.cp_contact_number') === "" || empty($value)) {
                         $value = null; // Convert empty string to null
                         return;

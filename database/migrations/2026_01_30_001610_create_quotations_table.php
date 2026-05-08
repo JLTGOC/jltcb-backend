@@ -20,7 +20,7 @@ return new class extends Migration
             $table->unsignedBigInteger('as_id')->nullable();
             $table->foreign('as_id')->references('id')->on('users')->constrained();
             $table->enum('status', ['REQUESTED', 'RESPONDED', 'ACCEPTED', 'DISCARDED'])->default('REQUESTED');
-            $table->string('contact_person');
+            $table->string('contact_person')->nullable();
             $table->string('contact_number');
             $table->string('email');
             $table->string('company_name');
