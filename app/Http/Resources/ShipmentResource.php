@@ -55,19 +55,21 @@ class ShipmentResource extends JsonResource
                 'id' => $this->id,
                 'reference_number' => $this->reference_number,
                 'job_order_id' => $this->job_order_id,
-                'client' => $this->client->full_name,
-                'person_in_charge' => mb_strtoupper($this->operations?->username) . ' ' . $this->operations?->last_name,
-                'person_in_charge_full_name' => $this->operations?->full_name,
-                'person_in_charge_image' => $this->operations->image_path ? asset($this->operations->image_path) : null,
+                'client' => [
+                    'full_name' => $this->client->full_name,
+                    'company_name' => $this->client->company_name,
+                    'contact_number' => $this->client->contact_number,
+                    'email' => $this->client->email,
+                    'image_path' => $this->client->image_path ? asset($this->client->image_path) : null,
+                ],
+                'person_in_charge' => [
+                    'username' => mb_strtoupper($this->operations?->username) . ' ' . $this->operations?->last_name,
+                    'role' => $this->operations?->getRoleNames()->first() ?? null,
+                    'full_name' => $this->operations?->full_name,
+                    'image_path' => $this->operations?->image_path ? asset($this->operations?->image_path) : null,
+                ],
                 'status' => $this->status,
                 'date' => $this->created_at->format('Y-m-d'),
-            ];
-
-            $data['contact_person'] = [
-                'company_name' => $this->company_name,
-                'full_name' => $this->contact_person,
-                'contact_number' => $this->contact_number,
-                'email' => $this->email,
             ];
 
             $data['commodity_details'] = [
