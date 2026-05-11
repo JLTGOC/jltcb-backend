@@ -75,7 +75,7 @@ class QuotationSeeder extends Seeder
                 'client_id' => $client,
                 'as_id' => $assignedSpecialist,
                 'company_name' => $companyName,
-                'company_address' => fake()->address(),
+                'company_address' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
                 'contact_person' => $firstName . ' ' . $lastName,
                 'contact_number' => fake()->numerify('09#########'),
                 'email' => mb_strtolower($lastName) . '.' . mb_strtolower($firstName) . '@gmail.com',
