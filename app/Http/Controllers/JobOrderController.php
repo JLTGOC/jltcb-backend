@@ -68,7 +68,8 @@ class JobOrderController extends Controller
 
         $request->validate([
             'filter.service' => 'sometimes|string|in:LOGISTICS,REGULATORY',
-            // 'filter.assignment_status' => 'sometimes|string|in:AVAILABLE,ASSIGNED,REASSIGNMENT REQUESTED',
+            'filter.assignment_status' => 'sometimes|string|in:PENDING,ACCEPTED',
+            'filter.service_type' => 'sometimes|string|in:IMPORT,EXPORT',
             'search' => 'sometimes|string',
             'ops_search' => 'sometimes|string',
             'client_type' => 'sometimes|string|in:OLD,NEW',
@@ -114,13 +115,27 @@ class JobOrderController extends Controller
         $jobOrders = QueryBuilder::for($jobOrdersQuery)
             ->allowedFilters([
                 AllowedFilter::exact('service', 'job_type'),
-                // AllowedFilter::exact('assignment_status'),
+                AllowedFilter::callback('assignment_status', function ($query, $value) {
+                    if ($value === 'PENDING') {
+                        return $query->where('assignment_status', 'AVAILABLE');
+                    } elseif ($value === 'ACCEPTED') {
+                        return $query->whereIn('assignment_status', ['ASSIGNED', 'REASSIGNMENT REQUESTED']);
+                    }
+                }),
+                AllowedFilter::exact('service_type', 'jobOrderClient.service_type'),
             ]);
 
         $myJobOrders = $myJobOrdersQuery
             ? QueryBuilder::for($myJobOrdersQuery)->allowedFilters([
                 AllowedFilter::exact('service', 'job_type'),
-                // AllowedFilter::exact('assignment_status'),
+                AllowedFilter::callback('assignment_status', function ($query, $value) {
+                    if ($value === 'PENDING') {
+                        return $query->where('assignment_status', 'AVAILABLE');
+                    } elseif ($value === 'ACCEPTED') {
+                        return $query->whereIn('assignment_status', ['ASSIGNED', 'REASSIGNMENT REQUESTED']);
+                    }
+                }),
+                AllowedFilter::exact('service_type', 'jobOrderClient.service_type'),
             ])
             : null;
 
