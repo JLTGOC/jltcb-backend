@@ -42,8 +42,10 @@ class IndexQuotationRepository extends BaseRepository
         if ($user->hasRole('Client')) {
             $query->where('client_id', $user->id);
         } elseif ($user->hasRole('Lead Account Specialist')) {
-            $query->whereNot('as_id', $user->id);
-            $myQuotationsQuery = Quotation::query()->whereIn('assignment_status', ['ASSIGNED', 'REASSIGNMENT REQUESTED'])->where('as_id', $user->id);
+            if ($isWeb) {
+                $query->whereNot('as_id', $user->id);
+                $myQuotationsQuery = Quotation::query()->whereIn('assignment_status', ['ASSIGNED', 'REASSIGNMENT REQUESTED'])->where('as_id', $user->id);
+            }
         } elseif ($user->hasRole('Account Specialist')) {
             if ($isWeb) {
                 $query->whereNot('assignment_status', 'ASSIGNED');
@@ -332,7 +334,7 @@ class IndexQuotationRepository extends BaseRepository
             } else {
                 if ($request->filter['status'] === 'REQUESTED') {
                     $resultsQuery = $quotations
-                        ->with(['client', 'logisticsService', 'regulatoryService'])
+                        ->with(['client', 'accountSpecialist', 'logisticsService', 'regulatoryService'])
                         ->orderBy('created_at', 'desc');
 
                     $results = $resultsQuery->get();
