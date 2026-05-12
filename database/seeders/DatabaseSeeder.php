@@ -56,6 +56,7 @@ class DatabaseSeeder extends Seeder
             QuotationFieldSeeder::class,
             TemplateSeeder::class,
             ReassignmentRequestSeeder::class,
+            HistorySeeder::class,
         ]);
     }
 }

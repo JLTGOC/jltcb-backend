@@ -79,6 +79,18 @@ class Quotation extends Model implements Searchable
         return $this->hasOne(ReassignmentRequest::class)->latestOfMany();
     }
 
+    public function quotationActivities() {
+        return $this->hasMany(QuotationHistory::class, 'quotation_id');
+    }
+
+    public function jobOrder() {
+        return $this->hasOne(JobOrder::class, 'quotation_id');
+    }
+
+    public function shipment() {
+        return $this->hasOne(Shipment::class, 'quotation_id');
+    }
+
     protected $casts = [
         'client_id' => 'integer',
         'as_id' => 'integer',

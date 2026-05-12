@@ -66,6 +66,10 @@ class Shipment extends Model implements Searchable
         return $this->belongsTo(User::class, 'operations_id');
     }
 
+    public function shipmentActivities() {
+        return $this->hasMany(ShipmentHistory::class, 'shipment_id');
+    }
+
     protected $casts = [
         'quotation_id' => 'integer',
         'client_id' => 'integer',
