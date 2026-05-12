@@ -332,7 +332,7 @@ class IndexQuotationRepository extends BaseRepository
             } else {
                 if ($request->filter['status'] === 'REQUESTED') {
                     $resultsQuery = $quotations
-                        ->with(['client', 'accountSpecialist', 'logisticsService', 'regulatoryService'])
+                        ->with(['client', 'logisticsService', 'regulatoryService'])
                         ->orderBy('created_at', 'desc');
 
                     $results = $resultsQuery->get();
