@@ -11,6 +11,7 @@ class JobOrderClient extends Model
         'client_type',
         'accredited',
         'service_type',
+        'tone_and_attitude',
         'client_remarks',
     ];
 
