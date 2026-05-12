@@ -3,6 +3,7 @@
 namespace App\Repositories\Quotation;
 
 use App\Models\ReassignmentRequest;
+use App\Models\QuotationHistory;
 use App\Repositories\BaseRepository;
 
 class RequestReassignmentRepository extends BaseRepository
@@ -30,6 +31,12 @@ class RequestReassignmentRepository extends BaseRepository
             'reason' => $validated['reason'],
             'additional_details' => $validated['additional_details'] ?? null,
             'status' => 'PENDING'
+        ]);
+
+        $activityLog = QuotationHistory::create([
+            'user_id' => auth()->id(),
+            'quotation_id' => $quotation->id,
+            'action' => 'Reassignment Requested',
         ]);
 
         return $this->success('Reassignment request submitted successfully', $reassignmentRequest, 200);

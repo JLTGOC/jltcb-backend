@@ -17,6 +17,7 @@ use App\Models\{
     BillingMode,
     ReassignmentRequest,
     IssuedQuotation,
+    QuotationHistory,
 };
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -513,6 +514,12 @@ class JobOrderController extends Controller
                     'shall_be_billed' => $request->billing['shall_be_billed'] ?? null,
                 ]);
 
+                $activityLog = QuotationHistory::create([
+                    'quotation_id' => $quotation->id,
+                    'user_id' => auth()->id(),
+                    'action' => 'Job Order Created',
+                ]);
+
                 DB::commit();
                 return $this->success('Job Order created successfully', new JobOrderResource($jobOrder), 200);
             } catch (\Exception $e) {
@@ -544,6 +551,12 @@ class JobOrderController extends Controller
                     'accredited' => $request->client['accredited'],
                     'service_type' => $request->client['service_type'],
                     'client_remarks' => $request->client['remarks'] ?? null,
+                ]);
+
+                $activityLog = QuotationHistory::create([
+                    'quotation_id' => $quotation->id,
+                    'user_id' => auth()->id(),
+                    'action' => 'Job Order Created',
                 ]);
 
                 DB::commit();
@@ -663,6 +676,12 @@ class JobOrderController extends Controller
             ]);
         }
 
+        $activityLog = QuotationHistory::create([
+            'quotation_id' => $jobOrder->quotation->id,
+            'user_id' => auth()->id(),
+            'action' => 'Job Order Accepted',
+        ]);
+
         return $this->success('Job Order accepted successfully', new JobOrderResource($jobOrder), 200);
     }
 
@@ -701,6 +720,12 @@ class JobOrderController extends Controller
                 'status' => 'PENDING',
             ]);
 
+            $activityLog = QuotationHistory::create([
+                'quotation_id' => $jobOrder->quotation->id,
+                'user_id' => auth()->id(),
+                'action' => 'Reassignment Requested',
+            ]);
+
             return $this->success('Reassignment request submitted successfully', $reassignmentRequest, 200);
         }
     }
@@ -733,6 +758,12 @@ class JobOrderController extends Controller
                 'status' => 'REJECTED',
             ]);
 
+            $activityLog = QuotationHistory::create([
+                'quotation_id' => $jobOrder->quotation->id,
+                'user_id' => auth()->id(),
+                'action' => 'Reassignment Request Rejected',
+            ]);
+
             return $this->success('Reassignment request rejected', $reassignmentRequest, 200);
         } elseif ($request->status === 'APPROVED') {
             $user = User::find($request->operations_id);
@@ -752,6 +783,12 @@ class JobOrderController extends Controller
 
             $reassignmentRequest->update([
                 'status' => 'APPROVED',
+            ]);
+
+            $activityLog = QuotationHistory::create([
+                'quotation_id' => $jobOrder->quotation->id,
+                'user_id' => auth()->id(),
+                'action' => 'Reassignment Request Approved',
             ]);
 
             return $this->success('Reassignment request approved', $reassignmentRequest, 200);

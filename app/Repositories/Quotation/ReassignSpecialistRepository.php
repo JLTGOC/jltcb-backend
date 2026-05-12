@@ -5,6 +5,7 @@ namespace App\Repositories\Quotation;
 use App\Http\Resources\QuotationResource;
 use App\Models\ReassignmentRequest;
 use App\Models\User;
+use App\Models\QuotationHistory;
 use App\Repositories\BaseRepository;
 use Carbon\Carbon;
 
@@ -28,6 +29,12 @@ class ReassignSpecialistRepository extends BaseRepository
                 'status' => 'REJECTED'
             ]);
 
+            $activityLog = QuotationHistory::create([
+                'user_id' => auth()->id(),
+                'quotation_id' => $quotation->id,
+                'action' => 'Reassignment Rejected',
+            ]);
+
             return $this->success('Reassignment request rejected, previous Account Specialist retained', $reassignmentRequest, 200);
         } elseif ($validated['status'] === 'APPROVED') {
             $user = User::find($validated['as_id']);
@@ -47,6 +54,12 @@ class ReassignSpecialistRepository extends BaseRepository
 
             $reassignmentRequest->update([
                 'status' => 'APPROVED'
+            ]);
+
+            $activityLog = QuotationHistory::create([
+                'user_id' => auth()->id(),
+                'quotation_id' => $quotation->id,
+                'action' => 'Account Specialist Reassigned',
             ]);
 
             return $this->success('Account Specialist reassigned successfully', new QuotationResource($quotation), 200);

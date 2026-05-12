@@ -47,6 +47,10 @@ class HistorySeeder extends Seeder
                 if ($asId) {
                     $this->createQuotationHistory($asId, $quotationId, 'Job Order Created', $q->jobOrder->created_at ?? null);
                 }
+                $opsId = $q->jobOrder->operations_id ?? null;
+                if ($opsId) {
+                    $this->createQuotationHistory($opsId, $quotationId, 'Job Order Accepted', $q->jobOrder->assigned_at ?? null);
+                }
             }
 
             if ($q->shipment) {
