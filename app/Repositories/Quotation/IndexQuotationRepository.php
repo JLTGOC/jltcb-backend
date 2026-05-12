@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\Searchable\Search;
+use Illuminate\Support\Facades\Storage;
 
 class IndexQuotationRepository extends BaseRepository
 {
@@ -259,7 +260,7 @@ class IndexQuotationRepository extends BaseRepository
                         'status' => $quotation->status,
                         'assignment_status' => $quotation->assignment_status,
                         'account_specialist' =>  $as,
-                        'as_profile_image' => $quotation->accountSpecialist->image_path ? asset($quotation->accountSpecialist?->image_path) : null,
+                        'as_profile_image' => $quotation->accountSpecialist->image_path ? asset(Storage::url($quotation->accountSpecialist?->image_path)) : null,
                         'assigned_at' => $quotation->assigned_at ? Carbon::parse($quotation->assigned_at)->format($dateFormat) : null,
                         'reassignment_request_id' => $reassignmentRequest ? $reassignmentRequest->id : null,
                         'requested_at' => $reassignmentRequest ? Carbon::parse($reassignmentRequest->created_at)->format($dateFormat) : null,

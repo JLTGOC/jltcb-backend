@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class ArticleResource extends JsonResource
 {
@@ -18,7 +19,7 @@ class ArticleResource extends JsonResource
             'id' => $this->id,
             'user' => $this->user->first_name,
             'title' => $this->title,
-            'image_url' => asset($this->image_url),
+            'image_url' => asset(Storage::url($this->image_url)),
             'content' => $this->content,
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),

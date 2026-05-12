@@ -20,7 +20,7 @@ class MessageResource extends JsonResource
         $senderData = $this->sender ? [
             'id' => $this->sender->id,
             'full_name' => $this->sender->full_name,
-            'image_path' => asset($this->sender->image_path), // User's avatar
+            'image_path' => $this->sender->image_path ? (Storage::url($this->sender->image_path)) : null, // User's avatar
         ] : [
             'id' => null,
             'full_name' => 'JLTCB', // <--- Static Name

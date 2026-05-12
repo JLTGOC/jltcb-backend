@@ -3,6 +3,7 @@
 namespace Database\Seeders\Traits;
 
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 
 trait SeederFileTrait
 {
@@ -16,37 +17,31 @@ trait SeederFileTrait
      */
     protected function copySeederFile(string $sourceDir, string $filename, ?string $destinationDir = null, string $disk = 'public'): string
     {
-        $destinationDir = $destinationDir ?: $sourceDir;
-
         $sourcePath = database_path("seeders/{$sourceDir}/{$filename}");
-        $publicStorageDir = storage_path("app/{$disk}/{$destinationDir}");
-        $destinationPath = "{$publicStorageDir}/{$filename}";
-        
-        // Create the public storage directory if it doesn't exist
-        if (!File::exists($publicStorageDir)) {
-            File::makeDirectory($publicStorageDir, 0755, true);
+
+        if (!File::exists($sourcePath)) {
+            throw new \RuntimeException("Seeder file not found: {$sourcePath}");
         }
-        
-        // Copy the file if source exists
-        if (File::exists($sourcePath)) {
-            File::copy($sourcePath, $destinationPath);
-        }
-        
-        // Return the path to use in the database
-        return "storage/{$destinationDir}/{$filename}";
+
+        $destinationDir = $destinationDir ?: $sourceDir;
+        $destinationPath = "{$destinationDir}/{$filename}";
+
+        Storage::disk($disk)->put( 
+            $destinationPath,
+            File::get($sourcePath)
+        );
+
+        return $destinationPath;
     }
 
     /**
      * Clean up files from public storage before seeding
      * 
-     * @param string $sourceDir - Subdirectory to clean (e.g., 'reels', 'articles', 'images')
      */
-    protected function cleanupSeederFiles(string $sourceDir): void
-    {
-        $publicStorageDir = storage_path("app/public/{$sourceDir}");
-        
-        if (File::exists($publicStorageDir)) {
-            File::deleteDirectory($publicStorageDir);
-        }
+    protected function cleanupSeederFiles(
+        string $directory,
+        string $disk = 'public'
+    ): void {
+        Storage::disk($disk)->deleteDirectory($directory);
     }
 }

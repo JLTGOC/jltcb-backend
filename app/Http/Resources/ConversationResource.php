@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ConversationResource extends JsonResource
 {
@@ -37,7 +38,7 @@ class ConversationResource extends JsonResource
             'id' => $this->id,
             'type' => $this->type,
             'title' => $this->type === 'GROUP' ? $this->name : ($other->full_name ?? 'User'),
-            'image_path' => $this->type === 'GROUP' ? null : asset($other->image_path),
+            'image_path' => $this->type === 'GROUP' ? null : asset(Storage::url($other->image_path)),
             'last_message' => $this->getLastMessageType(),
             'time' => $this->lastMessage?->created_at,
             'unread_count' => $this->getUnreadCountFor($user),

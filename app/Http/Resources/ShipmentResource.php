@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
 use App\Http\Resources\QuotationFileResource;
+use Illuminate\Support\Facades\Storage;
 
 class ShipmentResource extends JsonResource
 {
@@ -27,7 +28,7 @@ class ShipmentResource extends JsonResource
                 'company_name' => $this->company_name,
                 'person_in_charge' => mb_strtoupper($this->operations?->username) . ' ' . $this->operations?->last_name,
                 'person_in_charge_full_name' => $this->operations?->full_name,
-                'person_in_charge_image' => $this->operations->image_path ? asset($this->operations->image_path) : null,
+                'person_in_charge_image' => $this->operations->image_path ? asset(Storage::url($this->operations->image_path)) : null,
                 'status' => $this->status,
                 'commodity' => $this->commodity,
                 'date' => $this->created_at->format('Y-m-d'),
@@ -60,13 +61,13 @@ class ShipmentResource extends JsonResource
                     'company_name' => $this->client->company_name,
                     'contact_number' => $this->client->contact_number,
                     'email' => $this->client->email,
-                    'image_path' => $this->client->image_path ? asset($this->client->image_path) : null,
+                    'image_path' => $this->client->image_path ? asset(Storage::url($this->client->image_path)) : null,
                 ],
                 'person_in_charge' => [
                     'username' => mb_strtoupper($this->operations?->username) . ' ' . $this->operations?->last_name,
                     'role' => $this->operations?->getRoleNames()->first() ?? null,
                     'full_name' => $this->operations?->full_name,
-                    'image_path' => $this->operations?->image_path ? asset($this->operations?->image_path) : null,
+                    'image_path' => $this->operations?->image_path ? asset(Storage::url($this->operations?->image_path)) : null,
                 ],
                 'status' => $this->status,
                 'date' => $this->created_at->format('Y-m-d'),

@@ -147,11 +147,7 @@ class ChatSeeder extends Seeder
                 $type = $messageType === 'IMAGE' ? 'IMAGE' : 'FILE';
 
                 $fileName = fake()->randomElement($attachments[$type]['items']);
-                $filePath = str_replace(
-                    'storage/',
-                    '',
-                    $this->copySeederFile($attachments[$type]['location'], $fileName, disk: 'private')
-                );
+                $filePath = $this->copySeederFile($attachments[$type]['location'], $fileName, disk: 'local');
             }
 
             $message = $conversation->messages()->create([

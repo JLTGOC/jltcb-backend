@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-
+use Illuminate\Support\Facades\Storage;
 class UserResource extends JsonResource
 {
     /**
@@ -14,13 +14,6 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $imagePath = $this->image_path
-            ? ltrim(preg_replace('#^storage/#', '', $this->image_path), '/')
-            : null;
-        $idImagePath = $this->id_image_path
-            ? ltrim(preg_replace('#^storage/#', '', $this->id_image_path), '/')
-            : null;
-
         return [
             'id' => $this->id,
             'first_name' => $this->first_name,
@@ -36,8 +29,8 @@ class UserResource extends JsonResource
             'company_address' => $this->company_address,
             'company_position' => $this->company_position,
             'business_type' => $this->business_type,
-            'image_path' => $imagePath ? asset('storage/' . $imagePath) : null,
-            'id_image_path' => $idImagePath ? asset('storage/' . $idImagePath) : null,
+            'image_path' => $this->image_path ? asset(Storage::url($this->image_path)) : null,
+            'id_image_path' => $this->id_image_path ? asset(Storage::url($this->id_image_path)) : null,
             'tabs' => [
                 'dashboard' => $this->can('dashboard.view'),
                 'leads' => $this->can('leads.view'),
