@@ -29,15 +29,18 @@ class IndexQuotationRepository extends BaseRepository
 
         $allQuotationsCount = Quotation::count();
 
-        $oldUsers = User::role('Client')->with('quotations')->get()->filter(function ($user) {
-            return $user->quotations->count() > 1;
-        })->pluck('id');
-        $oldUserQuotationsCount = Quotation::whereIn('client_id', $oldUsers)->count();
+        // $oldUsers = User::role('Client')->with('quotations')->get()->filter(function ($user) {
+        //     return $user->quotations->count() > 1;
+        // })->pluck('id');
+        // $oldUserQuotationsCount = Quotation::whereIn('client_id', $oldUsers)->count();
 
-        $newUsers = User::role('Client')->with('quotations')->get()->filter(function ($user) {
-            return $user->quotations->count() === 1;
-        })->pluck('id');
-        $newUserQuotationsCount = Quotation::whereIn('client_id', $newUsers)->count();
+        // $newUsers = User::role('Client')->with('quotations')->get()->filter(function ($user) {
+        //     return $user->quotations->count() === 1;
+        // })->pluck('id');
+        // $newUserQuotationsCount = Quotation::whereIn('client_id', $newUsers)->count();
+
+        $logisticsCount = Quotation::whereHas('logisticsService')->count();
+        $regulatoryCount = Quotation::whereHas('regulatoryService')->count();
 
         if ($user->hasRole('Client')) {
             $query->where('client_id', $user->id);
@@ -323,8 +326,10 @@ class IndexQuotationRepository extends BaseRepository
                 return $this->success('All quotations fetched', [
                     'counts' => [
                         'all_quotations' => $allQuotationsCount,
-                        'old_user_quotations' => $oldUserQuotationsCount,
-                        'new_user_quotations' => $newUserQuotationsCount,
+                        // 'old_user_quotations' => $oldUserQuotationsCount,
+                        // 'new_user_quotations' => $newUserQuotationsCount,
+                        'logistics_quotations' => $logisticsCount,
+                        'regulatory_quotations' => $regulatoryCount,
                     ],
                     'quotations' => $quotations->values(),
                     'my_quotations' => $myQuotationsResults,

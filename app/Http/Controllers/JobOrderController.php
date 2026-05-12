@@ -85,15 +85,18 @@ class JobOrderController extends Controller
 
         $allJobOrdersCount = JobOrder::count();
 
-        $oldUsers = User::role('Client')->get()->filter(function ($client) {
-            return $client->jobOrders->count() > 1;
-        })->pluck('id');
-        $oldUserJobOrdersCount = JobOrder::whereIn('client_id', $oldUsers)->count();
+        // $oldUsers = User::role('Client')->get()->filter(function ($client) {
+        //     return $client->jobOrders->count() > 1;
+        // })->pluck('id');
+        // $oldUserJobOrdersCount = JobOrder::whereIn('client_id', $oldUsers)->count();
 
-        $newUsers = User::role('Client')->with('jobOrders')->get()->filter(function ($user) {
-            return $user->jobOrders->count() === 1;
-        })->pluck('id');
-        $newUserJobOrdersCount = JobOrder::whereIn('client_id', $newUsers)->count();
+        // $newUsers = User::role('Client')->with('jobOrders')->get()->filter(function ($user) {
+        //     return $user->jobOrders->count() === 1;
+        // })->pluck('id');
+        // $newUserJobOrdersCount = JobOrder::whereIn('client_id', $newUsers)->count();
+
+        $logisticsCount = JobOrder::where('job_type', 'LOGISTICS')->count();
+        $regulatoryCount = JobOrder::where('job_type', 'REGULATORY')->count();
 
         if ($user->hasRole('Lead Account Specialist')) {
             $jobOrdersQuery = JobOrder::query();
@@ -443,8 +446,10 @@ class JobOrderController extends Controller
         return $this->success('Job Orders fetched successfully', [
             'counts' => [
                 'all_job_orders' => $allJobOrdersCount,
-                'old_user_job_orders' => $oldUserJobOrdersCount,
-                'new_user_job_orders' => $newUserJobOrdersCount,
+                // 'old_user_job_orders' => $oldUserJobOrdersCount,
+                // 'new_user_job_orders' => $newUserJobOrdersCount,
+                'logistics_job_orders' => $logisticsCount,
+                'regulatory_job_orders' => $regulatoryCount,
             ],
             'job_orders' => $jobOrders,
             'my_job_orders' => $myJobOrders,
