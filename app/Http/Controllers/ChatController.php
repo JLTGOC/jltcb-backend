@@ -241,7 +241,7 @@ class ChatController extends Controller
                 $fileName = $request->file('file')->getClientOriginalName();
 
                 $attachmentPath = match($request->type) {
-                    'IMAGE' => upload_image($request, 'file', 'chat_images', disk: 'private'),
+                    'IMAGE' => $request->file('file')->store('chat_images', 'local'),
                     'FILE' => $request->file('file')->store('chat_files', 'local')
                 };
             }
