@@ -24,7 +24,7 @@ class ShipmentResource extends JsonResource
                 'reference_number' => $this->reference_number,
                 'job_order_id' => $this->job_order_id,
                 'client' => $this->client->full_name,
-                'company_name' => $this->company_name,
+                'company_name' => $this->client->company_name,
                 'person_in_charge' => mb_strtoupper($this->operations?->username) . ' ' . $this->operations?->last_name,
                 'person_in_charge_full_name' => $this->operations?->full_name,
                 'person_in_charge_image' => $this->operations->image_path ? asset($this->operations->image_path) : null,
