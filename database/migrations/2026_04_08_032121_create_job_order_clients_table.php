@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('client_type');
             $table->string('accredited');
             $table->string('service_type');
+            $table->string('tone_and_attitude')->nullable();
             $table->text('client_remarks')->nullable();
             $table->timestamps();
         });
