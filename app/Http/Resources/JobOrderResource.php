@@ -2,10 +2,11 @@
 
 namespace App\Http\Resources;
 
+use App\Models\QuotationFile;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Models\QuotationFile;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 class JobOrderResource extends JsonResource
 {
@@ -73,16 +74,30 @@ class JobOrderResource extends JsonResource
             'quotation_file' => $quotationProposal ? [
                 'id' => $quotationProposal->id,
                 'file_name' => $quotationProposal->original_file_name,
-                'file_url' => asset(Storage::url($quotationProposal->file_path)),
-                'file_type' => $quotationProposal->file_type
+                'file_url' => URL::temporarySignedRoute(
+                            'files.view', 
+                            Carbon::now()->addMinutes(10), 
+                            [
+                                'file' => $quotationProposal->id
+                            ]),
+                'file_type' => $quotationProposal->file_type,
+                'created_at' => $quotationProposal->created_at,
+                'updated_at' => $quotationProposal->updated_at,
             ] : null,
             'documents' => $this->quotation->files()->where('type', 'REQUESTED')->exists()
                 ? $this->quotation->files()->where('type', 'REQUESTED')->get()->map(function($file) {
                     return [
                         'id' => $file->id,
                         'file_name' => $file->original_file_name,
-                        'file_url' => asset(Storage::url($file->file_path)),
-                        'file_type' => $file->file_type
+                        'file_url' => URL::temporarySignedRoute(
+                            'files.view', 
+                            Carbon::now()->addMinutes(10), 
+                            [
+                                'file' => $file->id
+                            ]),
+                        'file_type' => $file->file_type,
+                        'created_at' => $file->created_at,
+                        'updated_at' => $file->updated_at,
                     ];
                 })
                 : 'No documents available.',
