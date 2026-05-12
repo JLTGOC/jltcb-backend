@@ -34,12 +34,14 @@ class JobOrderResource extends JsonResource
             'finance_id' => $this->finance_id,
             'subject' => $this->subject,
             'email_body' => $this->email_body,
+            'date' => $this->created_at->format('F d, Y'),
             'client' => [
                 'consignee' => $this->quotation->company_name,
                 'shipper' => $this->quotation->client->full_name,
                 'client_type' => $this->jobOrderClient->client_type,
                 'accredited' => $this->jobOrderClient->accredited,
                 'service_type' => $this->jobOrderClient->service_type,
+                'tone_and_attitude' => $this->jobOrderClient->tone_and_attitude,
                 'remarks' => $this->jobOrderClient->client_remarks,
             ],
             'service' => $this->jobOrderShipment ? [

@@ -221,6 +221,7 @@ class QuotationSeeder extends Seeder
                     'service_type' => $serviceType,
                     'client_type' => fake()->randomElement(['NEW', 'RENEWAL']),
                     'accredited' => fake()->randomElement(['REGULAR', 'EXPEDITED']),
+                    'tone_and_attitude' => fake()->randomElement(['FRIENDLY', 'NEUTRAL', 'HOSTILE']),
                     'client_remarks' => fake()->sentence(),
                     'created_at' => $jobOrder->created_at,
                     'updated_at' => $jobOrder->created_at,
