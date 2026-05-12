@@ -49,7 +49,12 @@ class JobOrderResource extends JsonResource
                 'bl_no' => $this->jobOrderShipment->bl_no,
                 'eta' => $this->jobOrderShipment->eta,
                 'etd' => $this->jobOrderShipment->etd,
-            ] : null,
+            ] : [
+                'regulatory_assistance' => $this->jobOrderClient->service_type,
+                'application_type' => $this->quotation->regulatoryService->application_type,
+                'accredited' => $this->jobOrderClient->accredited,
+                'remarks' => $this->jobOrderClient->client_remarks,
+            ],
             'shipment' => $this->jobOrderShipment ? [
                 'commodity' => $this->quotation->logisticsService->commodity ?? null,
                 'cargo_type' => $this->quotation->logisticsService->cargo_type ?? null,
