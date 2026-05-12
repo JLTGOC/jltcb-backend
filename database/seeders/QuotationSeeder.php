@@ -94,6 +94,8 @@ class QuotationSeeder extends Seeder
                 'type' => 'REQUESTED',
                 'original_file_name' => 'DOCUMENT.pdf',
                 'file_type' => 'pdf',
+                'created_at' => $quotation->created_at,
+                'updated_at' => $quotation->updated_at,
             ]);
 
             if ($serviceDomain === 'LOGISTICS') {
@@ -160,7 +162,7 @@ class QuotationSeeder extends Seeder
                 } else {
                     $quotation->files()->where('file_path', 'files/QuotationFile.pdf')->where('quotation_id', $quotation->id)->update([
                         'type' => 'PROPOSAL',
-                        'created_at' => $quotation->updated_at,
+                        'created_at' => $quotation->created_at,
                         'updated_at' => $quotation->updated_at,
                     ]);
                 }
@@ -287,6 +289,8 @@ class QuotationSeeder extends Seeder
                         'origin' => $logisticsService->origin,
                         'destination' => $logisticsService->destination,
                         'remarks' => $logisticsService->remarks,
+                        'created_at' => Carbon::parse($jobOrder->created_at)->addHours(fake()->numberBetween(1, 5)),
+                        'updated_at' => Carbon::now()
                     ]);
 
                     $quotationFiles = $quotation->files;

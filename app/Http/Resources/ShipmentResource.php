@@ -99,6 +99,28 @@ class ShipmentResource extends JsonResource
                 'contact_number' => $this->contact_number,
                 'email' => $this->email,
             ];
+
+            $data['quotation_history'] = $this->quotation->quotationActivities()->with('user')->orderBy('created_at', 'desc')->get()->map(function ($activity) {
+                return [
+                    'id' => $activity->id,
+                    'action' => $activity->action,
+                    'user' => $activity->user->hasRole(['Account Specialist', 'Lead Account Specialist', 'Operations', 'Lead Operations']) 
+                        ? mb_strtoupper($activity->user->username) 
+                        : $activity->user->full_name,
+                    'datetime' => $activity->created_at->format('F d, Y h:i A'),
+                ];
+            });
+
+            $data['shipment_history'] = $this->shipmentActivities()->with('user')->orderBy('created_at', 'desc')->get()->map(function ($activity) {
+                return [
+                    'id' => $activity->id,
+                    'action' => $activity->action,
+                    'user' => $activity->user->hasRole(['Account Specialist', 'Lead Account Specialist', 'Operations', 'Lead Operations']) 
+                        ? mb_strtoupper($activity->user->username) 
+                        : $activity->user->full_name,
+                    'datetime' => $activity->created_at->format('F d, Y h:i A'),
+                ];
+            });
         }
 
         return $data;

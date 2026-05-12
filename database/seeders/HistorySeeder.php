@@ -32,13 +32,13 @@ class HistorySeeder extends Seeder
             foreach ($proposalFiles as $file) {
                 $asId = $q->accountSpecialist?->id;
                 if ($asId) {
-                    $this->createQuotationHistory($asId, $quotationId, 'Quotation Sent', $file->created_at);
+                    $this->createQuotationHistory($asId, $quotationId, 'Quotation Sent', $q->jobOrder ? Carbon::parse($q->jobOrder->created_at)->subDays(5) : $file->created_at);
                 }
                 if ($clientId) {
-                    $this->createQuotationHistory($clientId, $quotationId, 'Quotation Seen By Client', Carbon::parse($file->created_at)->addMinutes(5));
+                    $this->createQuotationHistory($clientId, $quotationId, 'Quotation Seen By Client', $q->jobOrder ? Carbon::parse($q->jobOrder->created_at)->subDays(3) : Carbon::parse($file->created_at)->addMinutes(30));
                 }
                 if ($q->status === 'ACCEPTED' && $clientId) {
-                    $this->createQuotationHistory($clientId, $quotationId, 'Quotation Accepted', $q->updated_at ?? null);
+                    $this->createQuotationHistory($clientId, $quotationId, 'Quotation Accepted', $q->jobOrder ? Carbon::parse($q->jobOrder->created_at)->subDays(1) : Carbon::parse($file->created_at)->addHours(1));
                 }
             }
 
