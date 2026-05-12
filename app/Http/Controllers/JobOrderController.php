@@ -483,6 +483,7 @@ class JobOrderController extends Controller
                     'client_type' => $request->client['client_type'],
                     'accredited' => $request->client['accredited'],
                     'service_type' => $quotation->logisticsService->service_type,
+                    'tone_and_attitude' => $request->client['tone_and_attitude'] ?? null,
                     'client_remarks' => $request->client['remarks'] ?? null,
                 ]);
 
