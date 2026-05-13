@@ -89,7 +89,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Job Order Routes
     Route::get('/job-orders/enums', [JobOrderController::class, 'jobOrderEnums']);
-    Route::get('/job-orders/{job_order}/quotation', [JobOrderController::class, 'showJobOrderQuotation']);
+    Route::get('/job-orders/{job_order}/quotation', [JobOrderController::class, 'showJobOrderQuotation'])->name('job-orders.quotation');
     Route::put('/job-orders/{job_order}/accept', [JobOrderController::class, 'acceptJobOrder']);
     Route::post('/job-orders/{job_order}/request-reassignment', [JobOrderController::class, 'requestReassignment']);
     Route::put('/job-orders/{job_order}/reassign-ops', [JobOrderController::class, 'reassignOps']);

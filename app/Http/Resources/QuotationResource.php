@@ -67,6 +67,12 @@ class QuotationResource extends JsonResource
             'created_at' => $this->created_at->format('m/d/Y'),
             'updated_at' => $this->updated_at->format('m/d/Y'),
             'issued_quotation_id' => $issuedQuotation,
+            'job_order' => $request->routeIs('job-orders.quotation') ? [
+                'reference_number' => $this->jobOrder->reference_number ?? null,
+                'person_in_charge' => $this->jobOrder->operations
+                    ? mb_strtoupper($this->jobOrder->operations->username) . ' ' . mb_strtoupper($this->jobOrder->operations->last_name)
+                    : null,
+            ] : null,
             'company' => [
                 'name' => $this->company_name,
                 'address' => $this->company_address,
@@ -89,6 +95,7 @@ class QuotationResource extends JsonResource
             'shipment' => $isRegulatory ? null : [
                 'origin' => $logisticsService?->origin,
                 'destination' => $logisticsService?->destination,
+                'remarks' => $logisticsService?->remarks ?? null,
             ],
             'regulatory_service' => $isRegulatory ? [
                 'type_of_regulatory_assistance' => !empty($regulatoryService?->type_of_regulatory_assistance)
@@ -132,7 +139,17 @@ class QuotationResource extends JsonResource
                 })
                 : 'No documents available.',
             'remarks' => $isRegulatory ? null : $logisticsService?->remarks,
-            'conversation_id' => $conversationId
+            'conversation_id' => $conversationId,
+            'history' => $request->routeIs('job-orders.quotation') ? $this->quotationActivities()->with('user')->orderBy('created_at', 'desc')->get()->map(function ($activity) {
+                return [
+                    'id' => $activity->id,
+                    'action' => $activity->action,
+                    'user' => $activity->user->hasRole(['Account Specialist', 'Lead Account Specialist', 'Operations', 'Lead Operations']) 
+                        ? mb_strtoupper($activity->user->username) 
+                        : $activity->user->full_name,
+                    'datetime' => $activity->created_at->format('F d, Y h:i A'),
+                ];
+            }) : null,
         ];
 
         if ($isWeb) {
