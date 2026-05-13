@@ -67,7 +67,7 @@ class JobOrderController extends Controller
         $isWeb = $platform === 'web';
 
         $request->validate([
-            'filter.service' => 'sometimes|string|in:LOGISTICS,REGULATORY',
+            'filter.service' => 'sometimes|string|in:LOGISTICS,REGULATORY,ALL',
             'filter.assignment_status' => 'sometimes|string|in:PENDING,ACCEPTED',
             'filter.service_type' => 'sometimes|string|in:IMPORT,EXPORT',
             'search' => 'sometimes|string',
@@ -117,7 +117,16 @@ class JobOrderController extends Controller
 
         $jobOrders = QueryBuilder::for($jobOrdersQuery)
             ->allowedFilters([
-                AllowedFilter::exact('service', 'job_type'),
+                // AllowedFilter::exact('service', 'job_type'),
+                AllowedFilter::callback('service', function ($query, $value) {
+                    if ($value === 'LOGISTICS') {
+                        return $query->where('job_type', 'LOGISTICS');
+                    } elseif ($value === 'REGULATORY') {
+                        return $query->where('job_type', 'REGULATORY');
+                    } elseif ($value === 'ALL') {
+                        return $query; // No filtering, return all job orders
+                    }
+                }),
                 AllowedFilter::callback('assignment_status', function ($query, $value) {
                     if ($value === 'PENDING') {
                         return $query->where('assignment_status', 'AVAILABLE');
