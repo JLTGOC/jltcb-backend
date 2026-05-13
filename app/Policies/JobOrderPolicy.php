@@ -21,7 +21,7 @@ class JobOrderPolicy
      */
     public function view(User $user, JobOrder $jobOrder): bool
     {
-        return $user->id === $jobOrder->as_id || $user->id === $jobOrder->operations_id || $user->hasRole(['Lead Operations', 'Lead Account Specialist']);
+        return $user->hasRole(['Lead Operations', 'Lead Account Specialist', 'Operations', 'Account Specialist']);
     }
 
     /**
@@ -66,12 +66,12 @@ class JobOrderPolicy
 
     public function jobOrderEnums(User $user): bool
     {
-        return $user->hasRole(['Account Specialist', 'Lead Account Specialist']);
+        return $user->hasRole(['Account Specialist', 'Lead Account Specialist', 'Operations', 'Lead Operations']);
     }
 
     public function showJobOrderQuotation(User $user, JobOrder $jobOrder): bool
     {
-        return $user->id === $jobOrder->client_id || $user->id === $jobOrder->as_id || $user->id === $jobOrder->operations_id || $user->hasRole(['Lead Account Specialist']);
+        return $user->id === $jobOrder->client_id || $user->hasRole(['Lead Account Specialist', 'Lead Operations', 'Operations', 'Account Specialist']);
     }
 
     public function acceptJobOrder(User $user, JobOrder $jobOrder): bool
