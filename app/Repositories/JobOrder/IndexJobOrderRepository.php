@@ -13,6 +13,11 @@ use Illuminate\Support\Facades\Storage;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\Searchable\Search;
+use App\Http\Resources\IndexJobOrder\{
+    MobileJobOrderResource,
+    WebLogisticsJobOrderResource,
+    WebRegulatoryJobOrderResource,
+};
 
 class IndexJobOrderRepository extends BaseRepository
 {
@@ -25,17 +30,6 @@ class IndexJobOrderRepository extends BaseRepository
         $myJobOrders = null;
 
         $allJobOrdersCount = JobOrder::count();
-
-        // $oldUsers = User::role('Client')->get()->filter(function ($client) {
-        //     return $client->jobOrders->count() > 1;
-        // })->pluck('id');
-        // $oldUserJobOrdersCount = JobOrder::whereIn('client_id', $oldUsers)->count();
-
-        // $newUsers = User::role('Client')->with('jobOrders')->get()->filter(function ($user) {
-        //     return $user->jobOrders->count() === 1;
-        // })->pluck('id');
-        // $newUserJobOrdersCount = JobOrder::whereIn('client_id', $newUsers)->count();
-
         $logisticsCount = JobOrder::where('job_type', 'LOGISTICS')->count();
         $regulatoryCount = JobOrder::where('job_type', 'REGULATORY')->count();
 
@@ -58,7 +52,6 @@ class IndexJobOrderRepository extends BaseRepository
 
         $jobOrders = QueryBuilder::for($jobOrdersQuery)
             ->allowedFilters([
-                // AllowedFilter::exact('service', 'job_type'),
                 AllowedFilter::callback('service', function ($query, $value) {
                     if ($value === 'LOGISTICS') {
                         return $query->where('job_type', 'LOGISTICS');
@@ -80,7 +73,15 @@ class IndexJobOrderRepository extends BaseRepository
 
         $myJobOrders = $myJobOrdersQuery
             ? QueryBuilder::for($myJobOrdersQuery)->allowedFilters([
-                AllowedFilter::exact('service', 'job_type'),
+                AllowedFilter::callback('service', function ($query, $value) {
+                    if ($value === 'LOGISTICS') {
+                        return $query->where('job_type', 'LOGISTICS');
+                    } elseif ($value === 'REGULATORY') {
+                        return $query->where('job_type', 'REGULATORY');
+                    } elseif ($value === 'ALL') {
+                        return $query; // No filtering, return all job orders
+                    }
+                }),
                 AllowedFilter::callback('assignment_status', function ($query, $value) {
                     if ($value === 'PENDING') {
                         return $query->where('assignment_status', 'AVAILABLE');
@@ -199,205 +200,35 @@ class IndexJobOrderRepository extends BaseRepository
                     $serviceLevel = $j->jobOrderShipment->service_level ?? null;
                     $serviceLevel = $this->normalizeServiceLevel($serviceLevel);
 
-                    if ($j->operations) {
-                        $assignedTo = mb_strtoupper($j->operations->full_name);
-                    } else {
-                        $assignedTo = null;
-                    }
-
-                    return [
-                        'id' => $j->id,
-                        'reference_number' => $j->reference_number,
-                        'client' => $j->client->full_name,
-                        'client_type' => JobOrder::where('client_id', $j->client_id)->count() > 1 ? 'OLD' : 'NEW',
-                        'date_created' => strtoupper($j->created_at->format('F d, Y')),
-                        'job_type' => 'LOGISTICS',
-                        'commodity' => $j->quotation->logisticsService->commodity,
-                        'service_type' => $j->quotation->logisticsService->service_type,
-                        'transport_mode' => $j->quotation->logisticsService->transport_mode,
-                        'origin' => $j->quotation->logisticsService->origin,
-                        'destination' => $j->quotation->logisticsService->destination,
-                        'service_level' => $serviceLevel,
-                        'bl_no' => $j->jobOrderShipment->bl_no ?? null,
-                        'eta' => $j->jobOrderShipment->eta ? Carbon::parse($j->jobOrderShipment->eta)->format('M d, Y') : null,
-                        'etd' => $j->jobOrderShipment->etd ? Carbon::parse($j->jobOrderShipment->etd)->format('M d, Y') : null,
-                        'quotation_id' => $j->quotation_id,
-                        'quotation_reference_number' => $j->quotation->reference_number,
-                        'issued_quotation_id' => IssuedQuotation::where('quotation_id', $j->quotation_id)->value('id'),
-                        'assignment_status' => $j->assignment_status,
-                        'assigned_to' => $assignedTo,
-                        'ops_image' => $j->operations ? asset(Storage::url($j->operations->image_path)) : null,
-                        'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
-                        'reassignment_request_id' => $j->latestReassignmentRequest?->status !== 'PENDING' ? null : $j->latestReassignmentRequest->id,
-                        'requested_at' => $j->latestReassignmentRequest?->status === 'PENDING' ? Carbon::parse($j->latestReassignmentRequest?->created_at)->format('F d, Y') : null,
-                        'previously_assigned_to' => $j->latestReassignmentRequest?->status === 'APPROVED' 
-                            ? mb_strtoupper($j->latestReassignmentRequest?->operations?->username) . ' ' . $j->latestReassignmentRequest?->operations?->last_name 
-                            : null,
-                        'generate_shipment' => $j->operations_id === $user->id && !$j->shipment && $j->assignment_status === 'ASSIGNED' ? true : false,
-                        'shipment_creation_status' => $j->shipment_creation_status,
-                    ];
+                    return new WebLogisticsJobOrderResource($j, $serviceLevel);
                 } elseif ($j->job_type === 'REGULATORY') {
-                    if ($j->operations) {
-                        $assignedTo = mb_strtoupper($j->operations->full_name);
-                    } else {
-                        $assignedTo = null;
-                    }
-                    return [
-                        'id' => $j->id,
-                        'reference_number' => $j->reference_number,
-                        'client' => $j->client->full_name,
-                        'client_type' => JobOrder::where('client_id', $j->client_id)->count() > 1 ? 'OLD' : 'NEW',
-                        'date_created' => strtoupper($j->created_at->format('F d, Y')),
-                        'job_type' => 'REGULATORY',
-                        'application_type' => $j->quotation->regulatoryService->application_type,
-                        'regulatory_assistance' => $j->jobOrderClient->service_type,
-                        'quotation_id' => $j->quotation_id,
-                        'quotation_reference_number' => $j->quotation->reference_number,
-                        'issued_quotation_id' => IssuedQuotation::where('quotation_id', $j->quotation_id)->value('id'),
-                        'assignment_status' => $j->assignment_status,
-                        'assigned_to' => $assignedTo,
-                        'ops_image' => $j->operations ? asset(Storage::url($j->operations->image_path)) : null,
-                        'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
-                        'reassignment_request_id' => $j->latestReassignmentRequest?->status !== 'PENDING' ? null : $j->latestReassignmentRequest->id,
-                        'requested_at' => $j->latestReassignmentRequest?->status === 'PENDING' ? Carbon::parse($j->latestReassignmentRequest?->created_at)->format('F d, Y') : null,
-                        'previously_assigned_to' => $j->latestReassignmentRequest?->status === 'APPROVED' 
-                            ? mb_strtoupper($j->latestReassignmentRequest?->operations?->username) . ' ' . $j->latestReassignmentRequest?->operations?->last_name 
-                            : null,
-                        'generate_shipment' => false, // REGULATORY job orders should not have the option to generate shipment
-                        'shipment_creation_status' => $j->shipment_creation_status,
-                    ];
+                    return new WebRegulatoryJobOrderResource($j);
                 }
             }
 
-            return [
-                'id' => $j->id,
-                'reference_number' => $j->reference_number,
-                'service' => $service,
-                'client' => $j->client->full_name,
-                'client_type' => JobOrder::where('client_id', $j->client_id)->count() > 1 ? 'OLD' : 'NEW',
-                'date_created' => strtoupper($j->created_at->format('F d, Y')),
-                'quotation_id' => $j->quotation_id,
-                'quotation_reference_number' => $j->quotation->reference_number,
-                'assigned_to' => $assignedTo,
-                'ops_image' => $j->operations ? asset(Storage::url($j->operations->image_path)) : null,
-                'reassignment_request_id' => $j->latestReassignmentRequest?->status !== 'PENDING' ? null : $j->latestReassignmentRequest->id,
-                'requested_at' => $j->latestReassignmentRequest?->status === 'PENDING' ? Carbon::parse($j->latestReassignmentRequest?->created_at)->format('F d, Y') : null,
-                'previously_assigned_to' => $j->latestReassignmentRequest?->status === 'APPROVED' 
-                    ? mb_strtoupper($j->latestReassignmentRequest?->operations?->username) . ' ' . $j->latestReassignmentRequest?->operations?->last_name 
-                    : null,
-            ];
+            return new MobileJobOrderResource($j);
         });
 
         if ($myJobOrders) {
             $myJobOrders = $myJobOrders->map(function ($j) use ($user, $isWeb) {
-                if ($j->job_type === 'LOGISTICS') {
-                    $service = 'Logistics Services';
-                } elseif ($j->job_type === 'REGULATORY') {
-                    $service = 'Regulatory Services';
-                } else {
-                    $service = 'N/A';
-                }
-
-                $assignedTo = $j->operations ? $j->operations->username : 'Available';
-
                 if ($isWeb) {
                     if ($j->job_type === 'LOGISTICS') {
                         $serviceLevel = $j->jobOrderShipment->service_level ?? null;
                         $serviceLevel = $this->normalizeServiceLevel($serviceLevel);
 
-                        if ($j->operations) {
-                            $assignedTo = mb_strtoupper($j->operations->full_name);
-                        } else {
-                            $assignedTo = null;
-                        }
-
-                        return [
-                            'id' => $j->id,
-                            'reference_number' => $j->reference_number,
-                            'client' => $j->client->full_name,
-                            'client_type' => JobOrder::where('client_id', $j->client_id)->count() > 1 ? 'OLD' : 'NEW',
-                            'date_created' => strtoupper($j->created_at->format('F d, Y')),
-                            'job_type' => 'LOGISTICS',
-                            'commodity' => $j->quotation->logisticsService->commodity,
-                            'service_type' => $j->quotation->logisticsService->service_type,
-                            'transport_mode' => $j->quotation->logisticsService->transport_mode,
-                            'origin' => $j->quotation->logisticsService->origin,
-                            'destination' => $j->quotation->logisticsService->destination,
-                            'service_level' => $serviceLevel,
-                            'bl_no' => $j->jobOrderShipment->bl_no ?? null,
-                            'quotation_id' => $j->quotation_id,
-                            'quotation_reference_number' => $j->quotation->reference_number,
-                            'issued_quotation_id' => IssuedQuotation::where('quotation_id', $j->quotation_id)->value('id'),
-                            'assignment_status' => $j->assignment_status,
-                            'assigned_to' => $assignedTo,
-                            'ops_image' => $j->operations ? asset(Storage::url($j->operations->image_path)) : null,
-                            'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
-                            'reassignment_request_id' => $j->latestReassignmentRequest?->status !== 'PENDING' ? null : $j->latestReassignmentRequest->id,
-                            'requested_at' => $j->latestReassignmentRequest?->status === 'PENDING' ? Carbon::parse($j->latestReassignmentRequest?->created_at)->format('F d, Y') : null,
-                            'previously_assigned_to' => $j->latestReassignmentRequest?->status === 'APPROVED' 
-                                ? mb_strtoupper($j->latestReassignmentRequest?->operations?->username) . ' ' . $j->latestReassignmentRequest?->operations?->last_name 
-                                : null,
-                            'generate_shipment' => $j->operations_id === $user->id && !$j->shipment && $j->assignment_status === 'ASSIGNED' ? true : false,
-                            'shipment_creation_status' => $j->shipment_creation_status,
-                        ];
+                        return new WebLogisticsJobOrderResource($j, $serviceLevel);
                     } elseif ($j->job_type === 'REGULATORY') {
-                        if ($j->operations) {
-                            $assignedTo = mb_strtoupper($j->operations->full_name);
-                        } else {
-                            $assignedTo = null;
-                        }
-                        return [
-                            'id' => $j->id,
-                            'reference_number' => $j->reference_number,
-                            'client' => $j->client->full_name,
-                            'client_type' => JobOrder::where('client_id', $j->client_id)->count() > 1 ? 'OLD' : 'NEW',
-                            'date_created' => strtoupper($j->created_at->format('F d, Y')),
-                            'job_type' => 'REGULATORY',
-                            'application_type' => $j->quotation->regulatoryService->application_type,
-                            'quotation_id' => $j->quotation_id,
-                            'quotation_reference_number' => $j->quotation->reference_number,
-                            'issued_quotation_id' => IssuedQuotation::where('quotation_id', $j->quotation_id)->value('id'),
-                            'assignment_status' => $j->assignment_status,
-                            'assigned_to' => $assignedTo,
-                            'ops_image' => $j->operations ? asset(Storage::url($j->operations->image_path)) : null,
-                            'assigned_at' => $j->operations_id ? mb_strtoupper(Carbon::parse($j->assigned_at)->format('F d, Y')) : null,
-                            'reassignment_request_id' => $j->latestReassignmentRequest?->status !== 'PENDING' ? null : $j->latestReassignmentRequest->id,
-                            'requested_at' => $j->latestReassignmentRequest?->status === 'PENDING' ? Carbon::parse($j->latestReassignmentRequest?->created_at)->format('F d, Y') : null,
-                            'previously_assigned_to' => $j->latestReassignmentRequest?->status === 'APPROVED' 
-                                ? mb_strtoupper($j->latestReassignmentRequest?->operations?->username) . ' ' . $j->latestReassignmentRequest?->operations?->last_name 
-                                : null,
-                            'generate_shipment' => false, // REGULATORY job orders should not have the option to generate shipment
-                            'shipment_creation_status' => $j->shipment_creation_status,
-                        ];
+                        return new WebRegulatoryJobOrderResource($j);
                     }
                 }
 
-                return [
-                    'id' => $j->id,
-                    'reference_number' => $j->reference_number,
-                    'service' => $service,
-                    'client' => $j->client->full_name,
-                    'client_type' => JobOrder::where('client_id', $j->client_id)->count() > 1 ? 'OLD' : 'NEW',
-                    'date_created' => strtoupper($j->created_at->format('F d, Y')),
-                    'quotation_id' => $j->quotation_id,
-                    'quotation_reference_number' => $j->quotation->reference_number,
-                    'issued_quotation_id' => IssuedQuotation::where('quotation_id', $j->quotation_id)->value('id'),
-                    'assigned_to' => $assignedTo,
-                    'ops_image' => $j->operations ? asset(Storage::url($j->operations->image_path)) : null,
-                    'reassignment_request_id' => $j->latestReassignmentRequest?->status !== 'PENDING' ? null : $j->latestReassignmentRequest->id,
-                    'requested_at' => $j->latestReassignmentRequest?->status === 'PENDING' ? Carbon::parse($j->latestReassignmentRequest?->created_at)->format('F d, Y') : null,
-                    'previously_assigned_to' => $j->latestReassignmentRequest?->status === 'APPROVED' 
-                        ? mb_strtoupper($j->latestReassignmentRequest?->operations?->username) . ' ' . $j->latestReassignmentRequest?->operations?->last_name 
-                        : null,
-                ];
+                return new MobileJobOrderResource($j);
             });
         }
 
         return $this->success('Job Orders fetched successfully', [
             'counts' => [
                 'all_job_orders' => $allJobOrdersCount,
-                // 'old_user_job_orders' => $oldUserJobOrdersCount,
-                // 'new_user_job_orders' => $newUserJobOrdersCount,
                 'logistics_job_orders' => $logisticsCount,
                 'regulatory_job_orders' => $regulatoryCount,
             ],
