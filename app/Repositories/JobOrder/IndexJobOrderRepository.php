@@ -27,124 +27,25 @@ class IndexJobOrderRepository extends BaseRepository
 
         $user = auth()->user();
 
-        $myJobOrders = null;
-
         $allJobOrdersCount = JobOrder::count();
         $logisticsCount = JobOrder::where('job_type', 'LOGISTICS')->count();
         $regulatoryCount = JobOrder::where('job_type', 'REGULATORY')->count();
 
-        if ($user->hasRole('Lead Account Specialist')) {
-            $jobOrdersQuery = JobOrder::query();
-            $myJobOrdersQuery = null;
-        } elseif ($user->hasRole('Account Specialist')) {
-            $jobOrdersQuery = JobOrder::query()->where('as_id', $user->id);
-            $myJobOrdersQuery = null;
-        } elseif ($user->hasRole('Lead Operations')) {
-            $jobOrdersQuery = JobOrder::query();
-            $myJobOrdersQuery = JobOrder::query()->where('operations_id', $user->id);
-        } elseif ($user->hasRole('Operations')) {
-            $jobOrdersQuery = JobOrder::query()->whereNot('assignment_status', 'ASSIGNED');
-            $myJobOrdersQuery = JobOrder::query()->where('operations_id', $user->id);
-        } else {
-            $jobOrdersQuery = JobOrder::query()->where('client_id', $user->id);
-            $myJobOrdersQuery = null;
-        }
+        [$jobOrdersQuery, $myJobOrdersQuery] = $this->buildBaseQueries($user);
 
-        $jobOrders = QueryBuilder::for($jobOrdersQuery)
-            ->allowedFilters([
-                AllowedFilter::callback('service', function ($query, $value) {
-                    if ($value === 'LOGISTICS') {
-                        return $query->where('job_type', 'LOGISTICS');
-                    } elseif ($value === 'REGULATORY') {
-                        return $query->where('job_type', 'REGULATORY');
-                    } elseif ($value === 'ALL') {
-                        return $query; // No filtering, return all job orders
-                    }
-                }),
-                AllowedFilter::callback('assignment_status', function ($query, $value) {
-                    if ($value === 'PENDING') {
-                        return $query->where('assignment_status', 'AVAILABLE');
-                    } elseif ($value === 'ACCEPTED') {
-                        return $query->whereIn('assignment_status', ['ASSIGNED', 'REASSIGNMENT REQUESTED']);
-                    }
-                }),
-                AllowedFilter::exact('service_type', 'jobOrderClient.service_type'),
-            ]);
-
-        $myJobOrders = $myJobOrdersQuery
-            ? QueryBuilder::for($myJobOrdersQuery)->allowedFilters([
-                AllowedFilter::callback('service', function ($query, $value) {
-                    if ($value === 'LOGISTICS') {
-                        return $query->where('job_type', 'LOGISTICS');
-                    } elseif ($value === 'REGULATORY') {
-                        return $query->where('job_type', 'REGULATORY');
-                    } elseif ($value === 'ALL') {
-                        return $query; // No filtering, return all job orders
-                    }
-                }),
-                AllowedFilter::callback('assignment_status', function ($query, $value) {
-                    if ($value === 'PENDING') {
-                        return $query->where('assignment_status', 'AVAILABLE');
-                    } elseif ($value === 'ACCEPTED') {
-                        return $query->whereIn('assignment_status', ['ASSIGNED', 'REASSIGNMENT REQUESTED']);
-                    }
-                }),
-                AllowedFilter::exact('service_type', 'jobOrderClient.service_type'),
-            ])
-            : null;
+        $jobOrders = $this->applyAllowedFilters($jobOrdersQuery);
+        $myJobOrders = $myJobOrdersQuery ? $this->applyAllowedFilters($myJobOrdersQuery) : null;
 
         if ($request->has('search')) {
-            $search = (new Search())
-                ->registerModel(JobOrder::class, ['reference_number'])
-                ->search($request->search)
-                ->pluck('searchable');
-
-            $clientIds = User::where('full_name', 'like', '%' . $request->search . '%')->pluck('id');
-            $clientJobOrderIds = JobOrder::whereIn('client_id', $clientIds)->pluck('id');
-            $mergedIds = $search->pluck('id')->merge($clientJobOrderIds)->unique();
-
-            $jobOrders = $jobOrders->whereIn('id', $mergedIds);
-
-            if ($myJobOrders) {
-                $myJobOrders = $myJobOrders->whereIn('id', $mergedIds);
-            }
+            [$jobOrders, $myJobOrders] = $this->applySearchFilters($request->search, $jobOrders, $myJobOrders);
         }
 
         if ($request->has('ops_search')) {
-            $opsSearch = (new Search())
-                ->registerModel(User::class, ['full_name'])
-                ->search($request->ops_search)
-                ->pluck('searchable');
-
-            $opsJobOrderIds = JobOrder::whereIn('operations_id', $opsSearch->pluck('id'))->pluck('id');
-            if ($myJobOrders) {
-                $myJobOrders = $myJobOrders->whereIn('id', $opsJobOrderIds);
-            }
-            $jobOrders = $jobOrders->whereIn('id', $opsJobOrderIds);
+            [$jobOrders, $myJobOrders] = $this->applyOperationsSearchFilters($request->ops_search, $jobOrders, $myJobOrders);
         }
 
-        if (isset($request->client_type) && $request->client_type === 'OLD') {
-            $oldClientIds = [];
-            foreach (User::role('Client')->get() as $client) {
-                if ($client->jobOrders->count() > 1) {
-                    $oldClientIds[] = $client->id;
-                }
-            }
-            $jobOrders = $jobOrders->whereIn('client_id', $oldClientIds);
-            if ($myJobOrders) {
-                $myJobOrders = $myJobOrders->whereIn('client_id', $oldClientIds);
-            }
-        } elseif (isset($request->client_type) && $request->client_type === 'NEW') {
-            $newClientIds = [];
-            foreach (User::role('Client')->get() as $client) {
-                if ($client->jobOrders->count() === 1) {
-                    $newClientIds[] = $client->id;
-                }
-            }
-            $jobOrders = $jobOrders->whereIn('client_id', $newClientIds);
-            if ($myJobOrders) {
-                $myJobOrders = $myJobOrders->whereIn('client_id', $newClientIds);
-            }
+        if (isset($request->client_type) && in_array($request->client_type, ['OLD', 'NEW'])) {
+            [$jobOrders, $myJobOrders] = $this->applyClientTypeFilters($request->client_type, $jobOrders, $myJobOrders);
         }
 
         $jobOrders = $jobOrders->orderBy('created_at', 'desc')->get()->values();
@@ -254,5 +155,126 @@ class IndexJobOrderRepository extends BaseRepository
             'IFF, CC, DE', 'INTERNATIONAL FREIGHT FORWARDING (IFF), CARGO CONSOLIDATION (CC), DIRECT EXPORT (DE)' => ServiceLevelEnum::INTERNATIONAL_FREIGHT_FORWARDING_CARGO_CONSOLIDATION_DIRECT_EXPORT->value,
             default => ServiceLevelEnum::tryFrom($serviceLevel)?->value ?? $serviceLevel,
         };
+    }
+
+    private function buildBaseQueries($user): array
+    {
+        if ($user->hasRole('Lead Account Specialist')) {
+            return [JobOrder::query(), null];
+        }
+
+        if ($user->hasRole('Account Specialist')) {
+            return [JobOrder::query()->where('as_id', $user->id), null];
+        }
+
+        if ($user->hasRole('Lead Operations')) {
+            return [JobOrder::query(), JobOrder::query()->where('operations_id', $user->id)];
+        }
+
+        if ($user->hasRole('Operations')) {
+            return [
+                JobOrder::query()->whereNot('assignment_status', 'ASSIGNED'),
+                JobOrder::query()->where('operations_id', $user->id),
+            ];
+        }
+
+        return [JobOrder::query()->where('client_id', $user->id), null];
+    }
+
+    private function applyAllowedFilters($query): QueryBuilder
+    {
+        return QueryBuilder::for($query)
+            ->allowedFilters([
+                AllowedFilter::callback('service', function ($query, $value) {
+                    if ($value === 'LOGISTICS') {
+                        return $query->where('job_type', 'LOGISTICS');
+                    }
+
+                    if ($value === 'REGULATORY') {
+                        return $query->where('job_type', 'REGULATORY');
+                    }
+
+                    if ($value === 'ALL') {
+                        return $query; // No filtering, return all job orders
+                    }
+                }),
+                AllowedFilter::callback('assignment_status', function ($query, $value) {
+                    if ($value === 'PENDING') {
+                        return $query->where('assignment_status', 'AVAILABLE');
+                    }
+
+                    if ($value === 'ACCEPTED') {
+                        return $query->whereIn('assignment_status', ['ASSIGNED', 'REASSIGNMENT REQUESTED']);
+                    }
+                }),
+                AllowedFilter::exact('service_type', 'jobOrderClient.service_type'),
+            ]);
+    }
+
+    private function applySearchFilters(string $searchTerm, QueryBuilder $jobOrders, ?QueryBuilder $myJobOrders): array
+    {
+        $search = (new Search())
+            ->registerModel(JobOrder::class, ['reference_number'])
+            ->search($searchTerm)
+            ->pluck('searchable');
+
+        $clientIds = User::where('full_name', 'like', '%' . $searchTerm . '%')->pluck('id');
+        $clientJobOrderIds = JobOrder::whereIn('client_id', $clientIds)->pluck('id');
+        $mergedIds = $search->pluck('id')->merge($clientJobOrderIds)->unique();
+
+        $jobOrders = $jobOrders->whereIn('id', $mergedIds);
+
+        if ($myJobOrders) {
+            $myJobOrders = $myJobOrders->whereIn('id', $mergedIds);
+        }
+
+        return [$jobOrders, $myJobOrders];
+    }
+
+    private function applyOperationsSearchFilters(string $searchTerm, QueryBuilder $jobOrders, ?QueryBuilder $myJobOrders): array
+    {
+        $opsSearch = (new Search())
+            ->registerModel(User::class, ['full_name'])
+            ->search($searchTerm)
+            ->pluck('searchable');
+
+        $opsJobOrderIds = JobOrder::whereIn('operations_id', $opsSearch->pluck('id'))->pluck('id');
+
+        if ($myJobOrders) {
+            $myJobOrders = $myJobOrders->whereIn('id', $opsJobOrderIds);
+        }
+
+        $jobOrders = $jobOrders->whereIn('id', $opsJobOrderIds);
+
+        return [$jobOrders, $myJobOrders];
+    }
+
+    private function applyClientTypeFilters(string $clientType, QueryBuilder $jobOrders, ?QueryBuilder $myJobOrders): array
+    {
+        $clientIds = $this->resolveClientIdsByType($clientType);
+
+        $jobOrders = $jobOrders->whereIn('client_id', $clientIds);
+
+        if ($myJobOrders) {
+            $myJobOrders = $myJobOrders->whereIn('client_id', $clientIds);
+        }
+
+        return [$jobOrders, $myJobOrders];
+    }
+
+    private function resolveClientIdsByType(string $clientType): array
+    {
+        return User::role('Client')
+            ->withCount('jobOrders')
+            ->get()
+            ->filter(function ($client) use ($clientType) {
+                if ($clientType === 'OLD') {
+                    return $client->job_orders_count > 1;
+                }
+
+                return $client->job_orders_count === 1;
+            })
+            ->pluck('id')
+            ->all();
     }
 }
