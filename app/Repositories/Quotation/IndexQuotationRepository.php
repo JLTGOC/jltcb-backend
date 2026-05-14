@@ -3,6 +3,12 @@
 namespace App\Repositories\Quotation;
 
 use App\Http\Resources\QuotationResource;
+use App\Http\Resources\IndexQuotation\{
+    WebQuotationResource,
+    MobileRequestedQuotationCollection,
+    MobileQuotationResource,
+    ClientQuotationResource,
+};
 use App\Models\IssuedQuotation;
 use App\Models\Message;
 use App\Models\Quotation;
@@ -28,17 +34,6 @@ class IndexQuotationRepository extends BaseRepository
         $myQuotationsQuery = null;
 
         $allQuotationsCount = Quotation::count();
-
-        // $oldUsers = User::role('Client')->with('quotations')->get()->filter(function ($user) {
-        //     return $user->quotations->count() > 1;
-        // })->pluck('id');
-        // $oldUserQuotationsCount = Quotation::whereIn('client_id', $oldUsers)->count();
-
-        // $newUsers = User::role('Client')->with('quotations')->get()->filter(function ($user) {
-        //     return $user->quotations->count() === 1;
-        // })->pluck('id');
-        // $newUserQuotationsCount = Quotation::whereIn('client_id', $newUsers)->count();
-
         $logisticsCount = Quotation::whereHas('logisticsService')->count();
         $regulatoryCount = Quotation::whereHas('regulatoryService')->count();
 
@@ -218,73 +213,8 @@ class IndexQuotationRepository extends BaseRepository
 
         if ($user->hasRole(['Account Specialist', 'Lead Account Specialist', 'Operations', 'Lead Operations'])) {
             if ($isWeb) {
-                $formatQuotation = function ($quotation) use ($dateFormat) {
-                    $issuedQuotation = IssuedQuotation::where('quotation_id', $quotation->id)->value('id');
-                    
-                    if ($quotation->accountSpecialist) {
-                        $as = (mb_strtoupper($quotation->accountSpecialist?->username) . ' ' . $quotation->accountSpecialist?->full_name);
-                    } else {
-                        $as = null;
-                    }
-
-                    $quotationCard = Message::where('reference_id', $quotation->id)
-                        ->where('type', 'QUOTATION_CARD')
-                        ->first();
-                    if ($quotationCard) {
-                        $conversationId = $quotationCard->conversation_id;
-                    }
-
-                    if ($quotation->shipment) {
-                        $shipmentCard = Message::where('reference_id', $quotation->shipment?->id)
-                            ->where('type', 'SHIPMENT_CARD')
-                            ->first();
-                        if ($shipmentCard) {
-                            $conversationId = $shipmentCard->conversation_id;
-                        }
-                    }
-
-                    $clientType = $quotation->client->quotations()->count() > 1 ? 'OLD' : 'NEW';
-
-                    $reassignmentRequest = $quotation->latestReassignmentRequest;
-
-                    $previouslyAssignedTo = $reassignmentRequest?->status === 'APPROVED' && $reassignmentRequest->as_id !== $quotation->as_id 
-                        ? mb_strtoupper($reassignmentRequest->accountSpecialist->username) . ' ' . $reassignmentRequest->accountSpecialist->last_name 
-                        : null;
-
-                    if ($reassignmentRequest?->status !== 'PENDING') {
-                        $reassignmentRequest = null;
-                    }
-
-                    return [
-                        'id' => $quotation->id,
-                        'reference_number' => $quotation->reference_number,
-                        'date' => $quotation->created_at->format($dateFormat),
-                        'client_full_name' => $quotation->client->full_name,
-                        'company_name' => $quotation->company_name,
-                        'client_type' => $clientType,
-                        'status' => $quotation->status,
-                        'assignment_status' => $quotation->assignment_status,
-                        'account_specialist' =>  $as,
-                        'as_profile_image' => $quotation->accountSpecialist->image_path ? asset(Storage::url($quotation->accountSpecialist?->image_path)) : null,
-                        'assigned_at' => $quotation->assigned_at ? Carbon::parse($quotation->assigned_at)->format($dateFormat) : null,
-                        'reassignment_request_id' => $reassignmentRequest ? $reassignmentRequest->id : null,
-                        'requested_at' => $reassignmentRequest ? Carbon::parse($reassignmentRequest->created_at)->format($dateFormat) : null,
-                        'previously_assigned_to' => $previouslyAssignedTo,
-                        'service' => $quotation->logisticsService ? 'LOGISTICS' : ($quotation->regulatoryService ? 'REGULATORY' : null),
-                        'logistics_service' => $quotation->logisticsService ? [
-                            'commodity' => $quotation->logisticsService->commodity,
-                            'service_type' => $quotation->logisticsService->service_type,
-                            'transport_mode' => $quotation->logisticsService->transport_mode,
-                            'origin' => $quotation->logisticsService->origin,
-                            'destination' => $quotation->logisticsService->destination,
-                        ] : null,
-                        'regulatory_service' => $quotation->regulatoryService ? [
-                            'application_type' => $quotation->regulatoryService->application_type,
-                        ] : null,
-                        'conversation_id' => $conversationId ?? null,
-                        'prepared_by' => $quotation->created_by ? User::where('id', $quotation->created_by)->value('full_name') : null,
-                        'issued_quotation_id' => $issuedQuotation ?? null,
-                    ];
+                $formatQuotation = function ($quotation) {
+                    return (new WebQuotationResource($quotation))->toArray(request());
                 };
 
                 $resultsQuery = $quotations
@@ -344,73 +274,8 @@ class IndexQuotationRepository extends BaseRepository
 
                     $results = $resultsQuery->get();
 
-                    $groupedByClient = $results->groupBy('client_id')->map(function ($clientQuotations) use ($dateFormat, $user) {
-                        $client = $clientQuotations->first()->client;
-
-                        return [
-                            'client_id' => $client->id,
-                            'client_full_name' => $client->full_name,
-                            'quotations_count' => $clientQuotations->count(),
-                            'date' => $clientQuotations->first()->created_at->format($dateFormat),
-                            'quotations' => $clientQuotations->map(function ($quotation) use ($dateFormat, $user) {
-                                $issuedQuotation = IssuedQuotation::where('quotation_id', $quotation->id)->value('id');
-                                $quotationCard = Message::where('reference_id', $quotation->id)
-                                    ->where('type', 'QUOTATION_CARD')
-                                    ->first();
-                                if ($quotationCard) {
-                                    $conversationId = $quotationCard->conversation_id;
-                                } else {
-                                    $conversationId = null;
-                                }
-
-                                if ($quotation->shipment) {
-                                    $shipmentCard = Message::where('reference_id', $quotation->shipment?->id)
-                                        ->where('type', 'SHIPMENT_CARD')
-                                        ->first();
-                                    if ($shipmentCard) {
-                                        $conversationId = $shipmentCard->conversation_id;
-                                    }
-                                }
-
-                                if ($user->hasRole('Lead Account Specialist') && $user->id !== $quotation->as_id) {
-                                    $conversationId = null;
-                                }
-
-                                $reassignmentRequest = $quotation->latestReassignmentRequest;
-                                if ($reassignmentRequest && $reassignmentRequest->status !== 'PENDING') {
-                                    $reassignmentRequest = null;
-                                }
-
-                                return [
-                                    'id' => $quotation->id,
-                                    'reference_number' => $quotation->reference_number,
-                                    'date' => $quotation->created_at->format($dateFormat),
-                                    'client_full_name' => $quotation->client->full_name,
-                                    'company_name' => $quotation->company_name,
-                                    'status' => $quotation->status,
-                                    'assignment_status' => $quotation->assignment_status,
-                                    'as_username' => $quotation->accountSpecialist->username ?? 'Available',
-                                    'as_full_name' => $quotation->accountSpecialist->full_name ?? null,
-                                    'assigned_at' => $quotation->assigned_at ? Carbon::parse($quotation->assigned_at)->format($dateFormat) : null,
-                                    'reassignment_request_id' => $reassignmentRequest ? $reassignmentRequest->id : null,
-                                    'requested_at' => $reassignmentRequest ? Carbon::parse($reassignmentRequest->created_at)->format($dateFormat) : null,
-                                    'service' => $quotation->logisticsService ? 'LOGISTICS' : ($quotation->regulatoryService ? 'REGULATORY' : null),
-                                    'logistics_service' => $quotation->logisticsService ? [
-                                        'commodity' => $quotation->logisticsService->commodity,
-                                        'service_type' => $quotation->logisticsService->service_type,
-                                        'transport_mode' => $quotation->logisticsService->transport_mode,
-                                        'origin' => $quotation->logisticsService->origin,
-                                        'destination' => $quotation->logisticsService->destination,
-                                    ] : null,
-                                    'regulatory_service' => $quotation->regulatoryService ? [
-                                        'application_type' => $quotation->regulatoryService->application_type,
-                                    ] : null,
-                                    'conversation_id' => $conversationId ?? null,
-                                    'prepared_by' => $quotation->created_by ? User::where('id', $quotation->created_by)->value('full_name') : null,
-                                    'issued_quotation_id' => $issuedQuotation ?? null,
-                                ];
-                            })->values(),
-                        ];
+                    $groupedByClient = $results->groupBy('client_id')->map(function ($clientQuotations) {
+                        return (new MobileRequestedQuotationCollection($clientQuotations))->toArray(request());
                     })->values();
 
                     if ($groupedByClient->isEmpty()) {
@@ -421,44 +286,8 @@ class IndexQuotationRepository extends BaseRepository
                 } else {
                     $resultsQuery = $quotations->with(['client', 'logisticsService'])->orderBy('created_at', 'desc');
 
-                    $results = $resultsQuery->get()->map(function ($result) use ($user, $request, $dateFormat) {
-                        if ($request->has('filter.status')) {
-                            $quotationCard = Message::where('reference_id', $result->id)
-                                ->where('type', 'QUOTATION_CARD')
-                                ->first();
-                            if ($quotationCard) {
-                                $conversationId = $quotationCard->conversation_id;
-                            } else {
-                                $conversationId = null;
-                            }
-
-                            if ($result->shipment) {
-                                $shipmentCard = Message::where('reference_id', $result->shipment?->id)
-                                    ->where('type', 'SHIPMENT_CARD')
-                                    ->first();
-                                if ($shipmentCard) {
-                                    $conversationId = $shipmentCard->conversation_id;
-                                }
-                            }
-
-                            if ($user->hasRole('Lead Account Specialist') && $user->id !== $result->as_id) {
-                                $conversationId = null;
-                            }
-
-                            return [
-                                'id' => $result->id,
-                                'client_name' => $result->client->full_name,
-                                'reference_number' => $result->reference_number,
-                                'issued_quotation_id' => IssuedQuotation::where('quotation_id', $result->id)->value('id') ?? null,
-                                'commodity' => $result->logisticsService?->commodity ?? $result->regulatoryService?->type_of_regulatory_assistance ?? null,
-                                'date' => $result->created_at->format($dateFormat),
-                                'conversation_id' => $conversationId ?? null,
-                                'prepared_by' => $result->created_by ? User::where('id', $result->created_by)->value('full_name') : null,
-                                'service' => $result->logisticsService ? 'LOGISTICS' : ($result->regulatoryService ? 'REGULATORY' : null),
-                                'service_type' => $result->logisticsService ? $result->logisticsService->service_type : ($result->regulatoryService ? $result->regulatoryService->type_of_regulatory_assistance : null),
-                                'reassignment_request_id' => $result->latestReassignmentRequest ? $result->latestReassignmentRequest->id : null,
-                            ];
-                        }
+                    $results = $resultsQuery->get()->map(function ($result) {
+                        return (new MobileQuotationResource($result))->toArray(request());
                     });
 
                     if ($results->isEmpty()) {
@@ -479,47 +308,8 @@ class IndexQuotationRepository extends BaseRepository
                 $results = $resultsQuery->get();
             }
 
-            $results = $results->map(function ($result) use ($user, $request, $dateFormat) {
-                if ($request->has('filter.status')) {
-                    $status = null;
-                    if ($request->filter['status'] === 'RESPONDED') {
-                        if ($result->status === 'RESPONDED') {
-                            $status = 'NEW';
-                        } else {
-                            $status = $result->status;
-                        }
-                    }
-
-                    $acceptedAt = null;
-                    if ($result->status === 'ACCEPTED') {
-                        $acceptedAt = $result->updated_at;
-                    }
-
-                    $quotationCard = Message::where('reference_id', $result->id)
-                        ->where('type', 'QUOTATION_CARD')
-                        ->first();
-                    if ($quotationCard) {
-                        $conversationId = $quotationCard->conversation_id;
-                    }
-
-                    if ($status === 'ACCEPTED') {
-                        $shipmentCard = Message::where('reference_id', $shipment->id)
-                            ->where('type', 'SHIPMENT_CARD')
-                            ->first();
-                        if ($shipmentCard) {
-                            $conversationId = $shipmentCard->conversation_id;
-                        }
-                    }
-
-                    return [
-                        'id' => $result->id,
-                        'reference_number' => $result->reference_number,
-                        'commodity' => $result->logisticsService?->commodity ?? $result->regulatoryService?->type_of_regulatory_assistance ?? null,
-                        'date' => $result->created_at->format($dateFormat),
-                        'conversation_id' => $conversationId ?? null,
-                        'reassignment_request_id' => $result->latestReassignmentRequest ? $result->latestReassignmentRequest->id : null,
-                    ];
-                }
+            $results = $results->map(function ($result) {
+                return new ClientQuotationResource($result);
             });
 
             return $this->success('All quotations fetched', $results->values(), 200);
