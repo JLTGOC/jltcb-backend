@@ -22,9 +22,15 @@ class IndexJobOrderRequest extends FormRequest
      */
     public function rules(): array
     {
+        if (auth()->user()->hasRole(['Account Specialist', 'Lead Account Specialist'])) {
+            $assignmentStatusRule = 'sometimes|string|in:PENDING,ACCEPTED,ALL';
+        } else {
+            $assignmentStatusRule = 'sometimes|string|in:AVAILABLE,ASSIGNED,REASSIGNMENT REQUESTED,ALL';
+        }
+
         return [
             'filter.service' => 'sometimes|string|in:LOGISTICS,REGULATORY,ALL',
-            'filter.assignment_status' => 'sometimes|string|in:PENDING,ACCEPTED',
+            'filter.assignment_status' => $assignmentStatusRule,
             'filter.service_type' => 'sometimes|string|in:IMPORT,EXPORT',
             'search' => 'sometimes|string',
             'ops_search' => 'sometimes|string',

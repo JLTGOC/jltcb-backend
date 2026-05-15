@@ -86,16 +86,6 @@ class IndexJobOrderRepository extends BaseRepository
         }
 
         $jobOrders = $jobOrders->map(function ($j) use ($user, $isWeb) {
-            if ($j->job_type === 'LOGISTICS') {
-                $service = 'Logistics Services';
-            } elseif ($j->job_type === 'REGULATORY') {
-                $service = 'Regulatory Services';
-            } else {
-                $service = 'N/A';
-            }
-
-            $assignedTo = $j->operations ? $j->operations->username : 'Available';
-
             if ($isWeb) {
                 if ($j->job_type === 'LOGISTICS') {
                     $serviceLevel = $j->jobOrderShipment->service_level ?? null;
@@ -106,7 +96,6 @@ class IndexJobOrderRepository extends BaseRepository
                     return new WebRegulatoryJobOrderResource($j);
                 }
             }
-
             return new MobileJobOrderResource($j);
         });
 
@@ -122,7 +111,6 @@ class IndexJobOrderRepository extends BaseRepository
                         return new WebRegulatoryJobOrderResource($j);
                     }
                 }
-
                 return new MobileJobOrderResource($j);
             });
         }
@@ -161,23 +149,16 @@ class IndexJobOrderRepository extends BaseRepository
     {
         if ($user->hasRole('Lead Account Specialist')) {
             return [JobOrder::query(), null];
-        }
-
-        if ($user->hasRole('Account Specialist')) {
+        } elseif ($user->hasRole('Account Specialist')) {
             return [JobOrder::query()->where('as_id', $user->id), null];
-        }
-
-        if ($user->hasRole('Lead Operations')) {
+        } elseif ($user->hasRole('Lead Operations')) {
             return [JobOrder::query(), JobOrder::query()->where('operations_id', $user->id)];
-        }
-
-        if ($user->hasRole('Operations')) {
+        } elseif ($user->hasRole('Operations')) {
             return [
                 JobOrder::query()->whereNot('assignment_status', 'ASSIGNED'),
                 JobOrder::query()->where('operations_id', $user->id),
             ];
         }
-
         return [JobOrder::query()->where('client_id', $user->id), null];
     }
 
@@ -188,23 +169,25 @@ class IndexJobOrderRepository extends BaseRepository
                 AllowedFilter::callback('service', function ($query, $value) {
                     if ($value === 'LOGISTICS') {
                         return $query->where('job_type', 'LOGISTICS');
-                    }
-
-                    if ($value === 'REGULATORY') {
+                    } elseif ($value === 'REGULATORY') {
                         return $query->where('job_type', 'REGULATORY');
-                    }
-
-                    if ($value === 'ALL') {
+                    } elseif ($value === 'ALL') {
                         return $query; // No filtering, return all job orders
                     }
                 }),
                 AllowedFilter::callback('assignment_status', function ($query, $value) {
                     if ($value === 'PENDING') {
                         return $query->where('assignment_status', 'AVAILABLE');
-                    }
-
-                    if ($value === 'ACCEPTED') {
+                    } elseif ($value === 'ACCEPTED') {
                         return $query->whereIn('assignment_status', ['ASSIGNED', 'REASSIGNMENT REQUESTED']);
+                    } elseif ($value === 'AVAILABLE') {
+                        return $query->where('assignment_status', 'AVAILABLE');
+                    } elseif ($value === 'ASSIGNED') {
+                        return $query->where('assignment_status', 'ASSIGNED');
+                    } elseif ($value === 'REASSIGNMENT REQUESTED') {
+                        return $query->where('assignment_status', 'REASSIGNMENT REQUESTED');
+                    } elseif ($value === 'ALL') {
+                        return $query; // No filtering, return all job orders
                     }
                 }),
                 AllowedFilter::exact('service_type', 'jobOrderClient.service_type'),
