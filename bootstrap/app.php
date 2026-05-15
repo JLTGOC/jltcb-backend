@@ -1,12 +1,13 @@
 <?php
 
 use App\Http\Middleware\AllowGuest;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Illuminate\Http\Exceptions\PostTooLargeException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -47,5 +48,16 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json([
                 'message' => 'You are not authorized to perform this action.',
             ], 404);
+        });
+        $exceptions->renderable(function (PostTooLargeException $e, $request) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Uploaded file is too large.',
+                'errors' => [
+                    'file' => [
+                        'Maximum allowed size is 5MB.'
+                    ]
+                ]
+            ], 413);
         });
     })->create();
