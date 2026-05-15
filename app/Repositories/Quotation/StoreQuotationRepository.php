@@ -36,24 +36,6 @@ class StoreQuotationRepository extends BaseRepository
             if ($previousQuotation) {
                 $assignedSpecialist = $previousQuotation->accountSpecialist;
             } 
-            // else {
-                // $specialists = User::role('Account Specialist')->get();
-                // foreach ($specialists as $specialist) {
-                //     $quotationsCount = Quotation::where('as_id', $specialist->id)->count();
-                //     $specialist->quotations_count = $quotationsCount;
-                // }
-
-                // $minCount = $specialists->min('quotations_count');
-
-                // if ($specialists->where('quotations_count', $minCount)->count() > 1) {
-                //     foreach ($specialists->where('quotations_count', $minCount) as $specialist) {
-                //         $specialist->lastest_quotation = Quotation::where('as_id', $specialist->id)->latest()->first()?->created_at ?? Carbon::createFromTimestamp(0);
-                //     }
-                //     $assignedSpecialist = $specialists->where('quotations_count', $minCount)->sortBy('lastest_quotation')->first();
-                // } else {
-                //     $assignedSpecialist = $specialists->where('quotations_count', $minCount)->first();
-                // }
-            // }
 
             if ($assignedSpecialist) {
                 $assignmentStatus = 'ASSIGNED';

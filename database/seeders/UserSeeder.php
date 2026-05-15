@@ -23,7 +23,8 @@ class UserSeeder extends Seeder
         $accounts = [
             ['role' => 'Client', 'email' => 'client1@gmail.com'],
             ['role' => 'Client', 'email' => 'client2@gmail.com'],
-            ['role' => 'Lead Account Specialist', 'email' => 'leadAs@gmail.com'],
+            ['role' => 'Lead Account Specialist', 'email' => 'leadAs1@gmail.com'],
+            ['role' => 'Lead Account Specialist', 'email' => 'leadAs2@gmail.com'],
             ['role' => 'Account Specialist', 'email' => 'as1@gmail.com'],
             ['role' => 'Account Specialist', 'email' => 'as2@gmail.com'],
             ['role' => 'Account Specialist', 'email' => 'as3@gmail.com'],
@@ -34,7 +35,8 @@ class UserSeeder extends Seeder
             ['role' => 'Account Specialist', 'email' => 'as8@gmail.com'],
             ['role' => 'Account Specialist', 'email' => 'as9@gmail.com'],
             ['role' => 'Account Specialist', 'email' => 'as10@gmail.com'],
-            ['role' => 'Lead Operations', 'email' => 'leadOps@gmail.com'],
+            ['role' => 'Lead Operations', 'email' => 'leadOps1@gmail.com'],
+            ['role' => 'Lead Operations', 'email' => 'leadOps2@gmail.com'],
             ['role' => 'Operations', 'email' => 'ops1@gmail.com'],
             ['role' => 'Operations', 'email' => 'ops2@gmail.com'],
             ['role' => 'Lead Finance', 'email' => 'leadFinance@gmail.com'],
@@ -43,6 +45,11 @@ class UserSeeder extends Seeder
             ['role' => 'Marketing', 'email' => 'marketing@gmail.com'],
             ['role' => 'Human Resource', 'email' => 'hr@gmail.com'],
             ['role' => 'IT', 'email' => 'it@gmail.com'],
+            ['role' => 'Client Success', 'email' => 'cs1@gmail.com'],
+            ['role' => 'Client Success', 'email' => 'cs2@gmail.com'],
+            ['role' => 'Client Success', 'email' => 'cs3@gmail.com'],
+            ['role' => 'Client Success', 'email' => 'cs4@gmail.com'],
+            ['role' => 'Client Success', 'email' => 'cs5@gmail.com'],
         ];
 
         $profileImagePath = $this->copySeederFile('images', 'profile.jpg');
