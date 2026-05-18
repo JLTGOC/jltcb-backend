@@ -13,9 +13,16 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use App\Models\{
     User,
-    Shipment
+    Shipment,
+    JobOrder,
+    Quotation
 };
-use App\Http\Resources\UserResource;
+use App\Http\Resources\{
+    UserResource,
+    ClientAccountsCollection,
+    SpecialistAccountsCollection,
+    CompaniesCollection
+};
 
 class UserController extends Controller
 {
@@ -145,7 +152,16 @@ class UserController extends Controller
     public function indexClientAccounts(Request $request) {
         $this->authorize('indexClientAccounts', User::class);
 
+        $platform = strtolower($request->header('Platform', 'mobile'));
+        $isWeb = $platform === 'web';
+
         $user = auth()->user();
+
+        $totalClients = User::role('Client')->count();
+        $newClients = User::where('created_at', '>=', now()->subMonth(1))->role('Client')->count();
+        $activeShipments = Shipment::whereNotIn('status', ['DELIVERED'])->count();
+        $activeRegulatory = JobOrder::where('job_type', 'REGULATORY')->count();
+        $pendingQuotations = Quotation::whereNotIn('status', ['ACCEPTED'])->count();
 
         $clientIds = User::role('Client')->pluck('id');
         if ($user->hasRole('Account Specialist')) {
@@ -167,15 +183,19 @@ class UserController extends Controller
             });
         }
         
-        $clients = $query->get()->map(function ($c) {
-                return [
-                    'id' => $c->id,
-                    'full_name' => $c->full_name,
-                    'ongoing_shipments' => Shipment::where('client_id', $c->id)->whereIn('status', ['PENDING', 'NOT YET DELIVERED', 'IN TRANSIT', 'ARRIVED', 'BERTHED', 'DISCHARGED'])->count(),
-                    'completed_shipments' => Shipment::where('client_id', $c->id)->where('status', 'DELIVERED')->count(),
-                ];
-            });
+        $clients = ClientAccountsCollection::collection($query->get());
 
+        if ($isWeb) {
+            return $this->success('Clients fetched successfully', [
+                'total_clients' => $totalClients,
+                'new_clients' => $newClients,
+                'active_shipments' => $activeShipments,
+                'active_regulatory' => $activeRegulatory,
+                'pending_quotations' => $pendingQuotations,
+                'clients' => $clients,
+            ], 200);
+        }
+        
         return $this->success('Clients fetched successfully', $clients, 200);
     }
 
