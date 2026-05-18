@@ -86,8 +86,33 @@ class UserPolicy
         return $user->hasRole(['Lead Account Specialist', 'Account Specialist']);
     }
 
+    public function showClientDetails(User $user): bool
+    {
+        return $user->hasRole(['Lead Account Specialist', 'Account Specialist']);
+    }
+
+    public function indexClientQuotations(User $user): bool
+    {
+        return $user->hasRole(['Lead Account Specialist', 'Account Specialist']);
+    }
+
     public function indexClientShipments(User $user): bool
     {         
+        return $user->hasRole(['Lead Account Specialist', 'Account Specialist']);
+    }
+
+    public function indexClientRegulatory(User $user): bool
+    {
+        return $user->hasRole(['Lead Account Specialist', 'Account Specialist']);
+    }
+
+    public function indexSpecialists(User $user): bool
+    {
+        return $user->hasRole(['Lead Account Specialist', 'Account Specialist']);
+    }
+
+    public function indexCompanies(User $user): bool
+    {
         return $user->hasRole(['Lead Account Specialist', 'Account Specialist']);
     }
 }

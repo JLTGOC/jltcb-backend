@@ -44,8 +44,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('reels', ReelController::class)->only(['store', 'update', 'destroy']);
 
-    Route::get('/users/clients', [UserController::class, 'indexClientAccounts']);
-    Route::get('/users/clients/{client}/shipments', [UserController::class, 'indexClientShipments']);
+    Route::prefix('users/clients')->group(function() {
+        Route::get('/', [UserController::class, 'indexClientAccounts']);
+        Route::get('/{client}', [UserController::class, 'showClientDetails']);
+        Route::get('/{client}/quotations', [UserController::class, 'indexClientQuotations']);
+        Route::get('/{client}/shipments', [UserController::class, 'indexClientShipments']);
+        Route::get('/{client}/regulatory', [UserController::class, 'indexClientRegulatory']);
+    });
+
+    Route::get('/users/specialists', [UserController::class, 'indexSpecialists']);
+    Route::get('/users/companies', [UserController::class, 'indexCompanies']);
+
     Route::apiResource('users', UserController::class)->only(['show', 'update']);
     Route::put('/users/{user}/change-password', [UserController::class, 'changePassword']);
     Route::post('/users/{user}/change-profile', [UserController::class, 'changeProfile']);

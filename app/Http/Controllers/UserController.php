@@ -180,6 +180,28 @@ class UserController extends Controller
     }
 
     /**
+     * Show Client Details
+     * 
+     * Display the details of a specific client.
+     */
+    public function showClientDetails(User $client) {
+        $this->authorize('showClientDetails', User::class);
+
+        //
+    }
+
+    /**
+     * Index Client Quotations
+     * 
+     * Display a listing of quotations for a specific client.
+     */
+    public function indexClientQuotations(Request $request, User $client) {
+        $this->authorize('indexClientQuotations', User::class);
+
+        //
+    }
+
+    /**
      * Index Client Shipments
      * 
      * Display a listing of shipments for a specific client.
@@ -209,5 +231,38 @@ class UserController extends Controller
             ],
             'shipments' => $clientShipments
         ], 200);
+    }
+
+    /**
+     * Index Client Regulatory
+     * 
+     * Display regulatory jobs listing for a specific client.
+     */
+    public function indexClientRegulatory(Request $request, User $client) {
+        $this->authorize('indexClientRegulatory', User::class);
+
+        //
+    }
+
+    /**
+     * Index Specialists
+     * 
+     * Display a listing of account specialists.
+     */
+    public function indexSpecialists() {
+        $this->authorize('indexSpecialists', User::class);
+
+        //
+    }
+
+    /**
+     * Index Companies
+     * 
+     * Display a listing of companies.
+     */
+    public function indexCompanies() {
+        $this->authorize('indexCompanies', User::class);
+
+        //
     }
 }
