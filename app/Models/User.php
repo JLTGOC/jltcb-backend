@@ -12,6 +12,7 @@ use App\Models\{
     Article,
     Quotation
 };
+use Illuminate\Database\Eloquent\Builder;
 use Spatie\Searchable\Searchable;
 use Spatie\Searchable\SearchResult;
 
@@ -41,6 +42,7 @@ class User extends Authenticatable implements Searchable
         'business_type',
         'image_path',
         'id_image_path',
+        'created_at'
     ];
 
     /**
@@ -75,6 +77,10 @@ class User extends Authenticatable implements Searchable
             $this->id,
             null
         );
+    }
+
+    public function scopeClients(Builder $query) {
+        return $query->whereHas('roles', fn($q) => $q->where('name', 'Client'));
     }
 
     public function articles()

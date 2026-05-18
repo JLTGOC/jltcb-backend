@@ -8,6 +8,7 @@ use App\Http\Controllers\ReelController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\BillingConfigController;
+use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DetailsConfigController;
@@ -44,16 +45,26 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('reels', ReelController::class)->only(['store', 'update', 'destroy']);
 
-    Route::prefix('users/clients')->group(function() {
-        Route::get('/', [UserController::class, 'indexClientAccounts']);
-        Route::get('/{client}', [UserController::class, 'showClientDetails']);
-        Route::get('/{client}/quotations', [UserController::class, 'indexClientQuotations']);
-        Route::get('/{client}/shipments', [UserController::class, 'indexClientShipments']);
-        Route::get('/{client}/regulatory', [UserController::class, 'indexClientRegulatory']);
-    });
+    // Route::prefix('users/clients')->group(function() {
+    //     Route::get('/', [UserController::class, 'indexClientAccounts']);
+    //     Route::get('/{client}', [UserController::class, 'showClientDetails']);
+    //     Route::get('/{client}/quotations', [UserController::class, 'indexClientQuotations']);
+    //     Route::get('/{client}/shipments', [UserController::class, 'indexClientShipments']);
+    //     Route::get('/{client}/regulatory', [UserController::class, 'indexClientRegulatory']);
+    // });
 
-    Route::get('/users/specialists', [UserController::class, 'indexSpecialists']);
-    Route::get('/users/companies', [UserController::class, 'indexCompanies']);
+    // Route::get('/users/specialists', [UserController::class, 'indexSpecialists']);
+    // Route::get('/users/companies', [UserController::class, 'indexCompanies']);
+
+    Route::prefix('clients')->group(function() {
+        Route::get('/', [ClientController::class, 'index']); 
+        Route::get('/summary', [ClientController::class, 'summary']);
+        Route::get('/{client}', [ClientController::class, 'show']);
+
+        Route::get('/{client}/quotations', [ClientController::class, 'listQuotations']);
+        Route::get('/{client}/shipments', [ClientController::class, 'listShipments']);
+        Route::get('/{client}/regulatory', [ClientController::class, 'listRegulatory']);
+    });
 
     Route::apiResource('users', UserController::class)->only(['show', 'update']);
     Route::put('/users/{user}/change-password', [UserController::class, 'changePassword']);
