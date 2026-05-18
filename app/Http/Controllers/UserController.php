@@ -20,6 +20,7 @@ use App\Models\{
 use App\Http\Resources\{
     UserResource,
     ClientAccountsCollection,
+    ClientAccountResource,
     SpecialistAccountsCollection,
     CompaniesCollection
 };
@@ -195,7 +196,7 @@ class UserController extends Controller
                 'clients' => $clients,
             ], 200);
         }
-        
+
         return $this->success('Clients fetched successfully', $clients, 200);
     }
 
@@ -207,7 +208,7 @@ class UserController extends Controller
     public function showClientDetails(User $client) {
         $this->authorize('showClientDetails', User::class);
 
-        //
+        return $this->success('Client details fetched successfully', new ClientAccountResource($client), 200);
     }
 
     /**
