@@ -60,7 +60,14 @@ class QuotationResource extends JsonResource
             'id' => $this->id,   
             'reference_number' => $this->reference_number,
             'client_id' => $this->client_id,
-            'client' => $this->client->full_name,
+            'client' => $request->routeIs('job-orders.quotation') 
+                ? [
+                    'full_name' => $this->client->full_name,
+                    'company_name' => $this->client->company_name,
+                    'contact_number' => $this->client->contact_number,
+                    'email' => $this->client->email,
+                ]
+                : $this->client->full_name ?? null,
             'account_specialist' => $this->accountSpecialist->full_name ?? null,
             'status' => $this->status,
             'shipment_status' => $shipmentStatus,

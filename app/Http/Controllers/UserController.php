@@ -165,16 +165,10 @@ class UserController extends Controller
         $pendingQuotations = Quotation::whereNotIn('status', ['ACCEPTED'])->count();
 
         $clientIds = User::role('Client')->pluck('id');
-        if ($user->hasRole('Account Specialist')) {
-            $asShipments = Shipment::where('as_id', $user->id)->distinct('client_id')->pluck('client_id');
-        } elseif ($user->hasRole('Lead Account Specialist')) {
-            $asShipments = Shipment::distinct('client_id')->pluck('client_id');
-        }
 
         $query = User::query()
             ->role('Client')
-            ->whereIn('id', $clientIds)
-            ->whereIn('id', $asShipments);
+            ->whereIn('id', $clientIds);
 
         if ($request->has('search') && $request->search !== '') {
             $search = $request->input('search');
