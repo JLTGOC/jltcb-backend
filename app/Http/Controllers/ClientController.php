@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\RoleType;
 use App\Http\Resources\ClientDetailResource;
 use App\Http\Resources\ClientListResource;
-use App\Services\ClientService;
+use App\Services\UserService;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Carbon\Carbon;
@@ -13,7 +14,7 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class ClientController extends Controller
 {
-    public function __construct(private readonly ClientService $clientService)
+    public function __construct(private readonly UserService $userService)
     {
         //
     }
@@ -26,7 +27,7 @@ class ClientController extends Controller
     public function index(Request $request)
     {
         $request->validate([
-            'filter.search' => 'sometimes|string|max:100',
+            'filter.search' => 'sometimes|nullable|string|max:100',
             'per_page' => 'sometimes|integer|min:1|max:100',
             'filter.date_created' => 'sometimes|date',
             'filter.type' => 'sometimes|string|in:OLD,NEW'
@@ -63,7 +64,8 @@ class ClientController extends Controller
             'shipments as active_shipments_count' => fn($q) => 
                 $q->whereNotIn('status', ['DELIVERED']),
             'jobOrders as active_regulatory_count' => fn($q) => 
-                $q->where('job_type', 'REGULATORY')
+                $q->where('job_type', 'REGULATORY'),
+            'quotations as quotations_count'
         ]);
 
         return $this->success(
@@ -137,7 +139,10 @@ class ClientController extends Controller
      */
     public function summary()
     {
-        return $this->clientService->getSummary();
+        return $this->success(
+            'Client summary fetched successfully',
+            $this->userService->getSummary(RoleType::CLIENT)
+        );
     }
 
     /**
@@ -146,7 +151,7 @@ class ClientController extends Controller
      * Display list client quotations
      */
     public function listQuotations(User $client) {
-        return 'quotations';
+        return $client->quotations;
     }
 
     /**

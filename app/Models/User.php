@@ -83,6 +83,19 @@ class User extends Authenticatable implements Searchable
         return $query->whereHas('roles', fn($q) => $q->where('name', 'Client'));
     }
 
+    public function scopeOldClients(Builder $query) {
+        return $query->has('quotations', '>', 1);
+    }
+
+    public function scopeNewClients(Builder $query) {
+        return $query->has('quotations', '<=', 1);
+    }
+
+    // Returns last quotation accepted as an Account Specialist
+    public function latestQuotationAccepted() {
+        return $this->hasOne(Quotation::class, 'as_id')->latestOfMany();
+    }
+
     public function articles()
     {
         return $this->hasMany(Article::class);
@@ -90,6 +103,11 @@ class User extends Authenticatable implements Searchable
 
     public function quotations() {
         return $this->hasMany(Quotation::class, 'client_id');
+    }
+
+    // Used for user with account specialist role
+    public function quotationsAccepted() {
+        return $this->hasMany(Quotation::class, 'as_id');
     }
     
     public function conversations()
