@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountSpecialistController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\AuthController;
@@ -65,6 +66,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{client}/shipments', [ClientController::class, 'listShipments']);
         Route::get('/{client}/regulatory', [ClientController::class, 'listRegulatory']);
     });
+
+    Route::get('account-specialists/', [AccountSpecialistController::class, 'index']);
+    Route::get('account-specialists/summary', [AccountSpecialistController::class, 'summary']);
 
     Route::apiResource('users', UserController::class)->only(['show', 'update']);
     Route::put('/users/{user}/change-password', [UserController::class, 'changePassword']);
