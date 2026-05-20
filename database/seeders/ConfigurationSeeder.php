@@ -34,7 +34,7 @@ class ConfigurationSeeder extends Seeder
 
         $textInput = ['SERVICE LEVEL', 'PAYMENT TERMS'];
 
-        $datePicker = ['RATE VALIDITY'];
+        // $datePicker = ['RATE VALIDITY'];
 
         $dropdowns = [
             'TYPE OF ACCREDITATION' => ['NEW', 'RENEWAL'],
@@ -51,7 +51,7 @@ class ConfigurationSeeder extends Seeder
 
         $this->createConfigValues(DetailsConfiguration::class, [
             'TEXT' => $textInput,
-            'DATE PICKER' => $datePicker,
+            // 'DATE PICKER' => $datePicker,
             'DROPDOWN' => array_keys($dropdowns)
         ]);
 

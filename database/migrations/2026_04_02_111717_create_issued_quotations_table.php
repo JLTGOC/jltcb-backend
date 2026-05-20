@@ -21,6 +21,7 @@ return new class extends Migration
             $table->foreignId('issued_by')->constrained('users');
             $table->string('subject');
             $table->text('message');
+            $table->date('rate_validity');
             $table->timestamps();
         });
 
