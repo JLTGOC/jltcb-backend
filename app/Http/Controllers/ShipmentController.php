@@ -49,7 +49,19 @@ class ShipmentController extends Controller
         $search = $request->input('search');
         $platform = $request->header('Platform', 'mobile');
         $request->validate([
-            'filter.status' => 'sometimes|in:ALL,NOT YET DEPARTED,IN TRANSIT,ARRIVED,BERTHED,DISCHARGED,DELIVERED',
+            'filter.status' => ['sometimes', function($attribute, $value, $fail) use ($request) {
+                $platform = strtolower($request->header('Platform', 'mobile'));
+                $isWeb = $platform === 'web';
+                if ($isWeb) {
+                    $allowedStatuses = ['ALL', 'NOT YET DEPARTED', 'IN TRANSIT', 'ARRIVED', 'BERTHED', 'DISCHARGED', 'DELIVERED'];
+                } else {
+                    $allowedStatuses = ['ONGOING', 'DELIVERED'];
+                }
+                
+                if (!in_array($value, $allowedStatuses)) {
+                    $fail("The {$attribute} filter must be one of: " . implode(', ', $allowedStatuses));
+                }
+            }],
             'search' => 'sometimes|string|max:255',
             'filter.eta' => 'sometimes|date',
             'filter.person_in_charge' => 'sometimes|in:' . implode(',', User::role(['Operations', 'Lead Operations'])->pluck('full_name')->toArray()),
@@ -65,7 +77,11 @@ class ShipmentController extends Controller
 
         if (isset($request->filter['status'])) {
             if ($status !== 'ALL') {
-                $shipmentsQuery->where('status', $status);
+                if ($status === 'ONGOING') {
+                    $shipmentsQuery->whereIn('status', ['NOT YET DEPARTED', 'IN TRANSIT', 'ARRIVED', 'BERTHED', 'DISCHARGED']);
+                } else {
+                    $shipmentsQuery->where('status', $status);
+                }
             }
         } 
 
