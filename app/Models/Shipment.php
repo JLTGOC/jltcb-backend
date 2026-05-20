@@ -70,6 +70,10 @@ class Shipment extends Model implements Searchable
         return $this->hasMany(ShipmentHistory::class, 'shipment_id');
     }
 
+    public function jobOrderShipment() {
+        return $this->hasOne(JobOrderShipment::class, 'job_order_id', 'job_order_id');
+    }
+
     protected $casts = [
         'quotation_id' => 'integer',
         'client_id' => 'integer',

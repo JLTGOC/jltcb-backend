@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\RoleType;
 use App\Http\Resources\ClientDetailResource;
 use App\Http\Resources\ClientListResource;
+use App\Http\Resources\ShipmentSummaryResource;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -160,7 +161,9 @@ class ClientController extends Controller
      * Display list of client's shipments
      */
     public function listShipments(User $client) {
-        return 'shipments';
+        $shipments = $client->shipments->load(['jobOrder', 'quotation.logisticsService', 'jobOrderShipment', 'operations']);
+
+        return $this->success('Shipment Summary fetched successfully', ShipmentSummaryResource::collection($shipments));
     }
 
     /**
