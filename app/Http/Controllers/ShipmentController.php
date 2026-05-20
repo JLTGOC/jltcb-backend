@@ -170,10 +170,11 @@ class ShipmentController extends Controller
             $shipment = Shipment::create([
                 'reference_number' => "{$prefix}-{$dateSection}-{$idSection}",
                 'quotation_id' => $quotation->id,
+                'job_order_id' => $jobOrder->id,
                 'client_id' => $quotation->client_id,
                 'as_id' => $quotation->as_id,
                 'operations_id' => $jobOrder->operations_id,
-                'status' => 'PENDING',
+                'status' => 'NOT YET DEPARTED',
                 'company_name' => $quotation->company_name,
                 'contact_person' => $quotation->contact_person,
                 'contact_number' => $quotation->contact_number,
