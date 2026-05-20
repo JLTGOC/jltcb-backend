@@ -38,6 +38,7 @@ class UpdateIssuedQuotationRequest extends FormRequest
     return [
         'subject' => ['required', 'string', 'max:255'],
         'message' => ['required', 'string'],
+        'rate_validity' => ['required', 'date', Rule::date()->afterToday()],
 
         'detail_values' => [
             'required', 'array', 'min:1', 'size:' . $detailsConfigCount
