@@ -24,6 +24,9 @@ use App\Policies\ChatPolicy;
 use App\Policies\ConfigurationPolicy;
 use Spatie\Permission\Models\Role;
 use App\Policies\RolePolicy;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -74,5 +77,89 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(QuotationTemplate::class, ConfigurationPolicy::class);
         Gate::policy(QuotationField::class, ConfigurationPolicy::class);
         Gate::policy(Role::class, RolePolicy::class);
+
+        RateLimiter::for('api', function (Request $request) {
+            $user = $request->user();
+            if ($user) {
+                return Limit::perMinute(120)
+                    ->by($user->id)
+                    ->response(function($request, $headers) {
+                        return response()->json([
+                            'message' => 'Too many requests. Please try again later.',
+                            'retry_after_seconds' => $headers['Retry-After'] ?? 60,
+                        ], 429, $headers);
+                    });
+            } else {
+                return Limit::perMinute(60)
+                    ->by($request->ip())
+                    ->response(function($request, $headers) {
+                        return response()->json([
+                            'message' => 'Too many requests. Please try again later.',
+                            'retry_after_seconds' => $headers['Retry-After'] ?? 60,
+                        ], 429, $headers);
+                    });
+            }
+        });
+
+        RateLimiter::for('login', function (Request $request) {
+            $email = (string) $request->email;
+
+            return Limit::perMinute(5)
+                ->by($email.$request->ip())
+                ->response(function($request, $headers) {
+                    return response()->json([
+                        'message' => 'Too many login attempts. Please try again later.',
+                        'retry_after_seconds' => $headers['Retry-After'] ?? 60,
+                    ], 429, $headers);
+            });
+        });
+
+        RateLimiter::for('chat', function (Request $request) {
+            $user = $request->user();
+            return Limit::perMinute(20)
+                ->by($user->id)
+                ->response(function($request, $headers) {
+                    return response()->json([
+                        'message' => 'Too many messages. Please try again later.',
+                        'retry_after_seconds' => $headers['Retry-After'] ?? 60,
+                    ], 429, $headers);
+                });
+        });
+
+        RateLimiter::for('file-upload', function (Request $request) {
+            $user = $request->user();
+            return Limit::perMinute(10)
+                ->by($user->id)
+                ->response(function($request, $headers) {
+                    return response()->json([
+                        'message' => 'Too many file upload attempts. Please try again later.',
+                        'retry_after_seconds' => $headers['Retry-After'] ?? 60,
+                    ], 429, $headers);
+                });
+        });
+
+        RateLimiter::for('create-quotations', function (Request $request) {
+            $user = $request->user();
+            return Limit::perMinute(15)
+                ->by($user->id)
+                ->response(function($request, $headers) {
+                    return response()->json([
+                        'message' => 'Too many requests. Please try again later.',
+                        'retry_after_seconds' => $headers['Retry-After'] ?? 60,
+                    ], 429, $headers);
+                });
+        });
+
+        RateLimiter::for('password-change', function (Request $request) {
+            $user = $request->user();
+            return Limit::perMinute(3)
+                ->by($user->id)
+                ->response(function($request, $headers) {
+                    return response()->json([
+                        'message' => 'Too many password change attempts. Please try again later.',
+                        'retry_after_seconds' => $headers['Retry-After'] ?? 60,
+                    ], 429, $headers);
+                });
+        });
     }
 }

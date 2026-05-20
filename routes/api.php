@@ -28,11 +28,11 @@ use Illuminate\Support\Facades\Broadcast;
 
 require __DIR__ . '/public_routes.php';
 
-Route::post('auth/login', [AuthController::class, 'login']);
+Route::post('auth/login', [AuthController::class, 'login'])->middleware('throttle:login');
 
 Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
 
     Route::prefix('auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
@@ -71,7 +71,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('account-specialists/summary', [AccountSpecialistController::class, 'summary']);
 
     Route::apiResource('users', UserController::class)->only(['show', 'update']);
-    Route::put('/users/{user}/change-password', [UserController::class, 'changePassword']);
+    Route::put('/users/{user}/change-password', [UserController::class, 'changePassword'])->middleware('throttle:password-change');
     Route::post('/users/{user}/change-profile', [UserController::class, 'changeProfile']);
 
     Route::get('dashboard', [DashboardController::class, 'index']);
@@ -81,18 +81,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/quotations/{quotation}/reassign-specialist', [QuotationController::class, 'reassignSpecialist']);
     Route::put('/quotations/{quotation}/accept-proposal', [QuotationController::class, 'acceptQuotationProposal']);
     Route::put('/quotations/{quotation}/accept-assignment', [QuotationController::class, 'acceptQuotationAssignment']);
-    Route::apiResource('quotations', QuotationController::class)->except(['update']);
-    Route::post('/quotations/{quotation}', [QuotationController::class, 'update']);
+    Route::apiResource('quotations', QuotationController::class)->except(['store', 'update']);
+    Route::post('/quotations', [QuotationController::class, 'store'])->middleware('throttle:create-quotations');
+    Route::post('/quotations/{quotation}', [QuotationController::class, 'update'])->middleware('throttle:create-quotations');
     Route::get('/quotations/{quotation}/client-inputs', [QuotationController::class, 'clientInputs']);
 
     Route::apiResource('quotations.issued-quotations', IssuedQuotationController::class)
-        ->except(['index', 'update'])
+        ->except(['index', 'store', 'update'])
         ->scoped()
         ->parameters(['issued-quotations' => 'issuedQuotation']);
-    Route::post('/quotations/{quotation}/issued-quotations/{issuedQuotation}', [IssuedQuotationController::class, 'update']);
+    Route::post('/quotations/{quotation}/issued-quotations', [IssuedQuotationController::class, 'store'])->middleware('throttle:create-quotations');
+    Route::post('/quotations/{quotation}/issued-quotations/{issuedQuotation}', [IssuedQuotationController::class, 'update'])->middleware('throttle:create-quotations');
 
     //Temporary routes for quotation files
-    Route::post('/quotations/{quotation}/upload', [QuotationController::class, 'upload']);
+    Route::post('/quotations/{quotation}/upload', [QuotationController::class, 'upload'])->middleware('throttle:file-upload');
     Route::apiResource('quotations.files', QuotationFileController::class)->only(['index', 'show', 'update'])->scoped();
     Route::get('/files/{file}/download', [QuotationFileController::class, 'download'])
         ->name('files.download');
@@ -101,15 +103,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('', [ChatController::class, 'index']); // Inbox
         Route::get('/{conversation}', [ChatController::class, 'show']);
         Route::get('{conversation}/messages', [ChatController::class, 'indexMessages']); // History
-        Route::post('{conversation}', [ChatController::class, 'sendMessage']); // Message a conversation
+        Route::post('{conversation}', [ChatController::class, 'sendMessage'])->middleware('throttle:chat'); // Message a conversation
         Route::post('/{conversation}/read', [ChatController::class, 'markAsRead']); // For chat viewer's unread count update
     });
 
     // Quotation Chat
-    Route::post('quotations/{quotation}/chat', [ChatController::class, 'chatWithQuotation']);
+    Route::post('quotations/{quotation}/chat', [ChatController::class, 'chatWithQuotation'])->middleware('throttle:chat');
 
     // Shipment Routes
-    Route::apiResource('shipments', ShipmentController::class)->only(['store', 'show', 'update', 'index']);
+    Route::apiResource('shipments', ShipmentController::class)->only(['show', 'update', 'index']);
+    Route::post('/shipments', [ShipmentController::class, 'store'])->middleware('throttle:create-quotations');
 
     // Job Order Routes
     Route::get('/job-orders/enums', [JobOrderController::class, 'jobOrderEnums']);
@@ -117,7 +120,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/job-orders/{job_order}/accept', [JobOrderController::class, 'acceptJobOrder']);
     Route::post('/job-orders/{job_order}/request-reassignment', [JobOrderController::class, 'requestReassignment']);
     Route::put('/job-orders/{job_order}/reassign-ops', [JobOrderController::class, 'reassignOps']);
-    Route::apiResource('job-orders', JobOrderController::class)->only(['store', 'show', 'index']);
+    Route::apiResource('job-orders', JobOrderController::class)->only(['show', 'index']);
+    Route::post('/job-orders', [JobOrderController::class, 'store'])->middleware('throttle:create-quotations');
     
     // Configuration Template Routes
     Route::prefix('configs')->group(function() {
