@@ -30,6 +30,7 @@ class IssuedQuotationResource extends JsonResource
             'issued_by' => User::find($this->issued_by)?->full_name ?? null,
             'subject' => $this->subject,
             'message' => $this->message,
+            'rate_validity' => $this->rate_validity,
 
             'quotation_details' => $this->whenLoaded('detailValues', function () {
                 return $this->detailValues->map(function ($detail) {

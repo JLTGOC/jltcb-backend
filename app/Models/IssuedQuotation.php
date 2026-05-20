@@ -12,6 +12,7 @@ class IssuedQuotation extends Model
         'issued_by',
         'subject',
         'message',
+        'rate_validity'
     ];
 
     public function quotation()

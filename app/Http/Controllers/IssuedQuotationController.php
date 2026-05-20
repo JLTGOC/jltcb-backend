@@ -56,6 +56,7 @@ class IssuedQuotationController extends Controller
                 'issued_by' => $as->id,
                 'subject' => $request->subject,
                 'message' => $request->message,
+                'rate_validity' => $request->rate_validity
             ]);
 
             $issuedQuotation->detailValues()->createMany($request->detail_values);
@@ -172,6 +173,7 @@ class IssuedQuotationController extends Controller
             $issuedQuotation->update([
                 'subject' => $request->subject,
                 'message' => $request->message,
+                'rate_validity' => $request->rate_validity
             ]);
 
             $issuedQuotation->detailValues()->delete();
