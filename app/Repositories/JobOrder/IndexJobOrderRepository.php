@@ -148,18 +148,18 @@ class IndexJobOrderRepository extends BaseRepository
     private function buildBaseQueries($user): array
     {
         if ($user->hasRole('Lead Account Specialist')) {
-            return [JobOrder::query(), null];
+            return [JobOrder::query()->whereNot('shipment_creation_status', 'CREATED'), null];
         } elseif ($user->hasRole('Account Specialist')) {
-            return [JobOrder::query()->where('as_id', $user->id), null];
+            return [JobOrder::query()->whereNot('shipment_creation_status', 'CREATED')->where('as_id', $user->id), null];
         } elseif ($user->hasRole('Lead Operations')) {
-            return [JobOrder::query(), JobOrder::query()->where('operations_id', $user->id)];
+            return [JobOrder::query()->whereNot('shipment_creation_status', 'CREATED'), JobOrder::query()->where('operations_id', $user->id)];
         } elseif ($user->hasRole('Operations')) {
             return [
-                JobOrder::query()->whereNot('assignment_status', 'ASSIGNED'),
-                JobOrder::query()->where('operations_id', $user->id),
+                JobOrder::query()->whereNot('shipment_creation_status', 'CREATED')->whereNot('assignment_status', 'ASSIGNED'),
+                JobOrder::query()->whereNot('shipment_creation_status', 'CREATED')->where('operations_id', $user->id),
             ];
         }
-        return [JobOrder::query()->where('client_id', $user->id), null];
+        return [JobOrder::query()->whereNot('shipment_creation_status', 'CREATED')->where('client_id', $user->id), null];
     }
 
     private function applyAllowedFilters($query): QueryBuilder
