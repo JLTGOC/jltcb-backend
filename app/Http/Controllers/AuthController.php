@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\RateLimiter;
 
 class AuthController extends Controller
 {
@@ -47,6 +49,18 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
+        $key = Str::lower($request->email).'|'.$request->ip();
+        $decay = min(60 * pow(2, RateLimiter::attempts($key)), 3600);
+
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            $seconds = RateLimiter::availableIn($key);
+
+            return response()->json([
+                'message' => 'Too many login attempts. Try again later.',
+                'retry_after_seconds' => $seconds,
+            ], 429);
+        }
+
         $validated = $request->validate([
             'email' => 'required|string',
             'password' => 'required|string',
@@ -62,11 +76,15 @@ class AuthController extends Controller
             ];
 
             if (!Auth::attempt($credentials)) {
+                RateLimiter::hit($key, $decay);
+
                 return $this->error('Invalid credentials', 401);
             }
 
             $user = auth()->user();
             $token = $user->createToken('auth_token')->plainTextToken;
+
+            RateLimiter::clear($key);
 
             return $this->success('Logged in successfully', ['user' => new UserResource($user), 'token' => $token]);
         }
