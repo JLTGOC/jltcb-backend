@@ -111,8 +111,10 @@ class QuotationResource extends JsonResource
                 'service_level' => $regulatoryService?->application_type,
                 'message' => $regulatoryService?->message,
             ] : null,
+            'total_quotation_files' => $this->files()->where('type', 'PROPOSAL')->count(),
+            'total_documents' => $this->files()->where('type', 'REQUESTED')->count(),
             'quotation_file' => $this->files()->where('type', 'PROPOSAL')->exists()
-                ? $this->files()->where('type', 'PROPOSAL')->get()->map(function($file) {
+                ? $this->files()->where('type', 'PROPOSAL')->limit(2)->get()->map(function($file) {
                     return [
                         'id' => $file->id,
                         'file_name' => $file->original_file_name,
@@ -129,7 +131,7 @@ class QuotationResource extends JsonResource
                 })
                 : 'No file available.',
             'documents' => $this->files()->where('type', 'REQUESTED')->exists()
-                ? $this->files()->where('type', 'REQUESTED')->get()->map(function($file) {
+                ? $this->files()->where('type', 'REQUESTED')->limit(2)->get()->map(function($file) {
                     return [
                         'id' => $file->id,
                         'file_name' => $file->original_file_name,

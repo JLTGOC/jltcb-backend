@@ -7,6 +7,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
 use App\Http\Resources\QuotationFileResource;
 use Illuminate\Support\Facades\Storage;
+use App\Models\ShipmentFile;
+use App\Models\QuotationFile;
 
 class ShipmentResource extends JsonResource
 {
@@ -18,6 +20,9 @@ class ShipmentResource extends JsonResource
     public function toArray(Request $request): array
     {
         $shipmentFiles = $this->shipmentFile;
+        $originalFiles = QuotationFile::whereIn('id', $shipmentFiles->pluck('quotation_file_id'))->get()->groupBy('type');
+        $proposals = $originalFiles->get('PROPOSAL', collect())->take(2);
+        $clientDocuments = $originalFiles->get('REQUESTED', collect())->take(2);
 
         $data = [
             'general_info' => [
@@ -46,8 +51,10 @@ class ShipmentResource extends JsonResource
                 'created_at' => $this->created_at->format('m/d/Y'),
                 'updated_at' => $this->updated_at->format('m/d/Y'),
             ],
-            'quotation_proposals' => QuotationFileResource::collection($shipmentFiles->pluck('quotationFile')->where('type', 'PROPOSAL')->flatten()),
-            'client_documents' => QuotationFileResource::collection($shipmentFiles->pluck('quotationFile')->where('type', 'REQUESTED')->flatten()),
+            'total_quotation_files' => $originalFiles->get('PROPOSAL', collect())->count(),
+            'total_client_documents' => $originalFiles->get('REQUESTED', collect())->count(),
+            'quotation_proposals' => QuotationFileResource::collection($proposals),
+            'client_documents' => QuotationFileResource::collection($clientDocuments),
         ];
         
         // Only include full details for mobile OR if this is a show route

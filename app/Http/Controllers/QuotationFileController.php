@@ -23,18 +23,34 @@ class QuotationFileController extends Controller
         $this->authorize('viewAny', [QuotationFile::class, $quotation]);
 
         $request->validate([
-            'type' => ['required', 'in:REQUESTED,PROPOSAL']
+            'type' => ['sometimes', 'in:REQUESTED,PROPOSAL']
         ]);
 
-        $quotationFiles = $quotation->files()->where('type', $request->type)->get();
+        if ($request->has('type')) {
+            $quotationFiles = $quotation->files()->where('type', $request->type)->get();
 
-        if ($quotationFiles->isEmpty()) {
-            return $this->success('No files available');
-        }
+            if ($quotationFiles->isEmpty()) {
+                return $this->success('No files available');
+            }
 
-        return $this->success(
-            'Files retrieved successfully.', QuotationFileResource::collection($quotationFiles)
-        );
+            return $this->success(
+                'Files retrieved successfully.', QuotationFileResource::collection($quotationFiles)
+            );
+        } else {
+            $quotationFiles = $quotation->files();
+
+            $proposalFiles = (clone $quotationFiles)->where('type', 'PROPOSAL')->get();
+            $requestedFiles = (clone $quotationFiles)->where('type', 'REQUESTED')->get();
+
+            if ($proposalFiles->isEmpty() && $requestedFiles->isEmpty()) {
+                return $this->success('No files available');
+            }
+
+            return $this->success('Files retrieved successfully.', [
+                'proposal_files' => QuotationFileResource::collection($proposalFiles),
+                'requested_files' => QuotationFileResource::collection($requestedFiles)
+            ]);
+        }        
     }
 
     /**

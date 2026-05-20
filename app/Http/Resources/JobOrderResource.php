@@ -78,6 +78,8 @@ class JobOrderResource extends JsonResource
             ] : null,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
+            'total_quotation_files' => $this->quotation->files()->where('type', 'PROPOSAL')->count(),
+            'total_documents' => $this->quotation->files()->where('type', 'REQUESTED')->count(),
             'quotation_file' => $quotationProposal ? [
                 'id' => $quotationProposal->id,
                 'file_name' => $quotationProposal->original_file_name,
@@ -92,7 +94,7 @@ class JobOrderResource extends JsonResource
                 'updated_at' => $quotationProposal->updated_at,
             ] : null,
             'documents' => $this->quotation->files()->where('type', 'REQUESTED')->exists()
-                ? $this->quotation->files()->where('type', 'REQUESTED')->get()->map(function($file) {
+                ? $this->quotation->files()->where('type', 'REQUESTED')->limit(2)->get()->map(function($file) {
                     return [
                         'id' => $file->id,
                         'file_name' => $file->original_file_name,
