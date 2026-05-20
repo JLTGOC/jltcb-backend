@@ -75,6 +75,8 @@ class ShipmentResource extends JsonResource
                     'role' => $this->operations?->getRoleNames()->first() ?? null,
                     'full_name' => $this->operations?->full_name,
                     'image_path' => $this->operations?->image_path ? asset(Storage::url($this->operations?->image_path)) : null,
+                    'email' => $this->operations?->email,
+                    'contact_number' => $this->operations?->contact_number,
                 ],
                 'status' => $this->status,
                 'date' => $this->created_at->format('Y-m-d'),
