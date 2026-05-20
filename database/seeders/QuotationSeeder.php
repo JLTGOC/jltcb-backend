@@ -86,17 +86,19 @@ class QuotationSeeder extends Seeder
                 'updated_at' => Carbon::now()->subDays(fake()->numberBetween(10, 20)),
             ]);
 
-            $quotation->files()->updateOrCreate([
-                'quotation_id' => $quotation->id,
-                'file_path' => 'files/ClientDoc.pdf' ?? 'files/ClientDoc1.pdf',
-            ], [
-                'uploaded_by' => $quotation->client_id,
-                'type' => 'REQUESTED',
-                'original_file_name' => 'DOCUMENT.pdf',
-                'file_type' => 'pdf',
-                'created_at' => $quotation->created_at,
-                'updated_at' => $quotation->updated_at,
-            ]);
+            for ($n=0; $n<3; $n++) {
+                $quotation->files()->updateOrCreate([
+                    'quotation_id' => $quotation->id,
+                    'file_path' => 'files/ClientDoc' . ($n+1) . '.pdf' ?? 'files/ClientDoc.pdf',
+                ], [
+                    'uploaded_by' => $quotation->client_id,
+                    'type' => 'REQUESTED',
+                    'original_file_name' => 'DOCUMENT.pdf',
+                    'file_type' => 'pdf',
+                    'created_at' => $quotation->created_at,
+                    'updated_at' => $quotation->updated_at,
+                ]);
+            }
 
             if ($serviceDomain === 'LOGISTICS') {
                 $num = fake()->numberBetween(1, 5);
