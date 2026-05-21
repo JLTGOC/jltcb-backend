@@ -125,7 +125,11 @@ class RoleSeeder extends Seeder
                         'dashboard.view',
                         'quotations.view',
                         'quotations.create',
-                        'shipments.view'
+                        'job_orders.view',
+                        'shipments.create',
+                        'shipments.view',
+                        'templates.view',
+                        'templates.create'
                     ])->get());
                     break;
             }
