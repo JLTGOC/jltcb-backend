@@ -4,13 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class QuotationHistory extends Model
+class ActivityLog extends Model
 {
-    protected $table = 'user_activities';
-
     protected $fillable = [
         'user_id',
-        'quotation_id',
+        'subject_id',
+        'subject_type',
         'action',
     ];
 
@@ -19,8 +18,8 @@ class QuotationHistory extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function quotation()
+    public function subject()
     {
-        return $this->belongsTo(Quotation::class, 'quotation_id');
+        return $this->morphTo();
     }
 }

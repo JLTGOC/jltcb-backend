@@ -86,4 +86,8 @@ class JobOrder extends Model implements Searchable
     public function latestReassignmentRequest() {
         return $this->hasOne(ReassignmentRequest::class)->latestOfMany();
     }
+
+    public function activities() {
+        return $this->morphMany(ActivityLog::class, 'subject');
+    }
 }

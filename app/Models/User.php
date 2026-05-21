@@ -136,11 +136,7 @@ class User extends Authenticatable implements Searchable
         return $this->hasMany(JobOrder::class, 'client_id');
     }
 
-    public function shipmentActivities() {
-        return $this->hasMany(ShipmentHistory::class, 'user_id');
-    }
-
-    public function quotationActivities() {
-        return $this->hasMany(QuotationHistory::class, 'user_id');
+    public function activities() {
+        return $this->morphMany(ActivityLog::class, 'subject');
     }
 }

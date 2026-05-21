@@ -66,12 +66,12 @@ class Shipment extends Model implements Searchable
         return $this->belongsTo(User::class, 'operations_id');
     }
 
-    public function shipmentActivities() {
-        return $this->hasMany(ShipmentHistory::class, 'shipment_id');
-    }
-
     public function jobOrderShipment() {
         return $this->hasOne(JobOrderShipment::class, 'job_order_id', 'job_order_id');
+    }
+
+    public function activities() {
+        return $this->morphMany(ActivityLog::class, 'subject');
     }
 
     protected $casts = [
