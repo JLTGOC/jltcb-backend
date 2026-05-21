@@ -16,6 +16,7 @@ class ClientDetailResource extends JsonResource
     {
         return [
             'client_id' => $this->id,
+            'client_name' => $this->full_name,
             'position' => $this->getRoleNames()->first(),
             'contact_number' => $this->contact_number,
             'email' => $this->email,
