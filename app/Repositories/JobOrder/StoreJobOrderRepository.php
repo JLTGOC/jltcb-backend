@@ -42,6 +42,8 @@ class StoreJobOrderRepository extends BaseRepository
             $referenceNumber = "{$prefix}-{$dateSection}-{$idSection}";
 
             try {
+                DB::beginTransaction();
+                
                 $jobOrder = JobOrder::create([
                     'reference_number' => $referenceNumber,
                     'job_type' => $request->job_type,

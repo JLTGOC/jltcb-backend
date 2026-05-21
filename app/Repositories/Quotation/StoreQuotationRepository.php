@@ -52,7 +52,7 @@ class StoreQuotationRepository extends BaseRepository
                 'contact_number' => $request->input('company.contact_number'),
                 'email' => $request->input('company.email'),
                 'position' => $request->input('company.position'),
-                'assignment_status' => $assignmentStatus ?? 'UNASSIGNED',
+                'assignment_status' => $assignmentStatus ?? 'AVAILABLE',
                 'assigned_at' => $assignedAt ?? null
             ]);
 
