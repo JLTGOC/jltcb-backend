@@ -22,6 +22,11 @@ class JobOrderShipment extends Model
         'commitment_remarks',
     ];
 
+    protected $casts = [
+        'eta' => 'datetime',
+        'etd' => 'datetime'
+    ];
+
     public function jobOrder()
     {
         return $this->belongsTo(JobOrder::class, 'job_order_id');
