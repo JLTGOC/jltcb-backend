@@ -80,4 +80,8 @@ class UserPolicy
         // Allow if user is updating their own profile or if they are an IT
         return $user->id === $model->id || $user->hasRole('IT');
     }
+
+    public function viewAccountsList(User $user): bool {
+        return $user->hasRole(['Lead Account Specialist', 'Account Specialist', 'IT', 'Operations']);
+    }
 }

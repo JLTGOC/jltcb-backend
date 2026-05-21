@@ -29,6 +29,8 @@ class ClientController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAccountsList', [User::class]);
+
         $request->validate([
             'filter.search' => 'sometimes|nullable|string|max:100',
             'per_page' => 'sometimes|integer|min:1|max:100',
@@ -95,6 +97,8 @@ class ClientController extends Controller
      */
     public function show(User $client)
     {
+        $this->authorize('viewAccountsList', $client);
+
         $client->loadCount([
             'quotations as quotations_pending_count' => fn ($q) =>
                 $q->whereNotIn('status', ['ACCEPTED']),
@@ -142,6 +146,8 @@ class ClientController extends Controller
      */
     public function summary()
     {
+        $this->authorize('viewAccountsList', [User::class]);
+        
         return $this->success(
             'Client summary fetched successfully',
             $this->userService->getSummary(RoleType::CLIENT)
@@ -154,6 +160,8 @@ class ClientController extends Controller
      * Display list client quotations
      */
     public function listQuotations(Request $request, User $client) {
+        $this->authorize('viewAccountsList', $client);
+
         $perPage = $request->input('per_page', 5);
 
         // Currently only include responded quotations
@@ -176,6 +184,8 @@ class ClientController extends Controller
      * Display list of client's shipments
      */
     public function listShipments(Request $request, User $client) {
+        $this->authorize('viewAccountsList', $client);
+
         $perPage = $request->input('per_page', 5);
         $shipments = $client->shipments()
             ->with(['jobOrder', 'quotation.logisticsService', 'jobOrderShipment', 'operations'])
@@ -196,6 +206,8 @@ class ClientController extends Controller
      * Display list of client's regulatory
      */
     public function listRegulatory(Request $request, User $client) {
+        $this->authorize('viewAccountsList', $client);
+
         $perPage = $request->input('per_page', 5);
         $regulatories = $client->quotations()->with(['regulatoryService', 'issuedQuotations', 'accountSpecialist'])
             ->has('regulatoryService')

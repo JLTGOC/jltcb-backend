@@ -24,6 +24,8 @@ class AccountSpecialistController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAccountsList', [User::class]);
+
         $request->validate([
             'filter.search' => 'sometimes|nullable|string',
             'filter.role' => 'sometimes|in:LEAD,REGULAR',
@@ -105,6 +107,8 @@ class AccountSpecialistController extends Controller
      */
     public function summary()
     {
+        $this->authorize('viewAccountsList', [User::class]);
+
         return $this->success(
             'Account Specialists fetched successfully',
             $this->userService->getSummary(RoleType::ACCOUNT_SPECIALIST)
