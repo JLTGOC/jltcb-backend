@@ -123,13 +123,10 @@ class RoleSeeder extends Seeder
                 case 'Client Success':
                     $role->syncPermissions(Permission::query()->where('guard_name', $guard)->whereIn('name', [
                         'dashboard.view',
-                        'quotations.view',
-                        'quotations.create',
                         'job_orders.view',
-                        'shipments.create',
+                        'job_orders.create',
                         'shipments.view',
-                        'templates.view',
-                        'templates.create'
+                        'shipments.create'
                     ])->get());
                     break;
             }

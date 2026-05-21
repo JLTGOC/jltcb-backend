@@ -45,11 +45,11 @@ class UserSeeder extends Seeder
             ['role' => 'Marketing', 'email' => 'marketing@gmail.com'],
             ['role' => 'Human Resource', 'email' => 'hr@gmail.com'],
             ['role' => 'IT', 'email' => 'it@gmail.com'],
-            ['role' => 'Client Success', 'email' => 'cs1@gmail.com'],
-            ['role' => 'Client Success', 'email' => 'cs2@gmail.com'],
-            ['role' => 'Client Success', 'email' => 'cs3@gmail.com'],
-            ['role' => 'Client Success', 'email' => 'cs4@gmail.com'],
-            ['role' => 'Client Success', 'email' => 'cs5@gmail.com'],
+            ['role' => 'Client Success', 'email' => 'csd1@gmail.com'],
+            ['role' => 'Client Success', 'email' => 'csd2@gmail.com'],
+            ['role' => 'Client Success', 'email' => 'csd3@gmail.com'],
+            ['role' => 'Client Success', 'email' => 'csd4@gmail.com'],
+            ['role' => 'Client Success', 'email' => 'csd5@gmail.com'],
         ];
 
         $profileImagePath = $this->copySeederFile('images', 'profile.jpg');
