@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class IssuedQuotation extends Model
@@ -14,6 +15,38 @@ class IssuedQuotation extends Model
         'message',
         'rate_validity'
     ];
+
+    public function getDaysUntilExpirationAttribute() : ?int {
+        return Carbon::now()->diffInDays($this->rate_validity);
+    }
+
+    public function shouldShowExpirationWarning() : bool {
+        $expirationWarningDays = 7;
+
+        return $this->quotation->status !== 'ACCEPTED'
+            && $this->days_until_expiration >= 0
+            && $this->days_until_expiration <= $expirationWarningDays;
+    }
+
+    public function getExpirationStatusAttribute(): ?string
+    {
+        if ($this->quotation->status === 'ACCEPTED') {
+            return null;
+        }
+
+        $expirationWarningDays = 7;
+        $days = $this->days_until_expiration;
+
+        if ($days < 0) {
+            return 'Expired';
+        }
+
+        if ($days <= $expirationWarningDays) {
+            return 'Soon to Expired';
+        }
+
+        return null;
+    }
 
     public function quotation()
     {
@@ -51,5 +84,6 @@ class IssuedQuotation extends Model
 
     protected $casts = [
         'issued_by' => 'integer',
+        'rate_validity' => 'datetime',
     ];
 }
