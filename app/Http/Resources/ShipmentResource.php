@@ -24,6 +24,11 @@ class ShipmentResource extends JsonResource
         $proposals = $originalFiles->get('PROPOSAL', collect())->take(2);
         $clientDocuments = $originalFiles->get('REQUESTED', collect())->take(2);
 
+        $shipmentHistory = $this->activities()->with('user')->get();
+        $jobOrderHistory = $this->jobOrder->activities()->with('user')->get();
+        $quotationHistory = $this->quotation->activities()->with('user')->get();
+        $mergedHistory = $shipmentHistory->concat($jobOrderHistory)->concat($quotationHistory)->sortByDesc('created_at')->values();
+
         $data = [
             'general_info' => [
                 'id' => $this->id,
@@ -110,18 +115,7 @@ class ShipmentResource extends JsonResource
                 'email' => $this->email,
             ];
 
-            $data['quotation_history'] = $this->quotation->quotationActivities()->with('user')->orderBy('created_at', 'desc')->get()->map(function ($activity) {
-                return [
-                    'id' => $activity->id,
-                    'action' => $activity->action,
-                    'user' => $activity->user->hasRole(['Account Specialist', 'Lead Account Specialist', 'Operations', 'Lead Operations']) 
-                        ? mb_strtoupper($activity->user->username) 
-                        : $activity->user->full_name,
-                    'datetime' => $activity->created_at->format('F d, Y h:i A'),
-                ];
-            });
-
-            $data['shipment_history'] = $this->shipmentActivities()->with('user')->orderBy('created_at', 'desc')->get()->map(function ($activity) {
+            $data['history'] = $mergedHistory->map(function ($activity) {
                 return [
                     'id' => $activity->id,
                     'action' => $activity->action,

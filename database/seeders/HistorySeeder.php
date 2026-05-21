@@ -4,10 +4,11 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\{
-    ShipmentHistory,
-    QuotationHistory,
+    ActivityLog,
+    JobOrder,
     Quotation,
     QuotationFile,
+    Shipment,
 };
 use Carbon\Carbon;
 
@@ -43,13 +44,15 @@ class HistorySeeder extends Seeder
             }
 
             if ($q->jobOrder) {
-                $asId = $q->jobOrder->as_id ?? null;
+                $jobOrder = $q->jobOrder;
+
+                $asId = $jobOrder->as_id ?? null;
                 if ($asId) {
-                    $this->createQuotationHistory($asId, $quotationId, 'Job Order Created', $q->jobOrder->created_at ?? null);
+                    $this->createJobOrderHistory($asId, $jobOrder->id, 'Job Order Created', $jobOrder->created_at ?? null);
                 }
-                $opsId = $q->jobOrder->operations_id ?? null;
+                $opsId = $jobOrder->operations_id ?? null;
                 if ($opsId) {
-                    $this->createQuotationHistory($opsId, $quotationId, 'Job Order Accepted', $q->jobOrder->assigned_at ?? null);
+                    $this->createJobOrderHistory($opsId, $jobOrder->id, 'Job Order Accepted', $jobOrder->assigned_at ?? null);
                 }
             }
 
@@ -72,7 +75,8 @@ class HistorySeeder extends Seeder
 
         $data = [
             'user_id' => $userId,
-            'quotation_id' => $quotationId,
+            'subject_id' => $quotationId,
+            'subject_type' => Quotation::class,
             'action' => $action,
         ];
 
@@ -80,7 +84,7 @@ class HistorySeeder extends Seeder
             $data['created_at'] = Carbon::parse($createdAt);
         }
 
-        QuotationHistory::create($data);
+        ActivityLog::create($data);
     }
 
     protected function createShipmentHistory($userId, $shipmentId, $action, $createdAt = null): void
@@ -91,7 +95,8 @@ class HistorySeeder extends Seeder
 
         $data = [
             'user_id' => $userId,
-            'shipment_id' => $shipmentId,
+            'subject_id' => $shipmentId,
+            'subject_type' => Shipment::class,
             'action' => $action,
         ];
 
@@ -99,7 +104,27 @@ class HistorySeeder extends Seeder
             $data['created_at'] = Carbon::parse($createdAt);
         }
 
-        ShipmentHistory::create($data);
+        ActivityLog::create($data);
+    }
+
+    protected function createJobOrderHistory($userId, $jobOrderId, $action, $createdAt = null): void
+    {
+        if (! $userId) {
+            return;
+        }
+
+        $data = [
+            'user_id' => $userId,
+            'subject_id' => $jobOrderId,
+            'subject_type' => JobOrder::class,
+            'action' => $action,
+        ];
+
+        if ($createdAt) {
+            $data['created_at'] = Carbon::parse($createdAt);
+        }
+
+        ActivityLog::create($data);
     }
 
     protected function appendShipmentStatusEvents($shipment, $userId): void

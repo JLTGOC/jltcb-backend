@@ -149,7 +149,7 @@ class QuotationResource extends JsonResource
                 : 'No documents available.',
             'remarks' => $isRegulatory ? null : $logisticsService?->remarks,
             'conversation_id' => $conversationId,
-            'history' => $request->routeIs('job-orders.quotation') ? $this->quotationActivities()->with('user')->orderBy('created_at', 'desc')->get()->map(function ($activity) {
+            'history' => $this->activities()->with('user')->orderBy('created_at', 'desc')->get()->map(function ($activity) {
                 return [
                     'id' => $activity->id,
                     'action' => $activity->action,
@@ -158,7 +158,7 @@ class QuotationResource extends JsonResource
                         : $activity->user->full_name,
                     'datetime' => $activity->created_at->format('F d, Y h:i A'),
                 ];
-            }) : null,
+            }),
         ];
 
         if ($isWeb) {
