@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Enums\RoleType;
 use App\Http\Resources\ClientDetailResource;
 use App\Http\Resources\ClientListResource;
+use App\Http\Resources\QuotationSummaryResource;
+use App\Http\Resources\RegulatorySummaryResource;
 use App\Http\Resources\ShipmentSummaryResource;
 use App\Services\UserService;
 use Illuminate\Http\Request;
@@ -151,8 +153,21 @@ class ClientController extends Controller
      * 
      * Display list client quotations
      */
-    public function listQuotations(User $client) {
-        return $client->quotations;
+    public function listQuotations(Request $request, User $client) {
+        $perPage = $request->input('per_page', 5);
+
+        // Currently only include responded quotations
+        $quotations = $client->quotations()->with(['issuedQuotations.issuedBy', 'creator'])
+            ->has('issuedQuotations')
+            ->latest()
+            ->paginate($perPage);
+
+        return $this->success('Client quotation fetched successfully', 
+            [
+                'quotations' => QuotationSummaryResource::collection($quotations),
+                'pagination' => $this->pagePaginationData($quotations)
+            ]
+        );
     }
 
     /**
@@ -160,10 +175,19 @@ class ClientController extends Controller
      * 
      * Display list of client's shipments
      */
-    public function listShipments(User $client) {
-        $shipments = $client->shipments->load(['jobOrder', 'quotation.logisticsService', 'jobOrderShipment', 'operations']);
+    public function listShipments(Request $request, User $client) {
+        $perPage = $request->input('per_page', 5);
+        $shipments = $client->shipments()
+            ->with(['jobOrder', 'quotation.logisticsService', 'jobOrderShipment', 'operations'])
+            ->latest()
+            ->paginate($perPage);
 
-        return $this->success('Shipment Summary fetched successfully', ShipmentSummaryResource::collection($shipments));
+        return $this->success('Shipment Summary fetched successfully', 
+            [
+                'shipments' => ShipmentSummaryResource::collection($shipments),
+                'pagination' => $this->pagePaginationData($shipments)
+            ]
+        );
     }
 
     /**
@@ -171,7 +195,18 @@ class ClientController extends Controller
      * 
      * Display list of client's regulatory
      */
-    public function listRegulatory(User $client) {
-        return 'regulatory';
+    public function listRegulatory(Request $request, User $client) {
+        $perPage = $request->input('per_page', 5);
+        $regulatories = $client->quotations()->with(['regulatoryService', 'issuedQuotations', 'accountSpecialist'])
+            ->has('regulatoryService')
+            ->has('issuedQuotations')
+            ->paginate($perPage);
+
+        return $this->success('Regulatories fetched successfully', 
+            [
+                'regulatory' =>  RegulatorySummaryResource::collection($regulatories),
+                'pagination' => $this->pagePaginationData($regulatories)
+            ]
+        );
     }
 }
