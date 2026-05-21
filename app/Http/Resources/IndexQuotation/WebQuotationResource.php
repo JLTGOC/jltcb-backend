@@ -68,7 +68,7 @@ class WebQuotationResource extends JsonResource
             'status' => $this->status,
             'assignment_status' => $this->assignment_status,
             'account_specialist' =>  $as,
-            'as_profile_image' => $this->accountSpecialist->image_path ? asset(Storage::url($this->accountSpecialist?->image_path)) : null,
+            'as_profile_image' => $this->accountSpecialist ? asset(Storage::url($this->accountSpecialist?->image_path)) : null,
             'assigned_at' => $this->assigned_at ? Carbon::parse($this->assigned_at)->format($dateFormat) : null,
             'reassignment_request_id' => $reassignmentRequest ? $reassignmentRequest->id : null,
             'requested_at' => $reassignmentRequest ? Carbon::parse($reassignmentRequest->created_at)->format($dateFormat) : null,
