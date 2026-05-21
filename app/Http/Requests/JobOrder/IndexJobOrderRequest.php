@@ -32,7 +32,7 @@ class IndexJobOrderRequest extends FormRequest
             'filter.service' => 'sometimes|string|in:LOGISTICS,REGULATORY,ALL',
             'filter.assignment_status' => $assignmentStatusRule,
             'filter.service_type' => 'sometimes|string|in:IMPORT,EXPORT',
-            'filter.completion_status' => 'sometimes|string|in:COMPLETED,IN PROGRESS',
+            'filter.completion_status' => 'sometimes|string|in:CREATED,PROCESSED',
             'search' => 'sometimes|string',
             'ops_search' => 'sometimes|string',
             'client_type' => 'sometimes|string|in:OLD,NEW',

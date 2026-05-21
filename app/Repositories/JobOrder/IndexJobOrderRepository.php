@@ -192,11 +192,11 @@ class IndexJobOrderRepository extends BaseRepository
                 }),
                 AllowedFilter::exact('service_type', 'jobOrderClient.service_type'),
                 AllowedFilter::callback('completion_status', function ($query, $value) {
-                    if ($value === 'COMPLETED') {
+                    if ($value === 'PROCESSED') {
                         return $query->whereHas('shipment', function ($q) {
                             $q->where('status', 'DELIVERED');
                         })->orWhere('job_type', 'REGULATORY');
-                    } elseif ($value === 'IN PROGRESS') {
+                    } elseif ($value === 'CREATED') {
                         return $query->whereHas('shipment', function ($q) {
                             $q->where('status', '!=', 'DELIVERED');
                         })->orWhere('job_type', 'REGULATORY');
