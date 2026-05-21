@@ -8,7 +8,7 @@ use App\Models\JobOrderBilling;
 use App\Models\JobOrderClient;
 use App\Models\JobOrderShipment;
 use App\Models\Quotation;
-use App\Models\QuotationHistory;
+use App\Models\ActivityLog;
 use App\Repositories\BaseRepository;
 use Illuminate\Support\Facades\DB;
 
@@ -43,7 +43,7 @@ class StoreJobOrderRepository extends BaseRepository
 
             try {
                 DB::beginTransaction();
-                
+
                 $jobOrder = JobOrder::create([
                     'reference_number' => $referenceNumber,
                     'job_type' => $request->job_type,
@@ -86,8 +86,9 @@ class StoreJobOrderRepository extends BaseRepository
                     'shall_be_billed' => $request->billing['shall_be_billed'] ?? null,
                 ]);
 
-                $activityLog = QuotationHistory::create([
-                    'quotation_id' => $quotation->id,
+                $activityLog = ActivityLog::create([
+                    'subject_id' => $jobOrder->id,
+                    'subject_type' => JobOrder::class,
                     'user_id' => auth()->id(),
                     'action' => 'Job Order Created',
                 ]);
@@ -125,8 +126,9 @@ class StoreJobOrderRepository extends BaseRepository
                     'client_remarks' => $request->client['remarks'] ?? null,
                 ]);
 
-                $activityLog = QuotationHistory::create([
-                    'quotation_id' => $quotation->id,
+                $activityLog = ActivityLog::create([
+                    'subject_id' => $jobOrder->id,
+                    'subject_type' => JobOrder::class,
                     'user_id' => auth()->id(),
                     'action' => 'Job Order Created',
                 ]);

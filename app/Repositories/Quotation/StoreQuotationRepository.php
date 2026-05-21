@@ -5,7 +5,7 @@ namespace App\Repositories\Quotation;
 use App\Http\Resources\QuotationResource;
 use App\Models\Quotation;
 use App\Models\User;
-use App\Models\QuotationHistory;
+use App\Models\ActivityLog;
 use App\Repositories\BaseRepository;
 use App\Services\QuotationFileService;
 use Carbon\Carbon;
@@ -100,9 +100,10 @@ class StoreQuotationRepository extends BaseRepository
                 return $this->error($fileUploaded->getMessage());
             }
 
-            $activityLog = QuotationHistory::create([
+            $activityLog = ActivityLog::create([
+                'subject_id' => $quotation->id,
+                'subject_type' => Quotation::class,
                 'user_id' => $user->id,
-                'quotation_id' => $quotation->id,
                 'action' => 'Quotation Requested',
             ]);
 

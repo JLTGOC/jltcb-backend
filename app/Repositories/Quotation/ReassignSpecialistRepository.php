@@ -5,7 +5,7 @@ namespace App\Repositories\Quotation;
 use App\Http\Resources\QuotationResource;
 use App\Models\ReassignmentRequest;
 use App\Models\User;
-use App\Models\QuotationHistory;
+use App\Models\ActivityLog;
 use App\Repositories\BaseRepository;
 use Carbon\Carbon;
 
@@ -29,9 +29,10 @@ class ReassignSpecialistRepository extends BaseRepository
                 'status' => 'REJECTED'
             ]);
 
-            $activityLog = QuotationHistory::create([
+            $activityLog = ActivityLog::create([
+                'subject_id' => $quotation->id,
+                'subject_type' => Quotation::class,
                 'user_id' => auth()->id(),
-                'quotation_id' => $quotation->id,
                 'action' => 'Reassignment Rejected',
             ]);
 
@@ -56,9 +57,10 @@ class ReassignSpecialistRepository extends BaseRepository
                 'status' => 'APPROVED'
             ]);
 
-            $activityLog = QuotationHistory::create([
+            $activityLog = ActivityLog::create([
+                'subject_id' => $quotation->id,
+                'subject_type' => Quotation::class,
                 'user_id' => auth()->id(),
-                'quotation_id' => $quotation->id,
                 'action' => 'Account Specialist Reassigned',
             ]);
 

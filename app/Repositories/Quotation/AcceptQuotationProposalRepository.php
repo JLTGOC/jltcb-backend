@@ -4,7 +4,7 @@ namespace App\Repositories\Quotation;
 
 use App\Http\Resources\QuotationResource;
 use App\Repositories\BaseRepository;
-use App\Models\QuotationHistory;
+use App\Models\ActivityLog;
 
 class AcceptQuotationProposalRepository extends BaseRepository
 {
@@ -13,9 +13,10 @@ class AcceptQuotationProposalRepository extends BaseRepository
             'status' => 'ACCEPTED',
         ]);
 
-        $activityLog = QuotationHistory::create([
+        $activityLog = ActivityLog::create([
+            'subject_id' => $quotation->id,
+            'subject_type' => Quotation::class,
             'user_id' => auth()->id(),
-            'quotation_id' => $quotation->id,
             'action' => 'Quotation Accepted By Client',
         ]);
 

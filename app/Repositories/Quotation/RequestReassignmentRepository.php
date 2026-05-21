@@ -3,7 +3,7 @@
 namespace App\Repositories\Quotation;
 
 use App\Models\ReassignmentRequest;
-use App\Models\QuotationHistory;
+use App\Models\ActivityLog;
 use App\Repositories\BaseRepository;
 
 class RequestReassignmentRepository extends BaseRepository
@@ -33,9 +33,10 @@ class RequestReassignmentRepository extends BaseRepository
             'status' => 'PENDING'
         ]);
 
-        $activityLog = QuotationHistory::create([
+        $activityLog = ActivityLog::create([
+            'subject_id' => $quotation->id,
+            'subject_type' => Quotation::class,
             'user_id' => auth()->id(),
-            'quotation_id' => $quotation->id,
             'action' => 'Reassignment Requested',
         ]);
 

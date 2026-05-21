@@ -6,7 +6,7 @@ use App\Repositories\BaseRepository;
 use App\Http\Resources\QuotationResource;
 use Carbon\Carbon;
 use App\Models\ReassignmentRequest;
-use App\Models\QuotationHistory;
+use App\Models\ActivityLog;
 
 class AcceptQuotationAssignmentRepository extends BaseRepository
 {
@@ -23,9 +23,10 @@ class AcceptQuotationAssignmentRepository extends BaseRepository
             ]);
         }
 
-        $activityLog = QuotationHistory::create([
+        $activityLog = ActivityLog::create([
+            'subject_id' => $quotation->id,
+            'subject_type' => Quotation::class,
             'user_id' => auth()->id(),
-            'quotation_id' => $quotation->id,
             'action' => 'Quotation Assignment Accepted',
         ]);
 

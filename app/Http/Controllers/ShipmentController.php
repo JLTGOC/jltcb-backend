@@ -11,7 +11,7 @@ use App\Models\{
     Conversation,
     User,
     JobOrder,
-    ShipmentHistory,
+    ActivityLog,
 };
 use App\Http\Resources\ShipmentResource;
 use Carbon\Carbon;
@@ -236,9 +236,10 @@ class ShipmentController extends Controller
                 'shipment_creation_status' => 'CREATED'
             ]);
 
-            $activityLog = ShipmentHistory::create([
-                'shipment_id' => $shipment->id,
+            $activityLog = ActivityLog::create([
                 'user_id' => auth()->id(),
+                'subject_id' => $shipment->id,
+                'subject_type' => Shipment::class,
                 'action' => 'Shipment Created',
             ]);
 
@@ -288,9 +289,10 @@ class ShipmentController extends Controller
             ]);
         }
 
-        $activityLog = ShipmentHistory::create([
-            'shipment_id' => $shipment->id,
+        $activityLog = ActivityLog::create([
             'user_id' => auth()->id(),
+            'subject_id' => $shipment->id,
+            'subject_type' => Shipment::class,
             'action' => 'Shipment ' . ucwords(mb_strtolower($shipment->status)),
         ]);
 

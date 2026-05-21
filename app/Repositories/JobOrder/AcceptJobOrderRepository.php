@@ -3,7 +3,7 @@
 namespace App\Repositories\JobOrder;
 
 use App\Http\Resources\JobOrderResource;
-use App\Models\QuotationHistory;
+use App\Models\ActivityLog;
 use App\Repositories\BaseRepository;
 use Carbon\Carbon;
 
@@ -23,8 +23,9 @@ class AcceptJobOrderRepository extends BaseRepository
             ]);
         }
 
-        $activityLog = QuotationHistory::create([
-            'quotation_id' => $jobOrder->quotation->id,
+        $activityLog = ActivityLog::create([
+            'subject_id' => $jobOrder->id,
+            'subject_type' => JobOrder::class,
             'user_id' => auth()->id(),
             'action' => 'Job Order Accepted',
         ]);

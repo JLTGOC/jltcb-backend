@@ -2,7 +2,7 @@
 
 namespace App\Repositories\JobOrder;
 
-use App\Models\QuotationHistory;
+use App\Models\ActivityLog;
 use App\Models\ReassignmentRequest;
 use App\Models\User;
 use App\Repositories\BaseRepository;
@@ -26,8 +26,9 @@ class ReassignOpsRepository extends BaseRepository
                 'status' => 'REJECTED',
             ]);
 
-            $activityLog = QuotationHistory::create([
-                'quotation_id' => $jobOrder->quotation->id,
+            $activityLog = ActivityLog::create([
+                'subject_id' => $jobOrder->id,
+                'subject_type' => JobOrder::class,
                 'user_id' => auth()->id(),
                 'action' => 'Reassignment Request Rejected',
             ]);
@@ -53,8 +54,9 @@ class ReassignOpsRepository extends BaseRepository
                 'status' => 'APPROVED',
             ]);
 
-            $activityLog = QuotationHistory::create([
-                'quotation_id' => $jobOrder->quotation->id,
+            $activityLog = ActivityLog::create([
+                'subject_id' => $jobOrder->id,
+                'subject_type' => JobOrder::class,
                 'user_id' => auth()->id(),
                 'action' => 'Reassignment Request Approved',
             ]);
