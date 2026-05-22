@@ -85,8 +85,8 @@ class IndexQuotationRepository extends BaseRepository
                     return $this->success('No quotations found', [
                         'counts' => [
                             'all_quotations' => $allQuotationsCount,
-                            'old_user_quotations' => $oldUserQuotationsCount,
-                            'new_user_quotations' => $newUserQuotationsCount,
+                            'logistics_quotations' => $logisticsCount,
+                            'regulatory_quotations' => $regulatoryCount,
                         ],
                         'quotations' => [],
                         'my_quotations' => $myQuotationsResults,
