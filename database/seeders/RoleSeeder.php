@@ -126,7 +126,8 @@ class RoleSeeder extends Seeder
                         'job_orders.view',
                         'job_orders.create',
                         'shipments.view',
-                        'shipments.create'
+                        'shipments.create',
+                        'quotations.view',
                     ])->get());
                     break;
                 case 'Lead Client Success':
@@ -135,7 +136,8 @@ class RoleSeeder extends Seeder
                         'job_orders.view',
                         'job_orders.create',
                         'shipments.view',
-                        'shipments.create'
+                        'shipments.create',
+                        'quotations.view',
                     ])->get());
                     break;
             }

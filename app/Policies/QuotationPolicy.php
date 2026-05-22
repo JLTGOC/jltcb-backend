@@ -88,7 +88,7 @@ class QuotationPolicy
      */
     public function showFile(User $user, Quotation $quotation): bool
     {
-        return $user->id === $quotation->client_id || $user->id === $quotation->as_id || $user->hasRole(['Lead Account Specialist']);
+        return $user->id === $quotation->client_id || $user->hasRole(['Lead Account Specialist', 'ACcount Specialist', 'Operations', 'Lead Operations', 'Client Success', 'Lead Client Success']);
     }
 
     /**
