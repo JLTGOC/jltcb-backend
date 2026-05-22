@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\Broadcast;
 
 require __DIR__ . '/public_routes.php';
 
-Route::post('auth/login', [AuthController::class, 'login'])->middleware('throttle:login');
+Route::post('auth/login', [AuthController::class, 'login'])->middleware(['web', 'throttle:login']);
 
 Broadcast::routes(['middleware' => ['auth:sanctum']]);
 

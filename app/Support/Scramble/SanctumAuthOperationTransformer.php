@@ -15,7 +15,9 @@ class SanctumAuthOperationTransformer implements OperationTransformer
 
         foreach ($middlewares as $middleware) {
             if (str_starts_with($middleware, 'auth:sanctum')) {
-                $operation->addSecurity(new SecurityRequirement(['sanctum' => []]));
+                // The browser sends the session cookie automatically when credentials are included.
+                // Only the XSRF header needs to be supplied explicitly in docs.
+                $operation->addSecurity(new SecurityRequirement(['xsrfToken' => []]));
                 break;
             }
         }

@@ -29,7 +29,20 @@ return [
         /*
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
-        'description' => '',
+        'description' => <<<'MD'
+        ## Authentication
+        
+        This API uses **Laravel Sanctum cookie-based authentication**.
+        
+        ### Steps to authenticate in the docs:
+        
+        1. **GET** `/sanctum/csrf-cookie` — initializes the CSRF cookie (`XSRF-TOKEN`)
+        2. Copy the `XSRF-TOKEN` cookie value
+        3. **POST** `/api/login` with `{ "email": "...", "password": "..." }` and the `X-XSRF-TOKEN` header set to the value from step 2
+        4. For all subsequent requests, set the `X-XSRF-TOKEN` header to the same value
+        
+        > In a browser/SPA context, Axios handles this automatically via `withCredentials: true` and `withXSRFToken: true`.
+        MD,
     ],
 
     /*
@@ -73,6 +86,7 @@ return [
          * - stacked - Everything in a single column, making integrations with existing websites that have their own sidebar or other columns already.
          */
         'layout' => 'responsive',
+        'try_it_credentials_policy' => 'include',
     ],
 
     /*

@@ -50,7 +50,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $platform = strtolower($request->header('Platform', 'mobile'));
-        $isWeb = $platform === 'web';
+        $isWeb = $platform === 'web' || $request->hasHeader('X-XSRF-TOKEN');
 
         $key = Str::lower($request->email).'|'.$request->ip();
         $decay = min(60 * pow(2, RateLimiter::attempts($key)), 3600);
@@ -87,7 +87,9 @@ class AuthController extends Controller
             $user = auth()->user();
 
             if ($isWeb) {
-                $request->session()->regenerate();
+                if ($request->hasSession()) {
+                    $request->session()->regenerate();
+                }
 
                 RateLimiter::clear($key);
 
@@ -110,13 +112,15 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $platform = strtolower($request->header('Platform', 'mobile'));
-        $isWeb = $platform === 'web';
+        $isWeb = $platform === 'web' || $request->hasHeader('X-XSRF-TOKEN');
         
         if ($isWeb) {
             Auth::guard('web')->logout();
 
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+            if ($request->hasSession()) {
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
 
             return $this->success('Logout successful');
         }

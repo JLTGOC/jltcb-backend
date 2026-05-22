@@ -43,13 +43,31 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Scramble::configure()->withOperationTransformers(function (Operation $operation) {
+            $operation->addParameters([
+                Parameter::make('Platform', 'header')
+                    ->description("Use this header to toggle between mobile and web-specific response data. Defaults to mobile if omitted.")
+                    ->setSchema(Schema::fromType(new StringType()))
+                    ->required(false)
+                    ->example('web / mobile'),
+                Parameter::make('X-XSRF-TOKEN', 'header')
+                    ->description("CSRF token value from the XSRF-TOKEN cookie. Required for POST/PUT/PATCH/DELETE requests. Obtain by calling GET /sanctum/csrf-cookie first.")
+                    ->setSchema(Schema::fromType(new StringType()))
+                    ->required(false),
+            ]);
+        });
         // Add bearer auth scheme to the generated OpenAPI document
         Scramble::afterOpenApiGenerated(function (OpenApi $openApi) {
             $openApi->components->addSecurityScheme(
-                'sanctum',
-                SecurityScheme::http('bearer', 'Sanctum')
-                    ->as('sanctum')
-                    ->setDescription('Use Sanctum bearer token in the Authorization header (Authorization: Bearer <token>)'),
+                'sessionAuth',
+                SecurityScheme::apiKey('cookie', 'laravel_session')
+                    ->setDescription('Session cookie set after POST /api/login. Call GET /sanctum/csrf-cookie first to initialize the CSRF token.')
+            );
+
+            $openApi->components->addSecurityScheme(
+                'xsrfToken',
+                SecurityScheme::apiKey('header', 'X-XSRF-TOKEN')
+                    ->setDescription('CSRF token from the XSRF-TOKEN cookie. Required for all state-mutating requests (POST, PUT, PATCH, DELETE).')
             );
         });
 
