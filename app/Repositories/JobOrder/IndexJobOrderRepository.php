@@ -31,7 +31,7 @@ class IndexJobOrderRepository extends BaseRepository
         $logisticsCount = JobOrder::where('job_type', 'LOGISTICS')->count();
         $regulatoryCount = JobOrder::where('job_type', 'REGULATORY')->count();
 
-        [$jobOrdersQuery, $myJobOrdersQuery] = $this->buildBaseQueries($user);
+        [$jobOrdersQuery, $myJobOrdersQuery] = $this->buildBaseQueries($user, $isWeb);
 
         $jobOrders = $this->applyAllowedFilters($jobOrdersQuery);
         $myJobOrders = $myJobOrdersQuery ? $this->applyAllowedFilters($myJobOrdersQuery) : null;
@@ -145,23 +145,33 @@ class IndexJobOrderRepository extends BaseRepository
         };
     }
 
-    private function buildBaseQueries($user): array
+    private function buildBaseQueries($user, $isWeb): array
     {
         if ($user->hasRole('Lead Account Specialist')) {
             return [JobOrder::query()->whereNot('shipment_creation_status', 'CREATED'), null];
         } elseif ($user->hasRole('Account Specialist')) {
             return [JobOrder::query()->whereNot('shipment_creation_status', 'CREATED')->where('as_id', $user->id), null];
-        } elseif ($user->hasRole('Lead Operations')) {
-            return [JobOrder::query()->whereNot('shipment_creation_status', 'CREATED'), JobOrder::query()->where('operations_id', $user->id)];
-        } elseif ($user->hasRole('Operations')) {
+        } elseif ($user->hasRole(['Lead Operations', 'Lead Client Success'])) {
+            if ($isWeb) {
+                return [
+                    JobOrder::query()->whereNot('shipment_creation_status', 'CREATED'),
+                    JobOrder::query()->whereNot('shipment_creation_status', 'CREATED')->where('operations_id', $user->id),
+                ];
+            }
             return [
-                JobOrder::query()->whereNot('shipment_creation_status', 'CREATED')->whereNot('assignment_status', 'ASSIGNED'),
-                JobOrder::query()->whereNot('shipment_creation_status', 'CREATED')->where('operations_id', $user->id),
+                JobOrder::query(),
+                JobOrder::query()->where('operations_id', $user->id)
             ];
-        } elseif ($user->hasRole('Client Success')) {
+        } elseif ($user->hasRole(['Operations', 'Client Success'])) {
+            if ($isWeb) {
+                return [
+                    JobOrder::query()->whereNot('shipment_creation_status', 'CREATED')->whereNot('assignment_status', 'ASSIGNED'),
+                    JobOrder::query()->whereNot('shipment_creation_status', 'CREATED')->where('operations_id', $user->id),
+                ];
+            }
             return [
-                JobOrder::query()->whereNot('shipment_creation_status', 'CREATED')->whereNot('assignment_status', 'ASSIGNED'),
-                JobOrder::query()->whereNot('shipment_creation_status', 'CREATED')->where('operations_id', $user->id),
+                JobOrder::query()->whereNot('assignment_status', 'ASSIGNED'),
+                JobOrder::query()->where('operations_id', $user->id),
             ];
         }
         return [JobOrder::query()->whereNot('shipment_creation_status', 'CREATED')->where('client_id', $user->id), null];
@@ -198,13 +208,9 @@ class IndexJobOrderRepository extends BaseRepository
                 AllowedFilter::exact('service_type', 'jobOrderClient.service_type'),
                 AllowedFilter::callback('completion_status', function ($query, $value) {
                     if ($value === 'PROCESSED') {
-                        return $query->whereHas('shipment', function ($q) {
-                            $q->where('status', 'DELIVERED');
-                        })->orWhere('job_type', 'REGULATORY');
+                        return $query->where('shipment_creation_status', 'CREATED');
                     } elseif ($value === 'CREATED') {
-                        return $query->whereHas('shipment', function ($q) {
-                            $q->where('status', '!=', 'DELIVERED');
-                        })->orWhere('job_type', 'REGULATORY');
+                        return $query->where('shipment_creation_status', 'PENDING');
                     }
                 }),
             ]);
