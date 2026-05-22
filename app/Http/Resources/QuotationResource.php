@@ -76,7 +76,7 @@ class QuotationResource extends JsonResource
             'issued_quotation_id' => $issuedQuotation,
             'job_order' => $request->routeIs('job-orders.quotation') || $platform === 'mobile' ? [
                 'reference_number' => $this->jobOrder->reference_number ?? null,
-                'person_in_charge' => $this->jobOrder
+                'person_in_charge' => $this->jobOrder && $this->jobOrder->operations
                     ? mb_strtoupper($this->jobOrder->operations->username) . ' ' . mb_strtoupper($this->jobOrder->operations->last_name)
                     : null,
             ] : null,
