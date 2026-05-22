@@ -40,8 +40,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             UserSeeder::class,
-            ArticleSeeder::class,
-            ReelSeeder::class,
+            // ArticleSeeder::class,
+            // ReelSeeder::class,
             ServiceTypeSeeder::class,
             ServiceOptionSeeder::class,
             BusinessTypeSeeder::class,
@@ -51,13 +51,13 @@ class DatabaseSeeder extends Seeder
             ServiceLevelSeeder::class,
             QuotationSeeder::class,
             QuotationFileSeeder::class,
-            ChatSeeder::class,
+            // ChatSeeder::class,
             ConfigurationSeeder::class,
             QuotationFieldSeeder::class,
             TemplateSeeder::class,
             IssuedQuotationSeeder::class,
-            ReassignmentRequestSeeder::class,
-            HistorySeeder::class,
+            // ReassignmentRequestSeeder::class,
+            // HistorySeeder::class,
         ]);
     }
 }

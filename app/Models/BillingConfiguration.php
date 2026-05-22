@@ -10,7 +10,7 @@ class BillingConfiguration extends Model
 {
     protected $table = 'billing_configurations';
 
-    protected $fillable = ['label', 'type'];
+    protected $fillable = ['label', 'type', 'isFixed'];
 
     public function templateCharges() {
         return $this->belongsToMany(

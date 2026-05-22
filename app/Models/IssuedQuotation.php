@@ -13,7 +13,9 @@ class IssuedQuotation extends Model
         'issued_by',
         'subject',
         'message',
-        'rate_validity'
+        'rate_validity',
+        'uom',
+        'currency'
     ];
 
     public function getDaysUntilExpirationAttribute() : ?int {

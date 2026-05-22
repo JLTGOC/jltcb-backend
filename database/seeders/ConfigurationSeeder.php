@@ -72,13 +72,21 @@ class ConfigurationSeeder extends Seeder
         $this->seedMessageTemplateRecords();
     }
 
-    private function createConfigValues(string $modelClass, array $configGroupType) {
-        foreach($configGroupType as $type => $values) {
-            foreach($values as $value) {
-                $modelClass::create([
+    private function createConfigValues(string $modelClass, array $configGroupType)
+    {
+        foreach ($configGroupType as $type => $values) {
+            foreach ($values as $value) {
+
+                $data = [
                     'type' => $type,
                     'label' => $value,
-                ]);
+                ];
+                
+                if ($modelClass === BillingConfiguration::class) {
+                    $data['isFixed'] = true;
+                }
+
+                $modelClass::create($data);
             }
         }
     }

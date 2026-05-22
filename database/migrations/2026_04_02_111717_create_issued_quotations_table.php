@@ -22,6 +22,9 @@ return new class extends Migration
             $table->string('subject');
             $table->text('message');
             $table->date('rate_validity');
+
+            $table->string('uom');
+            $table->string('currency');
             $table->timestamps();
         });
 
@@ -51,8 +54,8 @@ return new class extends Migration
                 ->constrained('issued_quotation_charges')
                 ->cascadeOnDelete();
             $table->string('receipt_charge_label');
-            $table->string('currency_label');
-            $table->string('uom_label');
+            $table->unsignedInteger('quantity')->nullable();
+            $table->string('container_size')->nullable();
             $table->decimal('amount', 15, 2)->default(0);
             $table->unique(['issued_quotation_charge_id', 'receipt_charge_label'], 'charge_receipt_option_unique');
             $table->timestamps();

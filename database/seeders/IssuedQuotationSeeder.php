@@ -22,13 +22,17 @@ class IssuedQuotationSeeder extends Seeder
 
         foreach($quotations as $quotation) {
             $quotationTemplate = QuotationTemplate::find($quotation->has('regulatoryService') ? 2 : 1);
+            $currency = fake()->randomElement(BillingConfiguration::currencies()->pluck('label'));
+            $uom = fake()->randomElement(BillingConfiguration::uoms()->pluck('label'));
 
             $issuedQuotation = $quotation->issuedQuotations()->create([
                 'template_id' => $quotationTemplate->id,
                 'issued_by' => $quotation->as_id,
                 'subject' => 'Sample Quotation Subject',
                 'message' => 'Sample Quotation Message',
-                'rate_validity' => fake()->dateTimeBetween('+3 days', '+3 months')
+                'rate_validity' => fake()->dateTimeBetween('+3 days', '+3 months'),
+                'currency'       => $currency,
+                'uom'            => $uom,
             ]);
 
             $detailConfigs = $quotationTemplate->detailConfigs;
@@ -40,7 +44,6 @@ class IssuedQuotationSeeder extends Seeder
             }
 
             $templateCharges = $quotationTemplate->templateCharges;
-            $availableCurrency = fake()->randomElement(BillingConfiguration::currencies()->pluck('label'));
 
             foreach($templateCharges as $templateCharge) {
                 $charge = $issuedQuotation->charges()->create([
@@ -49,14 +52,11 @@ class IssuedQuotationSeeder extends Seeder
 
                 $allowedReceiptCharge = $templateCharge->allowedReceiptCharges()->pluck('label');
                 $randomReceiptChargeCount = fake()->numberBetween(1, $allowedReceiptCharge->count());
-                $availableUoms = BillingConfiguration::uoms()->pluck('label');
 
                 $randomReceiptCharges = fake()->randomElements($allowedReceiptCharge, $randomReceiptChargeCount);
                 foreach($randomReceiptCharges as $randomReceiptCharge) {
                     $charge->items()->create([
                         'receipt_charge_label' => $randomReceiptCharge,
-                        'currency_label'       => $availableCurrency,
-                        'uom_label'            => fake()->randomElement($availableUoms),
                         'amount'               => fake()->numberBetween(1000, 20000),
                     ]);
                 }

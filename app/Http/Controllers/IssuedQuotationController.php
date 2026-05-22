@@ -56,7 +56,9 @@ class IssuedQuotationController extends Controller
                 'issued_by' => $as->id,
                 'subject' => $request->subject,
                 'message' => $request->message,
-                'rate_validity' => $request->rate_validity
+                'rate_validity' => $request->rate_validity,
+                'uom' => $request->uom,
+                'currency' => $request->currency,
             ]);
 
             $issuedQuotation->detailValues()->createMany($request->detail_values);
@@ -67,7 +69,20 @@ class IssuedQuotationController extends Controller
                     'subtotal' => collect($charge['items'])->sum('amount'),
                 ]);
 
-                $chargeRecord->items()->createMany($charge['items']);
+                // $chargeRecord->items()->createMany($charge['items']);
+                foreach ($chargeRecord->items() as $chargeItem) {
+                    $data = [
+                        'receipt_charge_label' => $chargeItem['receipt_charge_label'], 
+                        'amount' => $chargeItem['amount'], 
+                    ];
+
+                    if ($request->uom === 'PER CONTAINER') {
+                        $data['quantity'] = $chargeItem['quantity']; 
+                        $data['container_size'] = $chargeItem['container_size']; 
+                    }
+
+                    $chargeItem->create($data);
+                }
             }
 
             $issuedQuotation->standardConfig()->create($request->standard_config);

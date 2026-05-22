@@ -9,9 +9,9 @@ class IssuedQuotationChargeItems extends Model
     protected $fillable = [
         'issued_quotation_charge_id',  
         'receipt_charge_label',
-        'currency_label',
-        'uom_label',
-        'amount'
+        'amount',
+        'quantity',
+        'container_size'
     ];
 
     public function charge() {

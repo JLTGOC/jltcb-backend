@@ -32,6 +32,9 @@ class IssuedQuotationResource extends JsonResource
             'message' => $this->message,
             'rate_validity' => $this->rate_validity,
 
+            'uom' => $this->uom,
+            'currency' => $this->currency,
+
             'quotation_details' => $this->whenLoaded('detailValues', function () {
                 return $this->detailValues->map(function ($detail) {
                     return [
@@ -50,9 +53,9 @@ class IssuedQuotationResource extends JsonResource
                             'items' => $charge->relationLoaded('items')
                                 ? $charge->items->map(fn($item) => [
                                     'receipt_charge_label' => $item->receipt_charge_label,
-                                    'currency_label' => $item->currency_label,
-                                    'uom_label' => $item->uom_label,
                                     'amount' => $item->amount,
+                                    'quantity' => $this->when($item->quantity, $item->quantity) ,
+                                    'container_size' => $this->when($item->container_size, $item->container_size),
                                 ])
                                 : null,
                         ];

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('label')->unique();
             $table->enum('type', ['CURRENCY', 'UOM', 'RECEIPT CHARGES']);
+            $table->boolean('isFixed')->default(false);
             $table->timestamps();
         });
 
