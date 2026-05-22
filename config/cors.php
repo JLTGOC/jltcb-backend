@@ -21,7 +21,7 @@ return [
 
     'allowed_origins' => ($origins = env('CORS_ALLOWED_ORIGINS'))
         ? array_filter(explode(',', $origins))
-        : ['*'],
+        : ['http://localhost:5173', 'https://jltgtbsc.com'],
 
     'allowed_origins_patterns' => [],
 

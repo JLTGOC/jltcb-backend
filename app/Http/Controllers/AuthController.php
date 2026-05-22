@@ -49,6 +49,9 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
+        $platform = strtolower($request->header('Platform', 'mobile'));
+        $isWeb = $platform === 'web';
+
         $key = Str::lower($request->email).'|'.$request->ip();
         $decay = min(60 * pow(2, RateLimiter::attempts($key)), 3600);
 
@@ -75,10 +78,18 @@ class AuthController extends Controller
                 'password' => $validated['password'],
             ];
 
-            if (!Auth::attempt($credentials)) {
+            if (!Auth::attempt($credentials, $request->boolean('remember'))) {
                 RateLimiter::hit($key, $decay);
 
                 return $this->error('Invalid credentials', 401);
+            }
+
+            if ($isWeb) {
+                $request->session()->regenerate();
+
+                RateLimiter::clear($key);
+
+                return $this->success('Logged in successfully', ['user' => new UserResource($user)]);
             }
 
             $user = auth()->user();
@@ -97,6 +108,18 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        $platform = strtolower($request->header('Platform', 'mobile'));
+        $isWeb = $platform === 'web';
+        
+        if ($isWeb) {
+            Auth::guard('web')->logout();
+
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return $this->success('Logout successful');
+        }
+        
         $user = $request->user();
 
         if ($user->tokens()->count() > 0) {
