@@ -9,7 +9,8 @@ class OperationDashboardService
 {
     public function getStats($user): array
     {
-        $createdCount = JobOrder::where('operations_id', $user->id)->count();
+        $createdCount = JobOrder::where('shipment_creation_status', 'PENDING')->count();
+        $processedCount = JobOrder::where('shipment_creation_status', 'CREATED')->count();
 
         $shipmentQuery = Shipment::whereIn(
             'quotation_id',
@@ -31,7 +32,9 @@ class OperationDashboardService
                 'image_path' => $user->image_path,
             ],
             'job_orders' => [
+                'total_count' => JobOrder::count(),
                 'created_count' => $createdCount,
+                'processed_count' => $processedCount,
             ],
             'shipments' => [
                 'ongoing_count' => $ongoingCount,

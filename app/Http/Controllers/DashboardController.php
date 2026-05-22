@@ -30,6 +30,9 @@ class DashboardController extends Controller
             RoleType::LEAD_ACCOUNT_SPECIALIST->value => (new LeadAsDashboardService())->getStats($request, $user),
             RoleType::MARKETING->value => (new MarketingDashboardService())->getStats($user),
             RoleType::OPERATIONS->value => (new OperationDashboardService())->getStats($user),
+            RoleType::LEAD_OPERATIONS->value => (new OperationDashboardService())->getStats($user),
+            RoleType::CLIENT_SUCCESS->value => (new OperationDashboardService())->getStats($user),
+            RoleType::LEAD_CLIENT_SUCCESS->value => (new OperationDashboardService())->getStats($user),
             default => ['message' => 'Generic dashboard data'],
         };
 
