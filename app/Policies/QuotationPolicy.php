@@ -16,7 +16,7 @@ class QuotationPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(['Client', 'Account Specialist', 'Lead Account Specialist', 'Operations']);
+        return $user->hasRole(['Client', 'Account Specialist', 'Lead Account Specialist', 'Operations', 'Lead Operations', 'Client Success', 'Lead Client Success']);
     }
 
     /**
@@ -24,7 +24,7 @@ class QuotationPolicy
      */
     public function view(User $user, Quotation $quotation): bool
     {
-        return $user->id === $quotation->client_id || $user->hasRole(['Lead Account Specialist', 'Account Specialist', 'Operations']);
+        return $user->id === $quotation->client_id || $user->hasRole(['Lead Account Specialist', 'Account Specialist', 'Operations', 'Lead Operations', 'Client Success', 'Lead Client Success']);
     }
 
     /**

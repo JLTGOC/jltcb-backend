@@ -20,7 +20,7 @@ class RequestReassignmentRepository extends BaseRepository
 
             $reassignmentRequest = ReassignmentRequest::create([
                 'job_order_id' => $jobOrder->id,
-                'as_id' => auth()->id(),
+                'ops_id' => auth()->id(),
                 'reason' => $request->reason,
                 'additional_details' => $request->additional_details,
                 'status' => 'PENDING',

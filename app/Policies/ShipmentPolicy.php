@@ -16,7 +16,7 @@ class ShipmentPolicy
      */
     public function viewAny(User $user): bool
     {
-        if ($user->hasRole(['Client', 'Account Specialist', 'Lead Account Specialist', 'Operations', 'Lead Operations'])) {
+        if ($user->hasRole(['Client', 'Account Specialist', 'Lead Account Specialist', 'Operations', 'Lead Operations', 'Client Success', 'Lead Client Success'])) {
             return true;
         }
         
@@ -29,7 +29,7 @@ class ShipmentPolicy
     public function view(User $user, Shipment $shipment): bool
     {
         if (
-            $shipment->client_id === $user->id || $shipment->as_id === $user->id || $user->hasRole(['Lead Account Specialist', 'Operations', 'Lead Operations'])
+            $shipment->client_id === $user->id || $shipment->as_id === $user->id || $user->hasRole(['Lead Account Specialist', 'Operations', 'Lead Operations', 'Client Success', 'Lead Client Success'])
         ) {
             return true;
         }
@@ -57,7 +57,7 @@ class ShipmentPolicy
      */
     public function update(User $user, Shipment $shipment): bool
     {
-        return $user->hasRole(['Operations', 'Lead Operations']) && $shipment->operations_id === $user->id;
+        return $user->hasRole(['Operations', 'Lead Operations', 'Client Success', 'Lead Client Success']) && $shipment->operations_id === $user->id;
     }
 
     /**

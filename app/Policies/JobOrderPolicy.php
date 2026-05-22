@@ -13,7 +13,7 @@ class JobOrderPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(['Account Specialist', 'Lead Operations', 'Operations', 'Lead Account Specialist']);
+        return $user->hasRole(['Account Specialist', 'Lead Operations', 'Operations', 'Lead Account Specialist', 'Client Success']);
     }
 
     /**
@@ -21,7 +21,7 @@ class JobOrderPolicy
      */
     public function view(User $user, JobOrder $jobOrder): bool
     {
-        return $user->hasRole(['Lead Operations', 'Lead Account Specialist', 'Operations', 'Account Specialist']);
+        return $user->hasRole(['Lead Operations', 'Lead Account Specialist', 'Operations', 'Account Specialist', 'Client Success']);
     }
 
     /**
@@ -66,17 +66,17 @@ class JobOrderPolicy
 
     public function jobOrderEnums(User $user): bool
     {
-        return $user->hasRole(['Account Specialist', 'Lead Account Specialist', 'Operations', 'Lead Operations']);
+        return $user->hasRole(['Account Specialist', 'Lead Account Specialist', 'Operations', 'Lead Operations', 'Client Success']);
     }
 
     public function showJobOrderQuotation(User $user, JobOrder $jobOrder): bool
     {
-        return $user->id === $jobOrder->client_id || $user->hasRole(['Lead Account Specialist', 'Lead Operations', 'Operations', 'Account Specialist']);
+        return $user->id === $jobOrder->client_id || $user->hasRole(['Lead Account Specialist', 'Lead Operations', 'Operations', 'Account Specialist', 'Client Success']);
     }
 
     public function acceptJobOrder(User $user, JobOrder $jobOrder): bool
     {
-        if ($user->hasRole(['Operations', 'Lead Operations'])) {
+        if ($user->hasRole(['Operations', 'Lead Operations', 'Client Success'])) {
             $available = $jobOrder->assignment_status !== 'ASSIGNED';
         } else {
             return false;

@@ -158,6 +158,11 @@ class IndexJobOrderRepository extends BaseRepository
                 JobOrder::query()->whereNot('shipment_creation_status', 'CREATED')->whereNot('assignment_status', 'ASSIGNED'),
                 JobOrder::query()->whereNot('shipment_creation_status', 'CREATED')->where('operations_id', $user->id),
             ];
+        } elseif ($user->hasRole('Client Success')) {
+            return [
+                JobOrder::query()->whereNot('shipment_creation_status', 'CREATED')->whereNot('assignment_status', 'ASSIGNED'),
+                JobOrder::query()->whereNot('shipment_creation_status', 'CREATED')->where('operations_id', $user->id),
+            ];
         }
         return [JobOrder::query()->whereNot('shipment_creation_status', 'CREATED')->where('client_id', $user->id), null];
     }

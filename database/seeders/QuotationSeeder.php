@@ -37,7 +37,7 @@ class QuotationSeeder extends Seeder
             ->merge(User::role('Lead Account Specialist')->pluck('id'))
             ->values()
             ->all();
-        $ops = User::role('Operations')->get();
+        $ops = User::role(['Operations', 'Lead Operations', 'Client Success', 'Lead Client Success'])->get();
 
         $i = 0;
         do {
@@ -306,6 +306,6 @@ class QuotationSeeder extends Seeder
             }
 
             $i+=1;
-        } while ($i<30);
+        } while ($i<100);
     }
 }
