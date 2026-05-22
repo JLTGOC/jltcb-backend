@@ -30,6 +30,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
             'allow.guest' => AllowGuest::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            'api/*',
+        ]);
     })
      ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (ModelNotFoundException $e, $request) {
