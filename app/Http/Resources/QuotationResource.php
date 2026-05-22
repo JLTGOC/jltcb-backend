@@ -74,9 +74,9 @@ class QuotationResource extends JsonResource
             'created_at' => $this->created_at->format('m/d/Y'),
             'updated_at' => $this->updated_at->format('m/d/Y'),
             'issued_quotation_id' => $issuedQuotation,
-            'job_order' => $request->routeIs('job-orders.quotation') ? [
+            'job_order' => $request->routeIs('job-orders.quotation') || $platform === 'mobile' ? [
                 'reference_number' => $this->jobOrder->reference_number ?? null,
-                'person_in_charge' => $this->jobOrder->operations
+                'person_in_charge' => $this->jobOrder
                     ? mb_strtoupper($this->jobOrder->operations->username) . ' ' . mb_strtoupper($this->jobOrder->operations->last_name)
                     : null,
             ] : null,
