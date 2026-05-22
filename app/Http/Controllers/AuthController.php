@@ -84,6 +84,8 @@ class AuthController extends Controller
                 return $this->error('Invalid credentials', 401);
             }
 
+            $user = auth()->user();
+
             if ($isWeb) {
                 $request->session()->regenerate();
 
@@ -92,7 +94,6 @@ class AuthController extends Controller
                 return $this->success('Logged in successfully', ['user' => new UserResource($user)]);
             }
 
-            $user = auth()->user();
             $token = $user->createToken('auth_token')->plainTextToken;
 
             RateLimiter::clear($key);
@@ -119,7 +120,7 @@ class AuthController extends Controller
 
             return $this->success('Logout successful');
         }
-        
+
         $user = $request->user();
 
         if ($user->tokens()->count() > 0) {
