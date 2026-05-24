@@ -51,12 +51,22 @@ class IssuedQuotationResource extends JsonResource
                             'name' => $charge->name,
                             'subtotal' => $charge->subtotal,
                             'items' => $charge->relationLoaded('items')
-                                ? $charge->items->map(fn($item) => [
-                                    'receipt_charge_label' => $item->receipt_charge_label,
-                                    'amount' => $item->amount,
-                                    'quantity' => $this->when($item->quantity, $item->quantity) ,
-                                    'container_size' => $this->when($item->container_size, $item->container_size),
-                                ])
+                                ? $charge->items->map(function ($item) {
+                                    $data = [
+                                        'receipt_charge_label' => $item->receipt_charge_label,
+                                        'amount' => $item->amount,
+                                    ];
+
+                                    if ($this->uom === 'PER CONTAINER') {
+                                        return [
+                                            ...$data,
+                                            'quantity' => $item->quantity,
+                                            'container_size' => $item->container_size
+                                        ];
+                                    }
+
+                                    return $data;
+                                })
                                 : null,
                         ];
                     });

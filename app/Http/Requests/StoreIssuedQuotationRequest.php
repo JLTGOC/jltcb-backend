@@ -63,9 +63,9 @@ class StoreIssuedQuotationRequest extends FormRequest
             'currency' => ['required', 'string', Rule::exists('billing_configurations', 'label')
                     ->where(fn ($query) => $query->where('type', 'CURRENCY'))],
 
-            // 'detail_values' => [
-            //     'required', 'array', 'min:1', 'size:' . $detailsConfigCount
-            // ],
+            'detail_values' => [
+                'required', 'array', 'min:1', 'size:' . $detailsConfigCount
+            ],
             'detail_values.*.label' => [
                 'required', 'string', 'distinct', 
                 function ($attribute, $value, $fail) use ($template) {

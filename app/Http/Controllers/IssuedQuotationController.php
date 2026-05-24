@@ -48,65 +48,62 @@ class IssuedQuotationController extends Controller
         $signatureFilePath = null;
         $quotationFilePath = null;
 
+        $validated = $request->validated();
+        
         DB::beginTransaction();
 
         try {
             $issuedQuotation = $quotation->issuedQuotations()->create([
-                'template_id' => $request->template_id,
+                'template_id' => $validated['template_id'],
                 'issued_by' => $as->id,
-                'subject' => $request->subject,
-                'message' => $request->message,
-                'rate_validity' => $request->rate_validity,
-                'uom' => $request->uom,
-                'currency' => $request->currency,
+                'subject' => $validated['subject'],
+                'message' => $validated['message'],
+                'rate_validity' => $validated['rate_validity'],
+                'uom' => $validated['uom'],
+                'currency' => $validated['currency'],
             ]);
 
-            $issuedQuotation->detailValues()->createMany($request->detail_values);
+            $issuedQuotation->detailValues()->createMany($validated['detail_values']);
 
-            foreach ($request->charges as $charge) {
-                $chargeRecord = $issuedQuotation->charges()->create([
-                    'name' => $charge['name'],
-                    'subtotal' => collect($charge['items'])->sum('amount'),
+            foreach ($validated['charges'] as $requestCharge) {
+                $charge = $issuedQuotation->charges()->create([
+                    'name' => $requestCharge['name'],
+                    'subtotal' => collect($requestCharge['items'])->sum('amount'),
                 ]);
 
-                // $chargeRecord->items()->createMany($charge['items']);
-                foreach ($chargeRecord->items() as $chargeItem) {
+                $items = collect($requestCharge['items'])->map(function($item) use ($validated) {
                     $data = [
-                        'receipt_charge_label' => $chargeItem['receipt_charge_label'], 
-                        'amount' => $chargeItem['amount'], 
+                        'receipt_charge_label' => $item['receipt_charge_label'],
+                        'amount' => $item['amount'],
                     ];
 
-                    if ($request->uom === 'PER CONTAINER') {
-                        $data['quantity'] = $chargeItem['quantity']; 
-                        $data['container_size'] = $chargeItem['container_size']; 
+                    if ($validated['uom'] === 'PER CONTAINER') {
+                        return [
+                            ...$data,
+                            'quantity' => $item['quantity'],
+                            'container_size' => $item['container_size']
+                        ];
                     }
 
-                    $chargeItem->create($data);
-                }
+                    return $data;
+                })->toArray();
+
+                $charge->items()->createMany($items);
             }
 
-            $issuedQuotation->standardConfig()->create($request->standard_config);
+            $issuedQuotation->standardConfig()->create($validated['standard_config']);
 
-            if ($request->hasFile('signatory.signature_file')) {
-                $signatureFilePath = $request->file('signatory.signature_file')
-                    ->store('signatures', 'local');
-            }
+            $signatureFilePath = $request->file('signatory.signature_file')
+                ->store('signatures', 'local');
 
             $issuedQuotation->authorizedSignatory()->create([
-                'closing_statement' => $request->input('signatory.closing_statement'),
-                'is_authorized_signatory' => $request->input('signatory.is_authorized_signatory'),
-                'authorized_signatory_name' => $request->input('signatory.authorized_signatory_name'),
-                'position' => $request->input('signatory.position'),
-                'signature_file_path' => $signatureFilePath
+                ...$validated['signatory'],
+                'signature_file_path' => $signatureFilePath,
             ]);
 
-            if ($request->hasFile('issued_quotation_file')) {
-                $quotationFile = $request->file('issued_quotation_file');
-
-                $quotationFilePath = $quotationFile->store('files', 'local');
-
-                $this->quotationFileService->uploadQuotationFile($quotation, $quotationFile, $as);
-            }
+            $quotationFile = $request->file('issued_quotation_file');
+            $quotationFilePath = $quotationFile->store('files', 'local');
+            $this->quotationFileService->uploadQuotationFile($quotation, $quotationFile, $as);
 
             $quotation->update([
                 'status' => 'RESPONDED',
@@ -182,55 +179,70 @@ class IssuedQuotationController extends Controller
         $newQuotationFilePath = null;
         $oldSignaturePath = $issuedQuotation->authorizedSignatory->signature_file_path;
 
+        $validated = $request->validated();
+
         DB::beginTransaction();
 
         try {
             $issuedQuotation->update([
-                'subject' => $request->subject,
-                'message' => $request->message,
-                'rate_validity' => $request->rate_validity
+                'subject' => $validated['subject'],
+                'message' => $validated['message'],
+                'rate_validity' => $validated['rate_validity'],
+                'uom' => $validated['uom'],
+                'currency' => $validated['currency']
             ]);
 
             $issuedQuotation->detailValues()->delete();
-            $issuedQuotation->detailValues()->createMany($request->detail_values);
+            $issuedQuotation->detailValues()->createMany($validated['detail_values']);
 
             $issuedQuotation->charges()->delete();
-            foreach ($request->charges as $charge) {
-                $chargeRecord = $issuedQuotation->charges()->create([
-                    'name' => $charge['name'],
-                    'subtotal' => collect($charge['items'])->sum('amount'),
+            foreach ($validated['charges'] as $requestCharge) {
+                $charge = $issuedQuotation->charges()->create([
+                    'name' => $requestCharge['name'],
+                    'subtotal' => collect($requestCharge['items'])->sum('amount'),
                 ]);
 
-                $chargeRecord->items()->createMany($charge['items']);
+                $items = collect($requestCharge['items'])->map(function($item) use ($validated) {
+                    $data = [
+                        'receipt_charge_label' => $item['receipt_charge_label'],
+                        'amount' => $item['amount'],
+                    ];
+
+                    if ($validated['uom'] === 'PER CONTAINER') {
+                        $data['quantity'] = $item['quantity'];
+                        $data['container_size'] = $item['container_size'];
+                    }
+
+                    return $data;
+                })->toArray();
+
+                $charge->items()->createMany($items);
             }
 
             $issuedQuotation->standardConfig()->delete();
-            $issuedQuotation->standardConfig()->create($request->standard_config);
-
-            $signatory = $issuedQuotation->authorizedSignatory;
+            $issuedQuotation->standardConfig()->create($validated['standard_config']);
 
             if ($request->hasFile('signatory.signature_file')) {
                 $newSignaturePath = $request->file('signatory.signature_file')->store('signatures', 'local');
             }
 
-            $signatory->update([
-                'closing_statement' => $request->input('signatory.closing_statement'),
-                'is_authorized_signatory' => $request->input('signatory.is_authorized_signatory'),
-                'authorized_signatory_name' => $request->input('signatory.authorized_signatory_name'),
-                'position' => $request->input('signatory.position'),
-                'signature_file_path' => $newSignaturePath ?? $oldSignaturePath,
+            $validatedSignatory = $validated['signatory'];
+            $issuedQuotation->authorizedSignatory()->update([
+                'closing_statement' => $validatedSignatory['closing_statement'],
+                'is_authorized_signatory' => $validatedSignatory['is_authorized_signatory'],
+                'authorized_signatory_name' => $validatedSignatory['authorized_signatory_name'],
+                'position' => $validatedSignatory['position'],
+                'signature_file_path' => $newSignaturePath ?? $oldSignaturePath
             ]);
 
             $oldquotationFile = $quotation->files()->where('type', 'PROPOSAL')->first();
             Storage::disk('local')->delete($oldquotationFile->file_path);
             $oldquotationFile->delete();
-        
-            if ($request->hasFile('issued_quotation_file')) {
-                $quotationFile = $request->file('issued_quotation_file');
-                $newQuotationFilePath = $quotationFile->store('files', 'local');
 
-                $this->quotationFileService->uploadQuotationFile($quotation, $quotationFile, $request->user());
-            }
+            $quotationFile = $request->file('issued_quotation_file');
+            $newQuotationFilePath = $quotationFile->store('files', 'local');
+
+            $this->quotationFileService->uploadQuotationFile($quotation, $quotationFile, $request->user());
 
             DB::commit();
 
@@ -258,7 +270,7 @@ class IssuedQuotationController extends Controller
         }
 
         $issuedQuotation->load([
-            'detailValues', 'charges', 'authorizedSignatory', 'standardConfig', 'template.quotationFields', 'quotation.files'
+            'detailValues', 'charges.items', 'authorizedSignatory', 'standardConfig', 'template.quotationFields', 'quotation.files'
         ]);
 
         return $this->success(

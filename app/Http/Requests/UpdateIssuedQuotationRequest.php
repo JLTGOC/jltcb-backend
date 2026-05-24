@@ -23,9 +23,9 @@ class UpdateIssuedQuotationRequest extends FormRequest
      */
     public function rules(): array
 {
-    $quotation = $this->route('quotation');
+    $issuedQuotation = $this->route('issuedQuotation');
 
-    $templateId = $this->input('template_id', $quotation->template_id);
+    $templateId = $this->input('template_id', $issuedQuotation->template_id);
 
     $template = QuotationTemplate::with([
         'detailConfigs.dropdownOptions',
@@ -39,6 +39,11 @@ class UpdateIssuedQuotationRequest extends FormRequest
         'subject' => ['required', 'string', 'max:255'],
         'message' => ['required', 'string'],
         'rate_validity' => ['required', 'date', Rule::date()->afterToday()],
+
+        'uom' => ['required', 'string', Rule::exists('billing_configurations', 'label')
+                    ->where(fn ($query) => $query->where('type', 'UOM'))],
+        'currency' => ['required', 'string', Rule::exists('billing_configurations', 'label')
+                ->where(fn ($query) => $query->where('type', 'CURRENCY'))],
 
         'detail_values' => [
             'required', 'array', 'min:1', 'size:' . $detailsConfigCount
@@ -105,21 +110,20 @@ class UpdateIssuedQuotationRequest extends FormRequest
         'charges.*.items.*.receipt_charge_label' => [
             'required', 'string', 'distinct'
         ],
-        'charges.*.items.*.currency_label' => [
-            'required', 
-            'string', 
-            Rule::exists('billing_configurations', 'label')
-                ->where(fn ($query) => $query->where('type', 'CURRENCY'))
-        ],
-        'charges.*.items.*.uom_label' => [
-            'required', 
-            'string',
-            Rule::exists('billing_configurations', 'label')
-                ->where(fn ($query) => $query->where('type', 'UOM'))
-        ],
         'charges.*.items.*.amount' => [
             'required', 'numeric', 'decimal:0,2','max:9999999999999.99'
         ], 
+        'charges.*.items.*.quantity' => [
+            Rule::requiredIf($this->uom === 'PER CONTAINER'),
+            'nullable',
+            'integer',
+            'min:1',
+        ],
+        'charges.*.items.*.container_size' => [
+            Rule::requiredIf($this->uom === 'PER CONTAINER'),
+            'nullable',
+            'string',
+        ],
 
         'standard_config.name' => ['required', 'string', 'max:255'],
         'standard_config.policies' => ['required', 'string'],
