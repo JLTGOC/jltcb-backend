@@ -27,6 +27,14 @@ class StoreJobOrderRequest extends FormRequest
      */
     public function rules(): array
     {
+        $setNullRule = function ($field) {
+            return function ($attribute, $value, $fail) use ($field) {
+                if (is_null($value) || $value === '') {
+                    return $value = null;
+                }
+            };
+        };
+
         $rules = [
             'quotation_reference_number' => 'sometimes|string|unique:job_orders,reference_number',
             'job_type' => 'required|string|in:LOGISTICS,REGULATORY',
@@ -41,18 +49,18 @@ class StoreJobOrderRequest extends FormRequest
             'service.bl_no' => 'required_if:job_type,LOGISTICS|string',
             'service.eta' => 'required_if:job_type,LOGISTICS|date',
             'service.etd' => 'required_if:job_type,LOGISTICS|date|after_or_equal:service.eta',
-            'shipment.hs_code' => 'sometimes|nullable|string',
-            'shipment.rod' => 'sometimes|nullable|string',
-            'shipment.permits' => 'sometimes|nullable|string',
-            'shipment.if_coordinated' => 'sometimes|nullable|string',
-            'shipment.special_remarks' => 'sometimes|nullable|string',
-            'target.delivery_date' => 'sometimes|nullable|string',
-            'target.completion_date' => 'sometimes|nullable|string',
-            'target.special_remarks' => 'sometimes|nullable|string',
-            'billing.terms_of_payment' => 'sometimes|nullable|string',
+            'shipment.hs_code' => ['sometimes','nullable','string', $setNullRule('shipment.hs_code')],
+            'shipment.rod' => ['sometimes','nullable','string', $setNullRule('shipment.rod')],
+            'shipment.permits' => ['sometimes','nullable','string', $setNullRule('shipment.permits')],
+            'shipment.if_coordinated' => ['sometimes','nullable','string', $setNullRule('shipment.if_coordinated')],
+            'shipment.special_remarks' => ['sometimes','nullable','string', $setNullRule('shipment.special_remarks')],
+            'target.delivery_date' => ['sometimes','nullable','string', $setNullRule('target.delivery_date')],
+            'target.completion_date' => ['sometimes','nullable','string', $setNullRule('target.completion_date')],
+            'target.special_remarks' => ['sometimes','nullable','string', $setNullRule('target.special_remarks')],
+            'billing.terms_of_payment' => ['sometimes','nullable','string', $setNullRule('billing.terms_of_payment')],
             'billing.billing_date' => 'sometimes|nullable|date',
             'billing.shall_be_billed' => ['sometimes', 'string', Rule::in(BillingMode::pluck('name')->toArray())],
-            'billing.listed_docs' => 'sometimes|string',
+            'billing.listed_docs' => ['sometimes','nullable','string', $setNullRule('billing.listed_docs')],
             'billing.attached_docs' => 'sometimes|nullable|array',
             'billing.attached_docs.*' => 'file|mimes:pdf,doc,docx,png,jpg,jpeg|max:2048',
         ];
