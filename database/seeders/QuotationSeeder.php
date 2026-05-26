@@ -11,6 +11,7 @@ use App\Models\{
     Shipment,
     JobOrder,
     JobOrderBilling,
+    JobOrderBillingFile,
     JobOrderClient,
     JobOrderShipment,
     LogisticsService,
@@ -249,11 +250,19 @@ class QuotationSeeder extends Seeder
                         'updated_at' => $jobOrder->created_at,
                     ]);
 
-                    JobOrderBilling::create([
+                    $billing = JobOrderBilling::create([
                         'job_order_id' => $jobOrder->id,
                         'terms_of_payment' => fake()->sentence(),
                         'billing_date' => Carbon::now()->addDays(fake()->numberBetween(60, 90)),
                         'shall_be_billed' => fake()->randomElement(BillingMode::pluck('name')->toArray()),
+                        'created_at' => $jobOrder->created_at,
+                        'updated_at' => $jobOrder->created_at,
+                    ]);
+
+                    JobOrderBillingFile::create([
+                        'job_order_billing_id' => $billing->id,
+                        'file_path' => 'files/QuotationFile.pdf',
+                        'file_name' => 'QuotationFile.pdf',
                         'created_at' => $jobOrder->created_at,
                         'updated_at' => $jobOrder->created_at,
                     ]);

@@ -109,6 +109,22 @@ class JobOrderResource extends JsonResource
                     ];
                 })
                 : 'No documents available.',
+            'billing_files' => $this->jobOrderBilling && $this->jobOrderBilling->billingFiles()->exists()
+                ? $this->jobOrderBilling->billingFiles()->get()->map(function($file) {
+                    return [
+                        'id' => $file->id,
+                        'file_name' => $file->file_name,
+                        'file_url' => URL::temporarySignedRoute(
+                            'files.view', 
+                            Carbon::now()->addMinutes(10), 
+                            [
+                                'file' => $file->id
+                            ]),
+                        'created_at' => $file->created_at,
+                        'updated_at' => $file->updated_at,
+                    ];
+                })
+                : 'No billing files available.',
         ];
     }
 }

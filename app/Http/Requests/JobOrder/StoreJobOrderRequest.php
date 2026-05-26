@@ -52,6 +52,8 @@ class StoreJobOrderRequest extends FormRequest
             'billing.terms_of_payment' => 'nullable|string',
             'billing.billing_date' => 'nullable|date',
             'billing.shall_be_billed' => ['nullable', 'string', Rule::in(BillingMode::pluck('name')->toArray())],
+            'billing.docs' => 'nullable|array',
+            'billing.docs.*' => 'file|mimes:pdf,doc,docx,png,jpg,jpeg|max:2048',
         ];
 
         $platform = strtolower($this->header('Platform', 'mobile'));

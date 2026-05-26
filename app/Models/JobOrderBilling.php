@@ -17,4 +17,9 @@ class JobOrderBilling extends Model
     {
         return $this->belongsTo(JobOrder::class, 'job_order_id');
     }
+
+    public function billingFiles()
+    {
+        return $this->hasMany(JobOrderBillingFile::class, 'job_order_billing_id');
+    }
 }

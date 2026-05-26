@@ -5,6 +5,7 @@ namespace App\Repositories\JobOrder;
 use App\Http\Resources\JobOrderResource;
 use App\Models\JobOrder;
 use App\Models\JobOrderBilling;
+use App\Models\JobOrderBillingFile;
 use App\Models\JobOrderClient;
 use App\Models\JobOrderShipment;
 use App\Models\Quotation;
@@ -80,12 +81,26 @@ class StoreJobOrderRepository extends BaseRepository
                     'commitment_remarks' => $request->target['special_remarks'] ?? null,
                 ]);
 
-                JobOrderBilling::create([
+                $billing = JobOrderBilling::create([
                     'job_order_id' => $jobOrder->id,
                     'terms_of_payment' => $request->billing['terms_of_payment'] ?? null,
                     'billing_date' => $request->billing['billing_date'] ?? null,
                     'shall_be_billed' => $request->billing['shall_be_billed'] ?? null,
                 ]);
+
+                if ($request->hasFile('billing.docs')) {
+                    $billingFiles = $request->file('billing.docs');
+
+                    foreach (is_array($billingFiles) ? $billingFiles : [$billingFiles] as $file) {
+                        $filePath = $file->store('files', 'local');
+
+                        JobOrderBillingFile::create([
+                            'job_order_billing_id' => $billing->id,
+                            'file_path' => $filePath,
+                            'file_name' => $file->getClientOriginalName(),
+                        ]);
+                    }
+                }
 
                 $activityLog = ActivityLog::create([
                     'subject_id' => $jobOrder->id,
