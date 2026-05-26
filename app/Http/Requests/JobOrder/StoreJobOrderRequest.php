@@ -27,7 +27,7 @@ class StoreJobOrderRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'quotation_reference_number' => 'sometimes|string|unique:job_orders,reference_number',
             'job_type' => 'required|string|in:LOGISTICS,REGULATORY',
             'subject.subject' => 'required|string',
@@ -53,5 +53,14 @@ class StoreJobOrderRequest extends FormRequest
             'billing.billing_date' => 'nullable|date',
             'billing.shall_be_billed' => ['nullable', 'string', Rule::in(BillingMode::pluck('name')->toArray())],
         ];
+
+        $platform = strtolower($this->header('Platform', 'mobile'));
+        $isWeb = $platform === 'web';
+
+        if ($isWeb) {
+            $rules['subject.date'] = 'required|date';
+        }
+
+        return $rules;
     }
 }

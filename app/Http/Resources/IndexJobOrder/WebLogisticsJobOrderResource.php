@@ -36,6 +36,7 @@ class WebLogisticsJobOrderResource extends JsonResource
             'reference_number' => $this->reference_number,
             'client' => $this->client->full_name,
             'client_type' => JobOrder::where('client_id', $this->client_id)->count() > 1 ? 'OLD' : 'NEW',
+            'date' => $this->date_issued ? Carbon::parse($this->date_issued)->format('F d, Y') : null,
             'date_created' => strtoupper($this->created_at->format('F d, Y')),
             'job_type' => 'LOGISTICS',
             'commodity' => $this->quotation->logisticsService->commodity,

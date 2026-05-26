@@ -52,6 +52,7 @@ class StoreJobOrderRepository extends BaseRepository
                     'quotation_id' => $quotation->id,
                     'subject' => $request->subject['subject'],
                     'email_body' => $request->subject['email_body'],
+                    'date_issued' => $request->subject['date'] ?? null,
                 ]);
 
                 JobOrderClient::create([

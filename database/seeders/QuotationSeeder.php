@@ -203,6 +203,8 @@ class QuotationSeeder extends Seeder
                     'updated_at' => Carbon::now()->subDays(fake()->numberBetween(1, 5)),
                 ]);
 
+                $jobOrder->update(['date_issued' => $jobOrder->created_at->toDateString()]);
+
                 if ($jobOrder->assignment_status === 'ASSIGNED' || $jobOrder->assignment_status === 'REASSIGNMENT REQUESTED') {
                     $jobOrder->update([
                         'assigned_at' => $jobOrder->updated_at,
