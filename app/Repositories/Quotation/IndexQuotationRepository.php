@@ -38,19 +38,10 @@ class IndexQuotationRepository extends BaseRepository
         $query = $queryData['query'];
         $myQuotationsQuery = $queryData['my_quotations_query'];
 
-        $allQuotationsCount = Quotation::count();
-        $logisticsCount = Quotation::whereHas('logisticsService')->count();
-        $regulatoryCount = Quotation::whereHas('regulatoryService')->count();
-        $oldClientsCount = Quotation::whereHas('client', function ($c) {
-            $c->has('quotations', '>', 1);
-        })->count();
-
-        $newClientsCount = Quotation::whereHas('client', function ($c) {
-            $c->has('quotations', '<=', 1);
-        })->count();
-
         $quotations = $this->buildQuotationQueryBuilder($query);
         $myQuotations = $this->buildMyQuotationQueryBuilder($myQuotationsQuery);
+
+        $countQuery = clone $quotations;
 
         $this->applyQueryConstraints($quotations, $request);
         if ($myQuotations) {
@@ -88,12 +79,24 @@ class IndexQuotationRepository extends BaseRepository
 
                 $pagination = $this->pagePaginationData($paginated);
 
+                $allQuotationsCount = (clone $countQuery)->count();
+
+                $oldClientsCount = (clone $countQuery)
+                    ->whereHas('client', function ($query) {
+                        $query->has('quotations', '>', 1);
+                    })
+                    ->count();
+
+                $newClientsCount = (clone $countQuery)
+                    ->whereHas('client', function ($query) {
+                        $query->has('quotations', '<=', 1);
+                    })
+                    ->count();
+
                 if ($quotations->isEmpty() && $myQuotationsResults->isEmpty()) {
                     return $this->success('No quotations found', [
                         'counts' => [
                             'all_quotations' => $allQuotationsCount,
-                            'logistics_quotations' => $logisticsCount,
-                            'regulatory_quotations' => $regulatoryCount,
                             'old_user_quotations' => $oldClientsCount,
                             'new_user_quotations' => $newClientsCount,
                         ],
@@ -107,8 +110,6 @@ class IndexQuotationRepository extends BaseRepository
                 return $this->success('All quotations fetched', [
                     'counts' => [
                         'all_quotations' => $allQuotationsCount,
-                        'logistics_quotations' => $logisticsCount,
-                        'regulatory_quotations' => $regulatoryCount,
                         'old_user_quotations' => $oldClientsCount,
                         'new_user_quotations' => $newClientsCount,
                     ],
