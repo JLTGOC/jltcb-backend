@@ -255,6 +255,7 @@ class QuotationSeeder extends Seeder
                         'terms_of_payment' => fake()->sentence(),
                         'billing_date' => Carbon::now()->addDays(fake()->numberBetween(60, 90)),
                         'shall_be_billed' => fake()->randomElement(BillingMode::pluck('name')->toArray()),
+                        'listed_docs' => 'INVOICE, RECEIPT',
                         'created_at' => $jobOrder->created_at,
                         'updated_at' => $jobOrder->created_at,
                     ]);

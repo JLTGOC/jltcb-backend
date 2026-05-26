@@ -11,6 +11,7 @@ class JobOrderBilling extends Model
         'terms_of_payment',
         'billing_date',
         'shall_be_billed',
+        'listed_docs',
     ];
 
     public function jobOrder()

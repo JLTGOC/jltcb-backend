@@ -18,6 +18,7 @@ return new class extends Migration
             $table->text('terms_of_payment')->nullable();
             $table->date('billing_date')->nullable();
             $table->string('shall_be_billed')->nullable();
+            $table->text('listed_docs')->nullable();
             $table->timestamps();
         });
     }

@@ -86,10 +86,11 @@ class StoreJobOrderRepository extends BaseRepository
                     'terms_of_payment' => $request->billing['terms_of_payment'] ?? null,
                     'billing_date' => $request->billing['billing_date'] ?? null,
                     'shall_be_billed' => $request->billing['shall_be_billed'] ?? null,
+                    'listed_docs' => $request->billing['listed_docs'] ?? null,
                 ]);
 
-                if ($request->hasFile('billing.docs')) {
-                    $billingFiles = $request->file('billing.docs');
+                if ($request->hasFile('billing.attached_docs')) {
+                    $billingFiles = $request->file('billing.attached_docs');
 
                     foreach (is_array($billingFiles) ? $billingFiles : [$billingFiles] as $file) {
                         $filePath = $file->store('files', 'local');
