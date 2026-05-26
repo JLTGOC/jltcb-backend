@@ -177,9 +177,11 @@ class IndexQuotationRepository extends BaseRepository
             $query->where('client_id', $user->id);
         } elseif ($user->hasRole('Lead Account Specialist')) {
             if ($isWeb) {
-                $query->whereNot('as_id', $user->id);
+                $query->where(function ($q) use ($user) {
+                    $q->whereNull('as_id')
+                    ->orWhere('as_id', '!=', $user->id);
+                });;
                 $myQuotationsQuery = Quotation::query()
-                    ->whereIn('assignment_status', ['ASSIGNED', 'REASSIGNMENT REQUESTED'])
                     ->where('as_id', $user->id);
             }
         } elseif ($user->hasRole('Account Specialist')) {
@@ -190,7 +192,6 @@ class IndexQuotationRepository extends BaseRepository
             }
 
             $myQuotationsQuery = Quotation::query()
-                ->whereIn('assignment_status', ['ASSIGNED', 'REASSIGNMENT REQUESTED'])
                 ->where('as_id', $user->id);
         } elseif ($user->hasRole(['Operations', 'Client Success', 'Lead Operations', 'Lead Client Success'])) {
              // No additional constraints for these roles, they can see all quotations.

@@ -33,6 +33,7 @@ class StoreQuotationRepository extends BaseRepository
             $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
 
             $previousQuotation = Quotation::where('client_id', $user->id)->latest()->first();
+            $assignedSpecialist = null;
             if ($previousQuotation) {
                 $assignedSpecialist = $previousQuotation->accountSpecialist;
             } 
@@ -45,7 +46,7 @@ class StoreQuotationRepository extends BaseRepository
             $quotation = Quotation::create([
                 'reference_number' => "RQ-{$serviceSection}-{$dateSection}-{$idSection}",
                 'client_id' => $user->id,
-                'as_id' => $assignedSpecialist->id ?? null,
+                'as_id' => $assignedSpecialist?->id ?? null,
                 'company_name' => $request->input('company.name'),
                 'company_address' => $request->input('company.address'),
                 'contact_person' => $request->input('company.contact_person'),
