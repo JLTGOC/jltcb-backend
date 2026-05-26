@@ -52,11 +52,9 @@ class ClientController extends Controller
                 AllowedFilter::callback(
                     'type',
                     function($query, $value) {
-                        $oneMonthAgo = Carbon::now()->subMonth();
-
                         match ($value) {
-                            'NEW' => $query->where('created_at', '>=', $oneMonthAgo),
-                            'OLD' => $query->where('created_at', '<', $oneMonthAgo),
+                            'NEW' => $query->newClients(),
+                            'OLD' => $query->OldClients(),
                             default => null,
                         };
                     }
