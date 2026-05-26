@@ -41,11 +41,12 @@ class IndexQuotationRepository extends BaseRepository
         $allQuotationsCount = Quotation::count();
         $logisticsCount = Quotation::whereHas('logisticsService')->count();
         $regulatoryCount = Quotation::whereHas('regulatoryService')->count();
-        $oldClientsCount = User::role('Client')->withCount('quotations')->get()->filter(function ($client) {
-            return $client->quotations_count > 1;
+        $oldClientsCount = Quotation::whereHas('client', function ($c) {
+            $c->has('quotations', '>', 1);
         })->count();
-        $newClientsCount = User::role('Client')->withCount('quotations')->get()->filter(function ($client) {
-            return $client->quotations_count <= 1;
+
+        $newClientsCount = Quotation::whereHas('client', function ($c) {
+            $c->has('quotations', '<=', 1);
         })->count();
 
         $quotations = $this->buildQuotationQueryBuilder($query);

@@ -33,7 +33,7 @@ class QuotationSeeder extends Seeder
      */
     public function run(): void
     {
-        $clients = User::role('Client')->pluck('id');
+        $clients = User::role('Client')->limit(4)->pluck('id');
         $specialists = User::role('Account Specialist')->pluck('id')
             ->merge(User::role('Lead Account Specialist')->pluck('id'))
             ->values()
