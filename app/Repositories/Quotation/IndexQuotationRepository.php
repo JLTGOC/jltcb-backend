@@ -41,6 +41,12 @@ class IndexQuotationRepository extends BaseRepository
         $allQuotationsCount = Quotation::count();
         $logisticsCount = Quotation::whereHas('logisticsService')->count();
         $regulatoryCount = Quotation::whereHas('regulatoryService')->count();
+        $oldClientsCount = User::role('Client')->withCount('quotations')->get()->filter(function ($client) {
+            return $client->quotations_count > 1;
+        })->count();
+        $newClientsCount = User::role('Client')->withCount('quotations')->get()->filter(function ($client) {
+            return $client->quotations_count <= 1;
+        })->count();
 
         $quotations = $this->buildQuotationQueryBuilder($query);
         $myQuotations = $this->buildMyQuotationQueryBuilder($myQuotationsQuery);
@@ -87,6 +93,8 @@ class IndexQuotationRepository extends BaseRepository
                             'all_quotations' => $allQuotationsCount,
                             'logistics_quotations' => $logisticsCount,
                             'regulatory_quotations' => $regulatoryCount,
+                            'old_user_quotations' => $oldClientsCount,
+                            'new_user_quotations' => $newClientsCount,
                         ],
                         'quotations' => [],
                         'my_quotations' => $myQuotationsResults,
@@ -100,6 +108,8 @@ class IndexQuotationRepository extends BaseRepository
                         'all_quotations' => $allQuotationsCount,
                         'logistics_quotations' => $logisticsCount,
                         'regulatory_quotations' => $regulatoryCount,
+                        'old_user_quotations' => $oldClientsCount,
+                        'new_user_quotations' => $newClientsCount,
                     ],
                     'quotations' => $quotations->values(),
                     'my_quotations' => $myQuotationsResults,
