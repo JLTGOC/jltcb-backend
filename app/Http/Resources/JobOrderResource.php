@@ -32,10 +32,9 @@ class JobOrderResource extends JsonResource
             'job_type' => $this->job_type,
             'as_id' => $this->as_id,
             'operations_id' => $this->operations_id,
-            'finance_id' => $this->finance_id,
             'subject' => $this->subject,
             'email_body' => $this->email_body,
-            'date' => $this->created_at->format('F d, Y'),
+            'date' => $this->date_issued ? Carbon::parse($this->date_issued)->format('F d, Y') : null,
             'client' => [
                 'consignee' => $this->quotation->company_name,
                 'shipper' => $this->quotation->client->full_name,
@@ -48,8 +47,8 @@ class JobOrderResource extends JsonResource
             'service' => $this->jobOrderShipment ? [
                 'service_level' => $this->jobOrderShipment->service_level,
                 'bl_no' => $this->jobOrderShipment->bl_no,
-                'eta' => $this->jobOrderShipment->eta,
-                'etd' => $this->jobOrderShipment->etd,
+                'eta' => $this->jobOrderShipment->eta ? Carbon::parse($this->jobOrderShipment->eta)->format('M/d/Y') : null,
+                'etd' => $this->jobOrderShipment->etd ? Carbon::parse($this->jobOrderShipment->etd)->format('M/d/Y') : null,
             ] : [
                 'regulatory_assistance' => $this->jobOrderClient->service_type,
                 'application_type' => $this->quotation->regulatoryService->application_type,

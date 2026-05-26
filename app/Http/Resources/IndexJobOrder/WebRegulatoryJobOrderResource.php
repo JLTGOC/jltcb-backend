@@ -29,6 +29,7 @@ class WebRegulatoryJobOrderResource extends JsonResource
             'client' => $this->client->full_name,
             'client_type' => JobOrder::where('client_id', $this->client_id)->count() > 1 ? 'OLD' : 'NEW',
             'date_created' => strtoupper($this->created_at->format('F d, Y')),
+            'date' => $this->date_issued ? Carbon::parse($this->date_issued)->format('F d, Y') : null,
             'job_type' => 'REGULATORY',
             'application_type' => $this->quotation->regulatoryService->application_type,
             'regulatory_assistance' => $this->jobOrderClient->service_type,

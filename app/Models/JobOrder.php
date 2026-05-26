@@ -20,6 +20,7 @@ class JobOrder extends Model implements Searchable
         'shipment_creation_status',
         'assignment_status',
         'assigned_at',
+        'date_issued',
     ];
 
     protected $casts = [
