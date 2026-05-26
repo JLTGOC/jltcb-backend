@@ -28,13 +28,13 @@ class LeadAsDashboardService
         $deliveredCount = Shipment::where('status', 'DELIVERED')->count();
         
         // Get quotations where this lead is the as_id
-        $newCount = Quotation::where('status', 'REQUESTED')->count();
-        $respondedCount = Quotation::where('status', 'RESPONDED')->count();
-        $acceptedCount = Quotation::where('status', 'ACCEPTED')->count();
-        $discardedCount = Quotation::where('status', 'DISCARDED')->count();
+        $newCount = Quotation::where('status', 'REQUESTED')->whereDoesntHave('jobOrder')->count();
+        $respondedCount = Quotation::where('status', 'RESPONDED')->whereDoesntHave('jobOrder')->count();
+        $acceptedCount = Quotation::where('status', 'ACCEPTED')->whereDoesntHave('jobOrder')->count();
+        $discardedCount = Quotation::where('status', 'DISCARDED')->whereDoesntHave('jobOrder')->count();
 
         // Get job orders count
-        $jobOrders = JobOrder::count();
+        $jobOrders = JobOrder::whereDoesntHave('shipment')->count();
 
         if (strtolower($request->header('Platform', 'mobile') === 'web')) {
             $clientIds = Shipment::distinct()->pluck('client_id');

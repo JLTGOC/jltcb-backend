@@ -28,13 +28,13 @@ class AsDashboardService
         $deliveredCount = Shipment::where('as_id', $user->id)->where('status', 'DELIVERED')->count();
         
         // Get quotations where this lead is the as_id
-        $newCount = Quotation::where('as_id', $user->id)->where('status', 'REQUESTED')->count();
-        $respondedCount = Quotation::where('as_id', $user->id)->where('status', 'RESPONDED')->count();
-        $acceptedCount = Quotation::where('as_id', $user->id)->where('status', 'ACCEPTED')->count();
-        $discardedCount = Quotation::where('as_id', $user->id)->where('status', 'DISCARDED')->count();
+        $newCount = Quotation::where('as_id', $user->id)->where('status', 'REQUESTED')->whereDoesntHave('jobOrder')->count();
+        $respondedCount = Quotation::where('as_id', $user->id)->where('status', 'RESPONDED')->whereDoesntHave('jobOrder')->count();
+        $acceptedCount = Quotation::where('as_id', $user->id)->where('status', 'ACCEPTED')->whereDoesntHave('jobOrder')->count();
+        $discardedCount = Quotation::where('as_id', $user->id)->where('status', 'DISCARDED')->whereDoesntHave('jobOrder')->count();
 
         // Get job orders count where this as is the as_id
-        $jobOrders = JobOrder::where('as_id', $user->id)->count();
+        $jobOrders = JobOrder::where('as_id', $user->id)->whereDoesntHave('shipment')->count();
 
         if (strtolower($request->header('Platform', 'mobile') === 'web')) {
             $clientIds = Shipment::where('as_id', $user->id)->distinct()->pluck('client_id');
