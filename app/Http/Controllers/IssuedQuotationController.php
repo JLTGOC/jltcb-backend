@@ -302,13 +302,21 @@ class IssuedQuotationController extends Controller
     {
         $signatory = AuthorizedSignatories::findOrFail($id);
 
-        $quotation = $signatory->issuedQuotation;
+        $issuedQuotation = $signatory->issuedQuotation;
+        $quotation = $issuedQuotation?->quotation;
+
         $user = Auth::user();
 
-        if ($user->id === $quotation->as_id || $user->hasRole('Lead Account Specialist')) {
-            return Storage::disk('local')->response($signatory->signature_file_path);
+        $isAuthorized =
+            $user->id === $issuedQuotation?->issued_by ||
+            $user->hasRole('Lead Account Specialist') ||
+            $user->id === $quotation?->as_id ||
+            $user->id === $quotation?->created_by;
+
+        if (! $isAuthorized) {
+            return $this->error('You are not authorized to view this signature file', 403);
         }
 
-        return $this->error('You are not authorized to view this signature file', 403);
+        return Storage::disk('local')->response($signatory->signature_file_path);
     }
 }
