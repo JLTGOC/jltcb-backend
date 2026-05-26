@@ -6,6 +6,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Exceptions\PostTooLargeException;
+use Spatie\QueryBuilder\Exceptions\InvalidFilterQuery;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -52,6 +53,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 'message' => 'You are not authorized to perform this action.',
             ], 404);
         });
+
         $exceptions->renderable(function (PostTooLargeException $e, $request) {
             return response()->json([
                 'success' => false,
@@ -62,5 +64,11 @@ return Application::configure(basePath: dirname(__DIR__))
                     ]
                 ]
             ], 413);
+        });
+
+        $exceptions->render(function (InvalidFilterQuery $e, $request) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 400);
         });
     })->create();
