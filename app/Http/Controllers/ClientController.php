@@ -160,11 +160,20 @@ class ClientController extends Controller
     public function listQuotations(Request $request, User $client) {
         $this->authorize('viewAccountsList', $client);
 
+        $request->validate([
+            'filter.search' => 'sometimes|nullable|string:max:100'
+        ]);
+
         $perPage = $request->input('per_page', 5);
 
-        // Currently only include responded quotations
-        $quotations = $client->quotations()->with(['issuedQuotations.issuedBy', 'creator'])
+        // Currently, only include responded quotations
+        $quotations = QueryBuilder::for($client->quotations())
+            ->with([
+                'issuedQuotations.issuedBy',
+                'creator'
+            ])
             ->has('issuedQuotations')
+            ->allowedFilters(AllowedFilter::partial('search', 'reference_number'))
             ->latest()
             ->paginate($perPage);
 
@@ -184,9 +193,15 @@ class ClientController extends Controller
     public function listShipments(Request $request, User $client) {
         $this->authorize('viewAccountsList', $client);
 
+        $request->validate([
+            'filter.search' => 'sometimes|nullable|string:max:100'
+        ]);
+
         $perPage = $request->input('per_page', 5);
-        $shipments = $client->shipments()
+
+        $shipments = QueryBuilder::for($client->shipments())
             ->with(['jobOrder', 'quotation.logisticsService', 'jobOrderShipment', 'operations'])
+            ->allowedFilters(AllowedFilter::partial('search', 'reference_number'))
             ->latest()
             ->paginate($perPage);
 
@@ -206,10 +221,18 @@ class ClientController extends Controller
     public function listRegulatory(Request $request, User $client) {
         $this->authorize('viewAccountsList', $client);
 
+        $request->validate([
+            'filter.search' => 'sometimes|nullable|string:max:100'
+        ]);
+
         $perPage = $request->input('per_page', 5);
-        $regulatories = $client->quotations()->with(['regulatoryService', 'issuedQuotations', 'accountSpecialist'])
+
+        $regulatories = QueryBuilder::for($client->quotations())
+            ->with(['regulatoryService', 'issuedQuotations', 'accountSpecialist'])
             ->has('regulatoryService')
             ->has('issuedQuotations')
+            ->allowedFilters(AllowedFilter::partial('search', 'reference_number'))
+            ->latest()
             ->paginate($perPage);
 
         return $this->success('Regulatories fetched successfully', 
