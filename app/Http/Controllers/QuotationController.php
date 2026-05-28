@@ -26,7 +26,7 @@ use App\Models\{
     QuotationTemplate,
     RegulatoryService,
     IssuedQuotation,
-    CompanyBusinessType,
+    BusinessType,
     RegulatoryAssistanceType,
     ContainerSize,
     ReassignmentRequest

@@ -4,9 +4,9 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\CompanyBusinessType;
+use App\Models\BusinessType;
 
-class CompanyBusinessTypeSeeder extends Seeder
+class BusinessTypeSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -16,7 +16,7 @@ class CompanyBusinessTypeSeeder extends Seeder
         $businessTypes = ['COOPERATIVE', 'CORPORATION', 'E-COMMERCE', 'INDIVIDUAL IMPORTER', 'GOVERNMENT AGENCY', 'IMPORT-EXPORT AGENT', 'MULTINATIONAL COMPANY', 'NON-PROFIT ORGANIZATION', 'PARTNERSHIP', 'PEZA-REGISTERED ENTERPRISE', 'SOLE PROPRIETORSHIP'];
 
         foreach ($businessTypes as $type) {
-            CompanyBusinessType::create(['name' => $type]);
+            BusinessType::create(['name' => $type]);
         }
     }
 }

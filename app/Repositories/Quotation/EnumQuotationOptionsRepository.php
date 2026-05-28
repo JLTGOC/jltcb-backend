@@ -2,7 +2,7 @@
 
 namespace App\Repositories\Quotation;
 
-use App\Models\CompanyBusinessType;
+use App\Models\BusinessType;
 use App\Models\ContainerSize;
 use App\Models\RegulatoryAssistanceType;
 use App\Models\ServiceOption;
@@ -37,7 +37,7 @@ class EnumQuotationOptionsRepository extends BaseRepository
         if (isset($validated['service'])) {
             if ($validated['service'] === 'REGULATORY') {
                 $serviceTypes = ServiceType::where('service', 'REGULATORY')->pluck('name');
-                $businessTypes = CompanyBusinessType::pluck('name');
+                $businessTypes = BusinessType::pluck('name');
                 $regulatoryAssistanceTypes = RegulatoryAssistanceType::pluck('name');
             } elseif ($validated['service'] === 'LOGISTICS') {
                 $serviceTypes = ServiceType::where('service', 'LOGISTICS')->pluck('name');

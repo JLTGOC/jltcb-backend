@@ -44,7 +44,7 @@ class DatabaseSeeder extends Seeder
             ReelSeeder::class,
             ServiceTypeSeeder::class,
             ServiceOptionSeeder::class,
-            CompanyBusinessTypeSeeder::class,
+            BusinessTypeSeeder::class,
             RegulatoryAssistanceTypeSeeder::class,
             ContainerSizeSeeder::class,
             BillingModeSeeder::class,
