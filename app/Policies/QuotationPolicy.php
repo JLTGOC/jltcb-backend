@@ -80,7 +80,7 @@ class QuotationPolicy
      */
     public function upload(User $user, Quotation $quotation): bool
     {
-        return $user->id === $quotation->as_id || $user->hasRole(['Lead Account Specialist']);
+        return $user->id === $quotation->as_id || $user->hasRole(['Lead Account Specialist', 'Lead Client Success']);
     }
 
     /**
@@ -88,7 +88,7 @@ class QuotationPolicy
      */
     public function showFile(User $user, Quotation $quotation): bool
     {
-        return $user->id === $quotation->client_id || $user->hasRole(['Lead Account Specialist', 'ACcount Specialist', 'Operations', 'Lead Operations', 'Client Success', 'Lead Client Success']);
+        return $user->id === $quotation->client_id || $user->hasRole(['Lead Account Specialist', 'Account Specialist', 'Operations', 'Lead Operations', 'Client Success', 'Lead Client Success']);
     }
 
     /**
@@ -100,7 +100,7 @@ class QuotationPolicy
 
     public function reassignSpecialist(User $user, Quotation $quotation): bool
     {
-        return $user->hasRole(['Lead Account Specialist']);
+        return $user->hasRole(['Lead Account Specialist', 'Lead Client Success']);
     }
 
     public function requestReassignment(User $user, Quotation $quotation): bool
@@ -115,7 +115,7 @@ class QuotationPolicy
 
     public function acceptQuotationAssignment(User $user, Quotation $quotation): bool
     {
-        if ($user->hasRole(['Account Specialist', 'Lead Account Specialist'])) {
+        if ($user->hasRole(['Account Specialist', 'Lead Account Specialist', 'Client Success', 'Lead Client Success'])) {
             $available = $quotation->assignment_status !== 'ASSIGNED';
         } else {
             return false;
