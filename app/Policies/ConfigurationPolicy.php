@@ -3,7 +3,6 @@
 namespace App\Policies;
 
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class ConfigurationPolicy
 {
@@ -12,7 +11,7 @@ class ConfigurationPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $this->isAccountSpecialist($user);
+        return $this->isAuthorized($user);
     }
 
     /**
@@ -20,7 +19,7 @@ class ConfigurationPolicy
      */
     public function view(User $user, $record): bool
     {
-        return $this->isAccountSpecialist($user);
+        return $this->isAuthorized($user);
     }
 
     /**
@@ -28,7 +27,7 @@ class ConfigurationPolicy
      */
     public function create(User $user): bool
     {
-        return $this->isAccountSpecialist($user);
+        return $this->isAuthorized($user);
     }
 
     /**
@@ -36,7 +35,7 @@ class ConfigurationPolicy
      */
     public function update(User $user, $record): bool
     {
-        return $this->isAccountSpecialist($user);
+        return $this->isAuthorized($user);
     }
 
     /**
@@ -44,7 +43,7 @@ class ConfigurationPolicy
      */
     public function delete(User $user, $record): bool
     {
-        return $this->isAccountSpecialist($user);
+        return $this->isAuthorized($user);
     }
 
     /**
@@ -63,8 +62,8 @@ class ConfigurationPolicy
         return false;
     }
 
-    private function isAccountSpecialist($user): bool {
-        if ($user->hasRole(['Account Specialist', 'Lead Account Specialist'])) {
+    private function isAuthorized($user): bool {
+        if ($user->hasRole(['Account Specialist', 'Lead Account Specialist', 'Client Success', 'Lead Client Success'])) {
             return true;
         }
         return false;
