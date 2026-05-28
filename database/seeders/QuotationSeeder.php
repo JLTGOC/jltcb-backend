@@ -17,7 +17,7 @@ use App\Models\{
     LogisticsService,
     RegulatoryService,
     ServiceOption,
-    BusinessType,
+    CompanyBusinessType,
     RegulatoryAssistanceType,
     ContainerSize,
     ServiceLevel,

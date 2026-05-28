@@ -7,7 +7,7 @@ use Illuminate\Validation\Rule;
 use App\Models\{
     ServiceOption,
     ContainerSize,
-    BusinessType,
+    CompanyBusinessType,
     RegulatoryAssistanceType
 };
 
@@ -77,7 +77,7 @@ class StoreQuotationRequest extends FormRequest
                 'company.position' => 'required|string',
                 'company.contact_number' => 'required|string|min:11|max:11|regex:/^09\d{9}$/',
                 'company.email' => 'required|email',
-                'company.business_type' => ['required', Rule::in(BusinessType::pluck('name')->toArray())],
+                'company.business_type' => ['required', Rule::in(CompanyBusinessType::pluck('name')->toArray())],
                 'type_of_regulatory_assistance' => 'required|array',
                 'type_of_regulatory_assistance.*' => ['required', 'string'],
                 'service_level' => 'required|string|in:NEW,RENEWAL',
