@@ -10,6 +10,7 @@ class CompanyDocument extends Model
         'company_id',
         'filepath',
         'file_name',
+        'file_type',
     ];
 
     public function company()

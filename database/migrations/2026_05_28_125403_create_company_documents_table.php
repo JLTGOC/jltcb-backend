@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->string('filepath');
             $table->string('file_name');
+            $table->string('file_type');
             $table->timestamps();
         });
     }
