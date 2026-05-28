@@ -34,10 +34,7 @@ class QuotationSeeder extends Seeder
     public function run(): void
     {
         $clients = User::role('Client')->limit(4)->pluck('id');
-        $specialists = User::role('Account Specialist')->pluck('id')
-            ->merge(User::role('Lead Account Specialist')->pluck('id'))
-            ->values()
-            ->all();
+        $specialists = User::role(['Account Specialist', 'Lead Account Specialist', 'Client Success', 'Lead Client Success'])->pluck('id');
         $ops = User::role(['Operations', 'Lead Operations', 'Client Success', 'Lead Client Success'])->get();
 
         $i = 0;
@@ -171,7 +168,13 @@ class QuotationSeeder extends Seeder
                 }
             }
 
-            if ($quotation->status === 'ACCEPTED') {
+            $jobOrderCreated = fake()->boolean();
+
+            if ($assignedSpecialist && User::find($assignedSpecialist)->value('username') === 'csd1') {
+                $jobOrderCreated = false;
+            }
+
+            if ($quotation->status === 'ACCEPTED' && $jobOrderCreated) {
                 $jobType = $quotation->logisticsService ? 'LOGISTICS' : 'REGULATORY';
                 $prefix = $jobType === 'LOGISTICS' ? 'SJO' : 'SPL';
                 
@@ -319,5 +322,26 @@ class QuotationSeeder extends Seeder
 
             $i+=1;
         } while ($i<100);
+
+        $csd1Quotations = Quotation::whereHas('accountSpecialist', function($query) {
+            $query->where('username', 'csd1');
+        })->where('status', 'ACCEPTED')->count();
+
+        if ($csd1Quotations < 5) {
+            $quotationsToUpdate = Quotation::whereHas('accountSpecialist', function ($query) {
+                $query->where('status', 'ACCEPTED')
+                    ->where('username', '!=', 'csd1');
+            })->limit(5 - $csd1Quotations)->get();
+
+            foreach ($quotationsToUpdate as $quotation) {
+                $quotation->update([
+                    'as_id' => User::where('username', 'csd1')->value('id'),
+                ]);
+
+                if ($quotation->jobOrder) {
+                    $quotation->jobOrder->delete();
+                }
+            }
+        }
     }
 }

@@ -17,6 +17,9 @@ class JobOrderResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $platform = strtolower($request->header('Platform', 'mobile'));
+        $isMobile = $platform === 'mobile';
+
         $options = $this->quotation->logisticsService?->service_options
             ? explode(',', $this->quotation->logisticsService->service_options)
             : [];
@@ -47,8 +50,8 @@ class JobOrderResource extends JsonResource
             'service' => $this->jobOrderShipment ? [
                 'service_level' => $this->jobOrderShipment->service_level,
                 'bl_no' => $this->jobOrderShipment->bl_no,
-                'eta' => $this->jobOrderShipment->eta ? Carbon::parse($this->jobOrderShipment->eta)->format('M/d/Y') : null,
-                'etd' => $this->jobOrderShipment->etd ? Carbon::parse($this->jobOrderShipment->etd)->format('M/d/Y') : null,
+                'eta' => ($this->jobOrderShipment->eta ? Carbon::parse($this->jobOrderShipment->eta)->format('M/d/Y') : null) ? ($isMobile ? Carbon::parse($this->jobOrderShipment->eta) : null) : null,
+                'etd' => ($this->jobOrderShipment->etd ? Carbon::parse($this->jobOrderShipment->etd)->format('M/d/Y') : null) ? ($isMobile ? Carbon::parse($this->jobOrderShipment->etd) : null) : null,
             ] : [
                 'regulatory_assistance' => $this->jobOrderClient->service_type,
                 'application_type' => $this->quotation->regulatoryService->application_type,
