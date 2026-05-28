@@ -339,6 +339,9 @@ class QuotationSeeder extends Seeder
                 ]);
 
                 if ($quotation->jobOrder) {
+                    if ($quotation->shipment) {
+                        $quotation->shipment->delete();
+                    }
                     $quotation->jobOrder->delete();
                 }
             }

@@ -16,8 +16,8 @@ return new class extends Migration
         Schema::create('shipments', function (Blueprint $table) {
             $table->id();
             $table->string('reference_number')->unique();
-            $table->foreignIdFor(Quotation::class)->constrained();
-            $table->foreignIdFor(JobOrder::class)->constrained();
+            $table->foreignIdFor(Quotation::class)->nullable()->constrained();
+            $table->foreignIdFor(JobOrder::class)->nullable()->constrained();
             $table->unsignedBigInteger('client_id');
             $table->foreign('client_id')->references('id')->on('users')->constrained()->cascadeOnDelete();
             $table->unsignedBigInteger('as_id');
