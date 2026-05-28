@@ -143,4 +143,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('/reassignment-requests/{reassignmentRequest}/cancel', [ReassignmentRequestController::class, 'cancel']);
     Route::apiResource('reassignment-requests', ReassignmentRequestController::class)->only(['show']);
 
+    // Company Routes
+    Route::get('companies/enums', [CompanyController::class, 'enums']);
+    Route::apiResource('companies', CompanyController::class);
 });
