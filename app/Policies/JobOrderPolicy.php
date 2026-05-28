@@ -29,7 +29,7 @@ class JobOrderPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole(['Account Specialist', 'Lead Account Specialist']);
+        return $user->hasRole(['Account Specialist', 'Lead Account Specialist', 'Client Success', 'Lead Client Success']);
     }
 
     /**
