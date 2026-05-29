@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\BaseConfigController;
 use App\Http\Resources\BillingConfigResource;
-use App\Models\BillingConfiguration;
+use App\Models\QuotationTemplateConfig\BillingConfiguration;
 use Illuminate\Http\Request;
 
 class BillingConfigController extends BaseConfigController

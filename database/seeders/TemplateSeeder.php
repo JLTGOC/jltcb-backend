@@ -2,12 +2,14 @@
 
 namespace Database\Seeders;
 
-use App\Models\BillingConfiguration;
-use App\Models\DetailsConfiguration;
 use App\Models\QuotationField;
+use App\Models\QuotationTemplate;
+use App\Models\QuotationTemplateConfig\{
+    BillingConfiguration,
+    DetailsConfiguration,
+};
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\QuotationTemplate;
 
 class TemplateSeeder extends Seeder
 {

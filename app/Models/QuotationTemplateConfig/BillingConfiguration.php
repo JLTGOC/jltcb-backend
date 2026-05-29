@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\QuotationTemplateConfig;
 
-use Illuminate\Database\Eloquent\Attributes\Scope;
+use App\Models\TemplateCharge;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 

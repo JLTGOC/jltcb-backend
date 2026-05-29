@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\StandardConfiguration;
-use Illuminate\Http\Request;
 use App\Http\Resources\StandardConfigResource;
-use Illuminate\Validation\Rule;
+use App\Models\QuotationTemplateConfig\StandardConfiguration;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class StandardConfigurationController extends Controller
 {

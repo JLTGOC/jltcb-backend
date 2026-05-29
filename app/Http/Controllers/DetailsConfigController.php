@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\BaseConfigController;
 use App\Http\Resources\DetailsConfigResource;
-use App\Models\DetailsConfiguration;
-use App\Models\ConfigDropdownOption;
-use Illuminate\Http\Request;
+use App\Models\QuotationTemplateConfig\{
+    DetailsConfiguration,
+    ConfigDropdownOption
+};
 use Closure;
+use Illuminate\Http\Request;
 
 class DetailsConfigController extends BaseConfigController
 {

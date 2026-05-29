@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\QuotationTemplate;
+use App\Models\QuotationTemplateConfig\BillingConfiguration;
 use Illuminate\Database\Eloquent\Model;
 
 class TemplateCharge extends Model

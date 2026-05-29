@@ -2,10 +2,12 @@
 
 namespace Database\Seeders;
 
-use App\Models\BillingConfiguration;
 use App\Models\Quotation;
 use App\Models\QuotationTemplate;
-use App\Models\StandardConfiguration;
+use App\Models\QuotationTemplateConfig\{
+    BillingConfiguration,
+    StandardConfiguration,
+};
 use Database\Seeders\Traits\SeederFileTrait;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;

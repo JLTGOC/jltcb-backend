@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\QuotationTemplateConfig;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\QuotationTemplate;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class DetailsConfiguration extends Model
 {

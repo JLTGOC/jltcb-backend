@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\MessageTemplateResource;
-use App\Models\MessageTemplate;
+use App\Models\QuotationTemplateConfig\MessageTemplate;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class MessageTemplateController extends Controller
 {

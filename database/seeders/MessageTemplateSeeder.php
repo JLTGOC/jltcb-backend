@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\MessageTemplate;
+use App\Models\QuotationTemplateConfig\MessageTemplate;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 

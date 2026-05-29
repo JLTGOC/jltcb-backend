@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Models\BillingConfiguration;
+use App\Models\QuotationTemplateConfig\BillingConfiguration;
 use App\Models\QuotationField;
 use Illuminate\Foundation\Http\FormRequest;
 use Closure;

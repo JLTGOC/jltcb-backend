@@ -4,8 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Closure;
-use App\Models\BillingConfiguration;
-use Illuminate\Validation\Rule;
+use App\Models\QuotationTemplateConfig\BillingConfiguration;
 use App\Models\QuotationField;
 
 class UpdateQuotationTemplateRequest extends FormRequest

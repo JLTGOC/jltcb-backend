@@ -2,7 +2,12 @@
 
 namespace App\Providers;
 
-use App\Models\BillingConfiguration;
+use App\Models\QuotationTemplateConfig\{
+    BillingConfiguration,
+    DetailsConfiguration,
+    MessageTemplate,
+    StandardConfiguration
+};
 use App\Support\Scramble\SanctumAuthOperationTransformer;
 use Dedoc\Scramble\Configuration\OperationTransformers;
 use Dedoc\Scramble\Support\Generator\Operation;
@@ -15,11 +20,8 @@ use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Conversation;
-use App\Models\DetailsConfiguration;
-use App\Models\MessageTemplate;
 use App\Models\QuotationField;
 use App\Models\QuotationTemplate;
-use App\Models\StandardConfiguration;
 use App\Policies\ChatPolicy;
 use App\Policies\ConfigurationPolicy;
 use Spatie\Permission\Models\Role;
