@@ -15,6 +15,11 @@ class CompanyContact extends Model
         'email',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
     public function company()
     {
         return $this->belongsTo(Company::class, 'company_id');

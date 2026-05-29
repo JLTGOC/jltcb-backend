@@ -176,7 +176,7 @@ class CompanyController extends Controller
 
         $validator->validate();
 
-        return $this->success('Company fetched successfully.', new CompanyResource($company), 200);
+        return $this->success('Company details fetched successfully.', new CompanyResource($company), 200);
     }
 
     /**

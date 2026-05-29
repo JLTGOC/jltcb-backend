@@ -4,6 +4,8 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\URL;
 
 class CompanyResource extends JsonResource
 {
@@ -80,22 +82,51 @@ class CompanyResource extends JsonResource
                 ];
             }
             if ($request->registration) {
-                //
+                return [
+                    'tin' => $this->registration->tin ?? null,
+                    'bir_registration_number' => $this->registration->bir_registration_number ?? null,
+                    'cprs_status' => $this->registration->cprs_status ?? null,
+                    'importer_accreditation_number' => $this->registration->importer_accreditation_number ?? null,
+                    'importer_accreditation_expiry' => $this->registration->importer_accreditation_expiry ? Carbon::parse($this->registration->importer_accreditation_expiry)->format('m/d/Y') : null,
+                    'exporter_accreditation_number' => $this->registration->exporter_accreditation_number ?? null,
+                    'exporter_accreditation_expiry' => $this->registration->exporter_accreditation_expiry ? Carbon::parse($this->registration->exporter_accreditation_expiry)->format('m/d/Y') : null,
+                    'special_permits' => $this->registration->special_permits ?? null,
+                    'compliance_risk' => $this->registration->compliance_risk ?? null,
+                    'representatives' => $this->representatives->map(function ($representative) {
+                        return [
+                            'full_name' => $representative->full_name,
+                        ];
+                    }),
+                ];
             }
             if ($request->pricing) {
-                //
+                return [$this->pricing ?? null];
             }
             if ($request->monitoring) {
-                //
+                return [$this->monitoring ?? null];
             }
             if ($request->operation) {
-                //
+                return [$this->operation ?? null];
             }
             if ($request->insights) {
-                //
+                return [$this->insight ?? null];
             }
             if ($request->documents) {
-                //
+                return $this->documents->map(function ($document) {
+                    return [
+                        'id' => $document->id,
+                        'file_name' => $document->file_name,
+                        'file_url' => URL::temporarySignedRoute(
+                            'files.view', 
+                            Carbon::now()->addMinutes(10), 
+                            [
+                                'file' => $document->id
+                            ]),
+                        'file_type' => $document->file_type,
+                        'created_at' => $document->created_at,
+                        'updated_at' => $document->updated_at,
+                    ];
+                })->toArray();
             }
         }
     }
