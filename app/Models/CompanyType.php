@@ -8,6 +8,8 @@ class CompanyType extends Model
 {
     protected $fillable = ['name'];
 
+    protected $hidden = ['created_at', 'updated_at'];
+
     public function companies()
     {
         return $this->hasMany(Company::class, 'company_type_id');

@@ -4,7 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\{
     Company,
-    User
+    User,
+    TransactionType,
+    ClientClassification,
+    CompanyType,
+    Industry,
+    BusinessType,
 };
 use App\Http\Resources\{
     CompanyResource
@@ -22,6 +27,8 @@ use Illuminate\Support\Facades\Storage;
 class CompanyController extends Controller
 {
     /**
+     * Index Companies
+     * 
      * Display a listing of the resource.
      */
     public function index()
@@ -30,6 +37,8 @@ class CompanyController extends Controller
     }
 
     /**
+     * Store Company
+     * 
      * Store a newly created resource in storage.
      */
     public function store(StoreCompanyRequest $request)
@@ -112,6 +121,8 @@ class CompanyController extends Controller
     }
 
     /**
+     * Show Company
+     * 
      * Display the specified resource.
      */
     public function show(Company $company)
@@ -120,6 +131,8 @@ class CompanyController extends Controller
     }
 
     /**
+     * Update Company
+     * 
      * Update the specified resource in storage.
      */
     public function update(UpdateCompanyRequest $request, Company $company)
@@ -128,10 +141,36 @@ class CompanyController extends Controller
     }
 
     /**
+     * Delete Company
+     * 
      * Remove the specified resource from storage.
      */
     public function destroy(Company $company)
     {
         //
+    }
+
+    /**
+     * Company Enums
+     * 
+     * Get enums for company creation and updates
+     */
+    public function enums()
+    {
+        $transactionTypes = TransactionType::all();
+        $clientClassifications = ClientClassification::all();
+        $companyTypes = CompanyType::all();
+        $industries = Industry::all();
+        $businessTypes = BusinessType::all();
+        $growth = ['LOW', 'MEDIUM', 'HIGH'];
+
+        return response()->json([
+            'transaction_types' => $transactionTypes,
+            'client_classifications' => $clientClassifications,
+            'company_types' => $companyTypes,
+            'industries' => $industries,
+            'business_types' => $businessTypes,
+            'growth_levels' => $growth,
+        ]);
     }
 }
