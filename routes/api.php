@@ -146,5 +146,5 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
 
     // Company Routes
     Route::get('companies/enums', [CompanyController::class, 'enums']);
-    Route::apiResource('companies', CompanyController::class);
+    Route::apiResource('companies', CompanyController::class)->except(['destroy']);
 });

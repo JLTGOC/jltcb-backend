@@ -33,7 +33,7 @@ class CompanyController extends Controller
      */
     public function index()
     {
-        //
+        return CompanyResource::collection(Company::all())->paginate(10);
     }
 
     /**
