@@ -27,6 +27,10 @@ class Company extends Model
     protected $hidden = [
         'created_at',
         'updated_at',
+        'transaction_type_id',
+        'client_classification_id',
+        'company_type_id',
+        'business_type_id',
     ];
 
     public function accountHandler()

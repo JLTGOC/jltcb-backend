@@ -56,8 +56,6 @@ class CompanyController extends Controller
      */
     public function store(StoreCompanyRequest $request)
     {
-        $request->validated();
-
         DB::beginTransaction();
 
         try {
@@ -171,6 +169,8 @@ class CompanyController extends Controller
 
             if ($trueFields->count() > 1) {
                 $validator->errors()->add('show', 'Only one company section can be true at a time.');
+            } elseif ($trueFields->isEmpty()) {
+                $request->basic_info = true; // Default to basic_info if no section is specified
             }
         });
 

@@ -28,7 +28,7 @@ class CompanyResource extends JsonResource
                         'full_name' => $this->accountHandler->full_name,
                         'username' => $this->accountHandler->username,
                         'role' => $this->accountHandler->roles()->first()->name ?? null,
-                        'image_path' => $this->accountHandler->image_path,
+                        'image_path' => asset($this->accountHandler->image_path),
                     ] : null,
             ];
         }
@@ -37,11 +37,21 @@ class CompanyResource extends JsonResource
             if ($request->basic_info) {
                 $array = parent::toArray($request);
                 $industries = $this->companyIndustries->map(function ($companyIndustry) {
-                    return $companyIndustry->industry ? [
-                        'name' => $companyIndustry->industry->name,
-                    ] : null;
+                    return $companyIndustry->industry ? $companyIndustry->industry->name : null;
                 })->filter()->values();
+                $array['account_handler'] = $this->accountHandler ? [
+                    'id' => $this->accountHandler->id,
+                    'full_name' => $this->accountHandler->full_name,
+                    'username' => $this->accountHandler->username,
+                    'role' => $this->accountHandler->roles()->first()->name ?? null,
+                    'image_path' => asset($this->accountHandler->image_path),
+                ] : null;
+                $array['transaction_type'] = $this->transactionType ? $this->transactionType->name : null;
+                $array['client_classification'] = $this->clientClassification ? $this->clientClassification->name : null;
+                $array['company_type'] = $this->companyType ? $this->companyType->name : null;
+                $array['business_type'] = $this->businessType ? $this->businessType->name : null;
                 $array['industry'] = $industries;
+                $array['activation_date'] = $this->activation_date ? Carbon::parse($this->activation_date)->format('M d,Y') : null;
                 return $array;
             }
             if ($request->address) {
