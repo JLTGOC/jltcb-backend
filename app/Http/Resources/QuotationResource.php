@@ -9,8 +9,8 @@ use App\Models\{
     Message,
     Conversation,
     Shipment,
-    IssuedQuotation
 };
+use App\Models\IssuedQuotation\IssuedQuotation;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Carbon;
 

@@ -25,7 +25,6 @@ use App\Models\{
     Message,
     QuotationTemplate,
     RegulatoryService,
-    IssuedQuotation,
     BusinessType,
     RegulatoryAssistanceType,
     ContainerSize,
@@ -45,6 +44,7 @@ use App\Repositories\Quotation\{
     AcceptQuotationAssignmentRepository,
     ClientInputsRepository
 };
+use App\Models\IssuedQuotation\IssuedQuotation;
 use App\Services\QuotationFileService;
 
 class QuotationController extends Controller

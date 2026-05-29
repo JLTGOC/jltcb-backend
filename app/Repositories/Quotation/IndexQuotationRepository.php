@@ -9,7 +9,7 @@ use App\Http\Resources\IndexQuotation\{
     MobileQuotationResource,
     ClientQuotationResource,
 };
-use App\Models\IssuedQuotation;
+use App\Models\IssuedQuotation\IssuedQuotation;
 use App\Models\Message;
 use App\Models\Quotation;
 use App\Models\User;

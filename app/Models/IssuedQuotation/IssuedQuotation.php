@@ -1,7 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\IssuedQuotation;
 
+use App\Models\Quotation;
+use App\Models\QuotationTemplate;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 

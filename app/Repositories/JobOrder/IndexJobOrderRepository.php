@@ -3,7 +3,7 @@
 namespace App\Repositories\JobOrder;
 
 use App\Enums\ServiceLevelEnum;
-use App\Models\IssuedQuotation;
+use App\Models\IssuedQuotation\IssuedQuotation;
 use App\Models\JobOrder;
 use App\Models\User;
 use App\Repositories\BaseRepository;

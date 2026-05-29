@@ -12,6 +12,7 @@ use App\Models\{
     Article,
     Quotation
 };
+use App\Models\IssuedQuotation\IssuedQuotation;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\Searchable\Searchable;
 use Spatie\Searchable\SearchResult;

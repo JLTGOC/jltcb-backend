@@ -4,7 +4,7 @@ namespace App\Policies;
 
 use App\Models\User;
 use App\Models\Quotation;
-use App\Models\IssuedQuotation;
+use App\Models\IssuedQuotation\IssuedQuotation;
 use Illuminate\Auth\Access\Response;
 
 class IssuedQuotationPolicy

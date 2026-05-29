@@ -5,10 +5,10 @@ namespace App\Http\Resources\IndexQuotation;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\{
-    IssuedQuotation,
     Message,
     User,
 };
+use App\Models\IssuedQuotation\IssuedQuotation;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 

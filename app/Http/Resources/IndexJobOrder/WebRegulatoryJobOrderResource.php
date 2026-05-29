@@ -5,7 +5,7 @@ namespace App\Http\Resources\IndexJobOrder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\JobOrder;
-use App\Models\IssuedQuotation;
+use App\Models\IssuedQuotation\IssuedQuotation;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 

@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Searchable\Searchable;
 use Spatie\Searchable\SearchResult;
+use App\Models\IssuedQuotation\IssuedQuotation;
 
 class Quotation extends Model implements Searchable
 {
