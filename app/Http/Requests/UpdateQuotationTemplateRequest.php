@@ -57,10 +57,7 @@ class UpdateQuotationTemplateRequest extends FormRequest
             'template_charges' => ['required', 'array'],
             'template_charges.*.id' => ['sometimes', 'exists:template_charges,id', 'distinct'],
             'template_charges.*.name' => [
-                'required_with:template_charges', 'string', 'max:255', 'distinct',  
-                Rule::unique('template_charges', 'name')
-                    ->where('template_id', $template->id)
-                    ->ignore($template->id)
+                'required_with:template_charges', 'string', 'max:255', 'distinct',
             ],
             'template_charges.*.receipt_option_ids' => ['required', 'array'],
             'template_charges.*.receipt_option_ids.*' => [
