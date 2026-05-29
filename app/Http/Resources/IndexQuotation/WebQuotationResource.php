@@ -87,7 +87,6 @@ class WebQuotationResource extends JsonResource
             'conversation_id' => $conversationId ?? null,
             'prepared_by' => $this->created_by ? User::where('id', $this->created_by)->value('full_name') : null,
             'issued_quotation_id' => $issuedQuotation ?? null,
-            'job_order_created' => $this->jobOrder ? true : false,
         ];
     }
 }

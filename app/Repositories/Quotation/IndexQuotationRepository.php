@@ -200,8 +200,8 @@ class IndexQuotationRepository extends BaseRepository
         }
 
         return [
-            'query' => $query,
-            'my_quotations_query' => $myQuotationsQuery,
+            'query' => $query->whereDoesntHave('jobOrder'),
+            'my_quotations_query' => $myQuotationsQuery->whereDoesntHave('jobOrder'),
         ];
     }
 
