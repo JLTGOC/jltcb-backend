@@ -52,7 +52,7 @@ class QuotationSeeder extends Seeder
             $client = fake()->randomElement($clients);
             $status = fake()->randomElement(['REQUESTED', 'RESPONDED', 'ACCEPTED', 'ACCEPTED']);
             if ($status === 'ACCEPTED') {
-                $assignmentStatus = 'ASSIGNED';
+                $assignmentStatus = fake()->randomElement(['ASSIGNED', 'REASSIGNMENT REQUESTED']);
             } elseif ($status === 'RESPONDED') {
                 $assignmentStatus = fake()->randomElement(['ASSIGNED', 'REASSIGNMENT REQUESTED']);
             } elseif ($status === 'REQUESTED') {
@@ -143,7 +143,9 @@ class QuotationSeeder extends Seeder
             }
 
             if ($quotation->status === 'RESPONDED' || $quotation->status === 'ACCEPTED') {
+                $monthYear = Carbon::now()->format('m-Y');
                 $quotation->update([
+                    'reference_number' => "QT-{$monthYear}-{$idSection}",
                     'created_by' => $quotation->as_id,
                 ]);
 

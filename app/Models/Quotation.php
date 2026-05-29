@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Searchable\Searchable;
 use Spatie\Searchable\SearchResult;
@@ -95,4 +96,19 @@ class Quotation extends Model implements Searchable
         'client_id' => 'integer',
         'as_id' => 'integer',
     ];
+
+    protected static function booted(): void
+    {
+        static::updating(function (self $quotation) {
+            if (
+                $quotation->isDirty('status') &&
+                $quotation->status === 'RESPONDED' &&
+                $quotation->getOriginal('status') !== 'RESPONDED'
+            ) {
+                if (preg_match('/^RQ-[^-]+-\d{8}-(\d+)$/', $quotation->reference_number ?? '', $matches)) {
+                    $quotation->reference_number = 'QT-' . Carbon::now()->format('m-Y') . '-' . $matches[1];
+                }
+            }
+        });
+    }
 }
