@@ -100,7 +100,7 @@ class QuotationPolicy
 
     public function reassignSpecialist(User $user, Quotation $quotation): bool
     {
-        return $user->hasRole(['Lead Account Specialist', 'Lead Client Success', 'Client Succcess']);
+        return $user->hasRole(['Lead Account Specialist', 'Lead Client Success', 'Client Success']);
     }
 
     public function requestReassignment(User $user, Quotation $quotation): bool
