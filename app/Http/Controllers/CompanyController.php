@@ -3,30 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\{
-    BusinessType,
-    ClientClassification,
-    CompanyType,
-    TransactionType,
-    Industry,
-    CompanyIndustry,
     Company,
-    CompanyAddress,
-    CompanyContact,
-    CompanyRegistration,
-    CompanyPricing,
-    CompanyMonitoring,
-    CompanyOperation,
-    CompanyDocument,
-    CompanyInsight,
-    CompanyWarehouseAddress,
-    CompanyDeliveryAddress,
-    CompanyRepresentative,
     User
 };
 use App\Http\Resources\{
     CompanyResource
 };
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use App\Http\Requests\{
     StoreCompanyRequest,
     UpdateCompanyRequest
@@ -79,7 +63,7 @@ class CompanyController extends Controller
             $company->registration()->create($request->input('registration'));
             if ($request->has('registration.representatives')) {
                 foreach ($request->input('registration.representatives') as $representative) {
-                    $company->representatives()->create(['name' => $representative]);
+                    $company->representatives()->create(['full_name' => $representative]);
                 }
             }
 
@@ -93,19 +77,21 @@ class CompanyController extends Controller
             $documentsToCreate = [];
 
             foreach ($documentsInput as $index => $doc) {
-                $uploaded = $uploadedDocs[$index] ?? null;
-                $fileName = $doc['name'] ?? ($uploaded ? $uploaded->getClientOriginalName() : null);
+                $uploaded = data_get($uploadedDocs, "{$index}.file");
+                $fileName = $doc['name'] ?? null;
 
-                if ($uploaded && $fileName) {
-                    $storedPath = $uploaded->storeAs("files/{$company->name}", $fileName);
+                if ($uploaded instanceof UploadedFile) {
+                    $storedPath = $uploaded->store('files', 'local');
+                    $fileType = $uploaded->getClientOriginalExtension();
                 } else {
                     $storedPath = isset($doc['filepath']) ? $doc['filepath'] : null;
+                    $fileType = $doc['file_type'] ?? null;
                 }
 
                 $documentsToCreate[] = [
                     'filepath' => $storedPath,
                     'file_name' => $fileName,
-                    'file_type' => $fileName ? originalClientExtension($fileName) : ($uploaded ? $uploaded->getClientOriginalExtension() : null),
+                    'file_type' => $fileType,
                 ];
             }
 

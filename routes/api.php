@@ -24,6 +24,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StandardConfigurationController;
 use App\Http\Controllers\ServiceOptionController;
 use App\Http\Controllers\ReassignmentRequestController;
+use App\Http\Controllers\CompanyController;
 use Illuminate\Support\Facades\Broadcast;
 
 require __DIR__ . '/public_routes.php';

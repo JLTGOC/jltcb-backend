@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Company extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'name',
         'consignee_used',
@@ -17,7 +20,7 @@ class Company extends Model
         'business_type_id',
         'business_registration_number',
         'website',
-        'years_of_operation',
+        'years_in_operation',
         'activation_date',
     ];
 

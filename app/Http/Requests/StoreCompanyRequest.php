@@ -38,7 +38,7 @@ class StoreCompanyRequest extends FormRequest
             'basic_info.business_type_id' => 'required',
             'basic_info.business_registration_number' => 'required|string|max:255',
             'basic_info.website' => 'required|string|max:255',
-            'basic_info.years_of_operation' => 'required|integer|min:0',
+            'basic_info.years_in_operation' => 'required|integer|min:0',
             'basic_info.activation_date' => 'required|date',
             'basic_info.industry' => 'required|array',
             'basic_info.industry.*' => 'sometimes',
@@ -95,7 +95,7 @@ class StoreCompanyRequest extends FormRequest
         $operationRules = [
             'operation.preferred_communication_style' => 'required|string|max:255',
             'operation.response_time_expectation' => 'required|string|max:255',
-            'operation.client_specific.sop' => 'required|string|max:255',
+            'operation.client_specific_sop' => 'required|string|max:255',
             'operation.approval_workflow' => 'required|string|max:255',
             'operation.pre_alert_details' => 'required|string|max:255',
             'operation.special_instructions' => 'sometimes|nullable|string|max:255',

@@ -13,8 +13,8 @@ class CompanyRegistration extends Model
         'cprs_status',
         'importer_accreditation_number',
         'importer_accreditation_expiry',
-        'exporter_registration_number',
-        'exporter_registration_expiry',
+        'exporter_accreditation_number',
+        'exporter_accreditation_expiry',
         'special_permits',
         'compliance_risk'
     ];
