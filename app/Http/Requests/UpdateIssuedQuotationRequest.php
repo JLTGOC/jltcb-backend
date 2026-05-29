@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Models\QuotationTemplate;
+use App\Rules\UniqueReceiptChargeLabelRule;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateIssuedQuotationRequest extends FormRequest
@@ -22,126 +24,136 @@ class UpdateIssuedQuotationRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
-{
-    $issuedQuotation = $this->route('issuedQuotation');
+    {
+        $issuedQuotation = $this->route('issuedQuotation');
 
-    $templateId = $this->input('template_id', $issuedQuotation->template_id);
+        $templateId = $this->input('template_id', $issuedQuotation->template_id);
 
-    $template = QuotationTemplate::with([
-        'detailConfigs.dropdownOptions',
-        'templateCharges.allowedReceiptCharges',
-        'quotationFields'
-    ])->find($templateId);
+        $template = QuotationTemplate::with([
+            'detailConfigs.dropdownOptions',
+            'templateCharges.allowedReceiptCharges',
+            'quotationFields'
+        ])->find($templateId);
 
-    $detailsConfigCount = count($template->detailConfigs);
+        $detailsConfigCount = count($template->detailConfigs);
 
-    return [
-        'subject' => ['required', 'string', 'max:255'],
-        'message' => ['required', 'string'],
-        'rate_validity' => ['required', 'date', Rule::date()->afterToday()],
+        return [
+            'subject' => ['required', 'string', 'max:255'],
+            'message' => ['required', 'string'],
+            'rate_validity' => ['required', 'date', Rule::date()->afterToday()],
 
-        'uom' => ['required', 'string', Rule::exists('billing_configurations', 'label')
-                    ->where(fn ($query) => $query->where('type', 'UOM'))],
-        'currency' => ['required', 'string', Rule::exists('billing_configurations', 'label')
-                ->where(fn ($query) => $query->where('type', 'CURRENCY'))],
+            'uom' => ['required', 'string', Rule::exists('billing_configurations', 'label')
+                        ->where(fn ($query) => $query->where('type', 'UOM'))],
+            'currency' => ['required', 'string', Rule::exists('billing_configurations', 'label')
+                    ->where(fn ($query) => $query->where('type', 'CURRENCY'))],
 
-        'detail_values' => [
-            'required', 'array', 'min:1', 'size:' . $detailsConfigCount
-        ],
+            'detail_values' => [
+                'required', 'array', 'min:1', 'size:' . $detailsConfigCount
+            ],
 
-        'detail_values.*.label' => [
-            'required',
-            'string',
-            'distinct',
-            function ($attribute, $value, $fail) use ($template) {
-                if (!$template) return;
+            'detail_values.*.label' => [
+                'required',
+                'string',
+                'distinct',
+                function ($attribute, $value, $fail) use ($template) {
+                    if (!$template) return;
 
-                $exists = $template->detailConfigs()
-                    ->where('label', $value)
-                    ->exists();
-
-                if (!$exists) {
-                    $fail("'{$value}' is not a valid detail label for the selected template.");
-                }
-            }
-        ],
-
-        'detail_values.*.value' => [
-            'required',
-            'string',
-            'max:255',
-            function ($attribute, $value, $fail) use ($template) {
-                if (!$template) return;
-
-                $index = explode('.', $attribute)[1];
-                $label = $this->input("detail_values.$index.label");
-
-                $existingDetailConfig = $template->detailConfigs()
-                    ->where('label', $label)
-                    ->first();
-
-                if (!$existingDetailConfig) return;
-
-                if ($existingDetailConfig->type === 'DROPDOWN') {
-                    $exists = $existingDetailConfig->dropdownOptions()
-                        ->where('name', $value)
+                    $exists = $template->detailConfigs()
+                        ->where('label', $value)
                         ->exists();
 
                     if (!$exists) {
-                        $fail("'{$value}' is not a valid option for {$label}.");
+                        $fail("'{$value}' is not a valid detail label for the selected template.");
                     }
                 }
-            }
-        ],
+            ],
 
-        "charges" => ['required', 'array', 'min:1'],
-        'charges.*.name' => [
-            'required', 'string', 'distinct',
-            function ($attribute, $value, $fail) use ($template) {
+            'detail_values.*.value' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($template) {
+                    if (!$template) return;
 
-                $exists = $template->templateCharges()->where('name', $value)->exists();
-                
-                if (!$exists) {
-                    $fail("'{$value}' is not a valid Charge Name for the selected template.");
+                    $index = explode('.', $attribute)[1];
+                    $label = $this->input("detail_values.$index.label");
+
+                    $existingDetailConfig = $template->detailConfigs()
+                        ->where('label', $label)
+                        ->first();
+
+                    if (!$existingDetailConfig) return;
+
+                    if ($existingDetailConfig->type === 'DROPDOWN') {
+                        $exists = $existingDetailConfig->dropdownOptions()
+                            ->where('name', $value)
+                            ->exists();
+
+                        if (!$exists) {
+                            $fail("'{$value}' is not a valid option for {$label}.");
+                        }
+                    }
                 }
-            }
-        ],
-        'charges.*.items' => ['required', 'array', 'min:1'],
-        'charges.*.items.*.receipt_charge_label' => [
-            'required', 'string', 'distinct'
-        ],
-        'charges.*.items.*.amount' => [
-            'required', 'numeric', 'decimal:0,2','max:9999999999999.99'
-        ], 
-        'charges.*.items.*.quantity' => [
-            Rule::requiredIf($this->uom === 'PER CONTAINER'),
-            'nullable',
-            'integer',
-            'min:1',
-        ],
-        'charges.*.items.*.container_size' => [
-            Rule::requiredIf($this->uom === 'PER CONTAINER'),
-            'nullable',
-            'string',
-        ],
+            ],
 
-        'standard_config.name' => ['required', 'string', 'max:255'],
-        'standard_config.policies' => ['required', 'string'],
-        'standard_config.terms_and_conditions' => ['required', 'string'],
-        'standard_config.banking_details' => ['required', 'string'],
-        'standard_config.footer' => ['required', 'string', 'max:255'],
+            "charges" => ['required', 'array', 'min:1'],
+            'charges.*.name' => [
+                'required', 'string', 'distinct',
+                function ($attribute, $value, $fail) use ($template) {
 
-        'signatory.closing_statement' => ['required', 'string', 'max:255'],
-        'signatory.is_authorized_signatory' => ['required', 'boolean'],
-        'signatory.authorized_signatory_name' => ['required', 'string', 'max:255'],
-        'signatory.position' => ['required', 'string', 'max:255'],
-        'signatory.signature_file' => [
-            'nullable',
-            'file',
-            'mimes:png,jpg,jpeg'
-        ],
+                    $exists = $template->templateCharges()->where('name', $value)->exists();
+                    
+                    if (!$exists) {
+                        $fail("'{$value}' is not a valid Charge Name for the selected template.");
+                    }
+                }
+            ],
+            'charges.*.items' => ['required', 'array', 'min:1'],
+            'charges.*.items.*.receipt_charge_label' => [
+                'required', 'string', 'distinct'
+            ],
+            'charges.*.items.*.amount' => [
+                'required', 'numeric', 'decimal:0,2','max:9999999999999.99'
+            ], 
+            'charges.*.items.*.quantity' => [
+                Rule::requiredIf($this->uom === 'PER CONTAINER'),
+                'nullable',
+                'integer',
+                'min:1',
+            ],
+            'charges.*.items.*.container_size' => [
+                Rule::requiredIf($this->uom === 'PER CONTAINER'),
+                'nullable',
+                'string',
+            ],
 
-        'issued_quotation_file' => ['required', 'file', 'mimes:pdf']
-    ];
-}
+            'standard_config.name' => ['required', 'string', 'max:255'],
+            'standard_config.policies' => ['required', 'string'],
+            'standard_config.terms_and_conditions' => ['required', 'string'],
+            'standard_config.banking_details' => ['required', 'string'],
+            'standard_config.footer' => ['required', 'string', 'max:255'],
+
+            'signatory.closing_statement' => ['required', 'string', 'max:255'],
+            'signatory.is_authorized_signatory' => ['required', 'boolean'],
+            'signatory.authorized_signatory_name' => ['required', 'string', 'max:255'],
+            'signatory.position' => ['required', 'string', 'max:255'],
+            'signatory.signature_file' => [
+                'nullable',
+                'file',
+                'mimes:png,jpg,jpeg'
+            ],
+
+            'issued_quotation_file' => ['required', 'file', 'mimes:pdf']
+        ];
+    }
+
+    public function after(): array
+    {
+        return [
+            new UniqueReceiptChargeLabelRule(
+                uom: $this->input('uom'),
+                charges: $this->input('charges', [])
+            ),
+        ];
+    }
 }

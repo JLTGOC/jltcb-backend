@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Models\QuotationTemplate;
+use App\Rules\UniqueReceiptChargeLabelRule;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -63,9 +65,9 @@ class StoreIssuedQuotationRequest extends FormRequest
             'currency' => ['required', 'string', Rule::exists('billing_configurations', 'label')
                     ->where(fn ($query) => $query->where('type', 'CURRENCY'))],
 
-            // 'detail_values' => [
-            //     'required', 'array', 'min:1', 'size:' . $detailsConfigCount
-            // ],
+            'detail_values' => [
+                'required', 'array', 'min:1', 'size:' . $detailsConfigCount
+            ],
             'detail_values.*.label' => [
                 'required', 'string', 'distinct', 
                 function ($attribute, $value, $fail) use ($template) {
@@ -118,7 +120,7 @@ class StoreIssuedQuotationRequest extends FormRequest
             ],
             'charges.*.items' => ['required', 'array', 'min:1'],
             'charges.*.items.*.receipt_charge_label' => [
-                'required', 'string', 'distinct'
+                'required', 'string',
             ],
             'charges.*.items.*.amount' => [
                 'required', 'numeric', 'decimal:0,2','max:9999999999999.99'
@@ -150,4 +152,14 @@ class StoreIssuedQuotationRequest extends FormRequest
             'issued_quotation_file' => ['required', 'file', 'mimes:pdf']
         ]; 
     }
+
+    public function after(): array
+{
+    return [
+        new UniqueReceiptChargeLabelRule(
+            uom: $this->input('uom'),
+            charges: $this->input('charges', [])
+        ),
+    ];
+}
 }

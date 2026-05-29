@@ -57,7 +57,6 @@ return new class extends Migration
             $table->unsignedInteger('quantity')->nullable();
             $table->string('container_size')->nullable();
             $table->decimal('amount', 15, 2)->default(0);
-            $table->unique(['issued_quotation_charge_id', 'receipt_charge_label'], 'charge_receipt_option_unique');
             $table->timestamps();
         });
 
