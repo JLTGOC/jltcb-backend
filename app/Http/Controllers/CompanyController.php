@@ -21,6 +21,7 @@ use App\Http\Requests\{
     UpdateCompanyRequest
 };
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 
@@ -31,9 +32,21 @@ class CompanyController extends Controller
      * 
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return CompanyResource::collection(Company::all())->paginate(10);
+        $asSearch = $request->input('as_search');
+
+        $companiesQuery = Company::query();
+
+        if ($asSearch) {
+            $companies = $companiesQuery->where(function ($query) use ($asSearch) {
+                $query->whereHas('accountHandler', function ($q) use ($asSearch) {
+                    $q->where('username', 'like', "%{$asSearch}%")
+                    ->orWhere('full_name', 'like', "%{$asSearch}%");
+                });
+            });
+        }
+        return $this->success('All companies fetched successfully', CompanyResource::collection($companiesQuery->get()), 200);
     }
 
     /**
@@ -125,9 +138,45 @@ class CompanyController extends Controller
      * 
      * Display the specified resource.
      */
-    public function show(Company $company)
+    public function show(Company $company, Request $request)
     {
-        //
+        $fields = [
+            'basic_info',
+            'address',
+            'contacts',
+            'registration',
+            'pricing',
+            'operation',
+            'monitoring',
+            'documents',
+            'insights',
+        ];
+
+        $validator = Validator::make($request->all(), [
+            'basic_info' => 'sometimes|boolean',
+            'address' => 'sometimes|boolean',
+            'contacts' => 'sometimes|boolean',
+            'registration' => 'sometimes|boolean',
+            'pricing' => 'sometimes|boolean',
+            'operation' => 'sometimes|boolean',
+            'monitoring' => 'sometimes|boolean',
+            'documents' => 'sometimes|boolean',
+            'insights' => 'sometimes|boolean',
+        ]);
+
+        $validator->after(function ($validator) use ($request, $fields) {
+            $trueFields = collect($fields)->filter(function ($field) use ($request) {
+                return $request->boolean($field);
+            });
+
+            if ($trueFields->count() > 1) {
+                $validator->errors()->add('show', 'Only one company section can be true at a time.');
+            }
+        });
+
+        $validator->validate();
+
+        return $this->success('Company fetched successfully.', new CompanyResource($company), 200);
     }
 
     /**

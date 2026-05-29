@@ -24,6 +24,11 @@ class Company extends Model
         'activation_date',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
     public function accountHandler()
     {
         return $this->belongsTo(User::class, 'account_handler_id');
