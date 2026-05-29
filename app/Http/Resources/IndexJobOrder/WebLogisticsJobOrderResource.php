@@ -53,6 +53,7 @@ class WebLogisticsJobOrderResource extends JsonResource
             'issued_quotation_id' => IssuedQuotation::where('quotation_id', $this->quotation_id)->value('id'),
             'assignment_status' => $this->assignment_status,
             'assigned_to' => $assignedTo,
+            'ops_id' => $this->operations_id,
             'ops_image' => $this->operations ? asset(Storage::url($this->operations->image_path)) : null,
             'assigned_at' => $this->operations_id ? mb_strtoupper(Carbon::parse($this->assigned_at)->format('F d, Y')) : null,
             'reassignment_request_id' => $this->latestReassignmentRequest?->status !== 'PENDING' ? null : $this->latestReassignmentRequest->id,

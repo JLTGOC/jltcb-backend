@@ -86,7 +86,7 @@ class JobOrderPolicy
 
     public function reassignOps(User $user, JobOrder $jobOrder): bool
     {
-        return $user->hasRole(['Lead Operations', 'Lead Client Success', 'Client Success']);
+        return $user->hasRole(['Lead Operations', 'Lead Account Specialist', 'Lead Client Success', 'Client Success']);
     }
 
     public function requestReassignment(User $user, JobOrder $jobOrder): bool

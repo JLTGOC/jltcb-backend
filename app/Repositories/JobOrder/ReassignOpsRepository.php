@@ -37,7 +37,7 @@ class ReassignOpsRepository extends BaseRepository
         } elseif ($request->status === 'APPROVED') {
             $user = User::find($request->operations_id);
             
-            if (!$user || !$user->hasRole('Operations')) {
+            if (!$user || !$user->hasRole(['Operations', 'Lead Operations', 'Client Success', 'Lead Client Success'])) {
                 return $this->error('The selected user is not an Operations user', 422);
             }
             if ((int) $request->operations_id === $jobOrder->operations_id) {

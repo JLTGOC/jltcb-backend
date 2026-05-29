@@ -24,7 +24,12 @@ class ReassignOpsRequest extends FormRequest
     {
         return [
             'status' => 'required|in:APPROVED,REJECTED',
-            'operations_id' => 'required_if:status,APPROVED|exists:users,id'
+            'operations_id' => ['required_if:status,APPROVED', function ($attribute, $value, $fail) {
+                if ($this->operations_id === "" || empty($value)) {
+                    $value = null;
+                    return;
+                }
+            }],
         ];
     }
 }
