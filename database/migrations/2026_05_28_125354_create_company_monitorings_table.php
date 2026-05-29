@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('company_monitorings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
-            $table->string('past_issues');
-            $table->string('penalties');
-            $table->string('custom_flags');
-            $table->string('payment_delays');
-            $table->string('claims');
-            $table->string('notes');
+            $table->string('past_issues')->nullable();
+            $table->string('penalties')->nullable();
+            $table->string('custom_flags')->nullable();
+            $table->string('payment_delays')->nullable();
+            $table->string('claims')->nullable();
+            $table->string('notes')->nullable();
             $table->timestamps();
         });
     }

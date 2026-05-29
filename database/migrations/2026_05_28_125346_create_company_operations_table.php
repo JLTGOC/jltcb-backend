@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('company_operations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
-            $table->string('preferred_communication_style');
-            $table->string('response_time_expectation');
-            $table->string('client_specific_sop');
-            $table->string('approval_workflow');
-            $table->string('pre_alert_details');
-            $table->string('special_instructions');
+            $table->string('preferred_communication_style')->nullable();
+            $table->string('response_time_expectation')->nullable();
+            $table->string('client_specific_sop')->nullable();
+            $table->string('approval_workflow')->nullable();
+            $table->string('pre_alert_details')->nullable();
+            $table->string('special_instructions')->nullable();
             $table->timestamps();
         });
     }

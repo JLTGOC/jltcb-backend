@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('company_pricings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
-            $table->string('service_rate');
-            $table->string('special_discounts');
-            $table->string('3pl_profit_range');
+            $table->string('service_rate')->nullable();
+            $table->string('special_discounts')->nullable();
+            $table->string('3pl_profit_range')->nullable();
             // Set as strings temporarily since the format of these fields is not yet defined
-            $table->string('notes');
+            $table->string('notes')->nullable();
             $table->timestamps();
         });
     }

@@ -16,9 +16,9 @@ return new class extends Migration
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->string('registered_address');
             $table->string('office_address');
-            $table->string('usual_port');
-            $table->string('origin_country');
-            $table->string('destination_country');
+            $table->string('usual_port')->nullable();
+            $table->string('origin_country')->nullable();
+            $table->string('destination_country')->nullable();
             $table->timestamps();
         });
     }

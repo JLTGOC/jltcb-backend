@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('company_contacts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
-            $table->enum('type', ['PRIMARY', 'SECONDARY', 'BILLING']);
+            $table->enum('type', ['PRIMARY', 'SECONDARY', 'BILLING'])->default('PRIMARY');
             $table->string('full_name');
             $table->string('position');
             $table->string('contact_number')->unique();

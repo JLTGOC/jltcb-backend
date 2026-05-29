@@ -47,9 +47,9 @@ class StoreCompanyRequest extends FormRequest
         $addressRules = [
             'address.registered_address' => 'required|string|max:255',
             'address.office_address' => 'required|string|max:255',
-            'address.usual_port' => 'required|string|max:255',
-            'address.origin_country' => 'required|string|max:255',
-            'address.destination_country' => 'required|string|max:255',
+            'address.usual_port' => 'sometimes|nullable|string|max:255',
+            'address.origin_country' => 'sometimes|nullable|string|max:255',
+            'address.destination_country' => 'sometimes|nullable|string|max:255',
             'address.warehouse_addresses' => 'sometimes|nullable|array',
             'address.warehouse_addresses.*' => 'sometimes|string|max:255',
             'address.delivery_addresses' => 'sometimes|nullable|array',
@@ -74,11 +74,11 @@ class StoreCompanyRequest extends FormRequest
         $registrationRules = [
             'registration.tin' => 'required|string|max:255',
             'registration.bir_registration_number' => 'required|string|max:255',
-            // 'registration.cprs_status' => 'required|string|max:255',
-            'registration.importer_accreditation_number' => 'required|string|max:255',
-            'registration.exporter_accreditation_number' => 'required|string|max:255',
-            'registration.importer_accreditation_expiry' => 'required|date',
-            'registration.exporter_accreditation_expiry' => 'required|date',
+            'registration.cprs_status' => 'required|in:ACTIVE,INACTIVE',
+            'registration.importer_accreditation_number' => 'sometimes|nullable|string|max:255',
+            'registration.exporter_accreditation_number' => 'sometimes|nullable|string|max:255',
+            'registration.importer_accreditation_expiry' => 'sometimes|nullable|date',
+            'registration.exporter_accreditation_expiry' => 'sometimes|nullable|date',
             'registration.special_permits' => 'sometimes|nullable|string|max:255',
             'registration.compliance_risk' => 'required|string|max:255',
             'registration.representatives' => 'sometimes|nullable|array',
@@ -86,18 +86,18 @@ class StoreCompanyRequest extends FormRequest
         ];
 
         $pricingRules = [
-            'pricing.service_rate' => 'required|numeric|min:0',
+            'pricing.service_rate' => 'sometimes|nullable|numeric|min:0',
             'pricing.special_discounts' => 'sometimes|nullable|numeric|min:0',
-            'pricing.3pl_profit_range' => 'required|numeric|min:0',
+            'pricing.3pl_profit_range' => 'sometimes|nullable|numeric|min:0',
             'pricing.notes' => 'sometimes|nullable|string|max:255',
         ];
 
         $operationRules = [
-            'operation.preferred_communication_style' => 'required|string|max:255',
-            'operation.response_time_expectation' => 'required|string|max:255',
-            'operation.client_specific_sop' => 'required|string|max:255',
-            'operation.approval_workflow' => 'required|string|max:255',
-            'operation.pre_alert_details' => 'required|string|max:255',
+            'operation.preferred_communication_style' => 'sometimes|nullable|string|max:255',
+            'operation.response_time_expectation' => 'sometimes|nullable|string|max:255',
+            'operation.client_specific_sop' => 'sometimes|nullable|string|max:255',
+            'operation.approval_workflow' => 'sometimes|nullable|string|max:255',
+            'operation.pre_alert_details' => 'sometimes|nullable|string|max:255',
             'operation.special_instructions' => 'sometimes|nullable|string|max:255',
         ];
 
@@ -118,9 +118,9 @@ class StoreCompanyRequest extends FormRequest
 
         $insightRules = [
             'insights.growth' => 'required|in:LOW,MEDIUM,HIGH',
-            'insights.expansion_plan' => 'required|string|max:255',
-            'insights.competitors' => 'required|string|max:255',
-            'insights.opportunities' => 'required|string|max:255',
+            'insights.expansion_plan' => 'sometimes|nullable|string|max:255',
+            'insights.competitors' => 'sometimes|nullable|string|max:255',
+            'insights.opportunities' => 'sometimes|nullable|string|max:255',
             'insights.notes' => 'sometimes|nullable|string|max:255',
         ];
 

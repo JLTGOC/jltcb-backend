@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->enum('growth', ['HIGH', 'MEDIUM', 'LOW'])->default('MEDIUM');
-            $table->string('expansion_plan');
-            $table->string('competitors');
-            $table->string('opportunities');
-            $table->string('notes');
+            $table->string('expansion_plan')->nullable();
+            $table->string('competitors')->nullable();
+            $table->string('opportunities')->nullable();
+            $table->string('notes')->nullable();
             $table->timestamps();
         });
     }

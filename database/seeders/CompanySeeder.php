@@ -69,6 +69,7 @@ class CompanySeeder extends Seeder
                 'exporter_accreditation_expiry' => fake()->date(),
                 'special_permits' => fake()->sentence(),
                 'compliance_risk' => fake()->randomElement(['LOW', 'MEDIUM', 'HIGH']),
+                'cprs_status' => fake()->randomElement(['ACTIVE', 'INACTIVE']),
             ]);
 
             $company->pricing()->create([
