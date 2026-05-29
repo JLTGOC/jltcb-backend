@@ -49,6 +49,7 @@ class DatabaseSeeder extends Seeder
             CompanyTypeSeeder::class,
             TransactionTypeSeeder::class,
             IndustrySeeder::class,
+            CompanySeeder::class,
             RegulatoryAssistanceTypeSeeder::class,
             ContainerSizeSeeder::class,
             BillingModeSeeder::class,
