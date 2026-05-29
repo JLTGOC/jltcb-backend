@@ -121,13 +121,10 @@ class CompanyController extends Controller
 
             DB::commit();
 
-            return new CompanyResource($company);
+            return $this->success('Company created successfully.', new CompanyResource($company), 201);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'message' => 'Failed to create company', 
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->error('Failed to create company', 500, $e->getMessage());
         }
     }
 
@@ -186,7 +183,159 @@ class CompanyController extends Controller
      */
     public function update(UpdateCompanyRequest $request, Company $company)
     {
-        //
+        DB::beginTransaction();
+
+        try{
+            $basicInfo = $request->input('basic_info');
+            if ($basicInfo) {
+                $company->update([
+                    'name' => $basicInfo['name'] ?? $company->name,
+                    'consignee_used' => $basicInfo['consignee_used'] ?? $company->consignee_used,
+                    'trade_name' => $basicInfo['trade_name'] ?? $company->trade_name,
+                    'account_handler_id' => $basicInfo['account_handler_id'] ?? $company->account_handler_id,
+                    'transaction_type_id' => $basicInfo['transaction_type_id'] ?? $company->transaction_type_id,
+                    'client_classification_id' => $basicInfo['client_classification_id'] ?? $company->client_classification_id,
+                    'company_type_id' => $basicInfo['company_type_id'] ?? $company->company_type_id,
+                    'business_type_id' => $basicInfo['business_type_id'] ?? $company->business_type_id,
+                    'business_registration_number' => $basicInfo['business_registration_number'] ?? $company->business_registration_number,
+                    'website' => $basicInfo['website'] ?? $company->website,
+                    'years_in_operation' => $basicInfo['years_in_operation'] ?? $company->years_in_operation,
+                    'activation_date' => isset($basicInfo['activation_date']) ? Carbon::parse($basicInfo['activation_date'])->format('Y-m-d') : $company->activation_date,
+                ]);
+            }
+            if (isset($basicInfo['industry'])) {
+                $company->companyIndustries()->delete();
+                $company->companyIndustries()->createMany(array_map(function ($industryId) {
+                    return ['industry_id' => $industryId];
+                }, $basicInfo['industry']));
+            }
+
+            $address = $request->input('address');
+            if ($address) {
+                $company->address()->update([
+                    'registered_address' => $address['registered_address'] ?? $company->address->registered_address,
+                    'office_address' => $address['office_address'] ?? $company->address->office_address,
+                    'usual_port' => $address['usual_port'] ?? $company->address->usual_port,
+                    'origin_country' => $address['origin_country'] ?? $company->address->origin_country,
+                    'destination_country' => $address['destination_country'] ?? $company->address->destination_country,
+                ]);
+
+                if ($address['warehouse_addresses']) {
+                    $company->warehouseAddresses()->delete();
+                    foreach ($address['warehouse_addresses'] as $warehouseAddress) {
+                        $company->warehouseAddresses()->create(['address' => $warehouseAddress]);
+                    }
+                }
+                if ($address['delivery_addresses']) {
+                    $company->deliveryAddresses()->delete();
+                    foreach ($address['delivery_addresses'] as $deliveryAddress) {
+                        $company->deliveryAddresses()->create(['address' => $deliveryAddress]);
+                    }
+                }
+            }
+
+            $primaryContact = $request->input('primary');
+            $companyPrimaryContact = $company->contacts()->where('type', 'PRIMARY')->first();
+            $secondaryContact = $request->input('secondary');
+            $companySecondaryContact = $company->contacts()->where('type', 'SECONDARY')->first();
+            $billingContact = $request->input('billing');
+            $companyBillingContact = $company->contacts()->where('type', 'BILLING')->first();
+            if ($primaryContact && $companyPrimaryContact) {
+                $company->contacts()->where('type', 'PRIMARY')->update([
+                    'full_name' => $primaryContact['full_name'] ?? $companyPrimaryContact->full_name,
+                    'position' => $primaryContact['position'] ?? $companyPrimaryContact->position,
+                    'email' => $primaryContact['email'] ?? $companyPrimaryContact->email,
+                    'contact_number' => $primaryContact['contact_number'] ?? $companyPrimaryContact->contact_number,
+                ]);
+            }
+            if ($secondaryContact && $companySecondaryContact) {
+                $company->contacts()->where('type', 'SECONDARY')->update([
+                    'full_name' => $secondaryContact['full_name'] ?? $companySecondaryContact->full_name,
+                    'position' => $secondaryContact['position'] ?? $companySecondaryContact->position,
+                    'email' => $secondaryContact['email'] ?? $companySecondaryContact->email,
+                    'contact_number' => $secondaryContact['contact_number'] ?? $companySecondaryContact->contact_number,
+                ]);
+            }
+            if ($billingContact && $companyBillingContact) {
+                $company->contacts()->where('type', 'BILLING')->update([
+                    'full_name' => $billingContact['full_name'] ?? $companyBillingContact->full_name,
+                    'position' => $billingContact['position'] ?? $companyBillingContact->position,
+                    'email' => $billingContact['email'] ?? $companyBillingContact->email,
+                    'contact_number' => $billingContact['contact_number'] ?? $companyBillingContact->contact_number,
+                ]);
+            }
+
+            $registration = $request->input('registration');
+            if ($registration) {
+                $company->registration()->update([
+                    'tin' => $registration['tin'] ?? $company->registration->tin,
+                    'bir_registration_number' => $registration['bir_registration_number'] ?? $company->registration->bir_registration_number,
+                    'cprs_status' => $registration['cprs_status'] ?? $company->registration->cprs_status,
+                    'importer_accreditation_number' => $registration['importer_accreditation_number'] ?? $company->registration->importer_accreditation_number,
+                    'importer_accreditation_expiry' => isset($registration['importer_accreditation_expiry']) ? Carbon::parse($registration['importer_accreditation_expiry'])->format('Y-m-d') : $company->registration->importer_accreditation_expiry,
+                ]);
+
+                if ($registration['representatives']) {
+                    $company->representatives()->delete();
+                    foreach ($registration['representatives'] as $representative) {
+                        $company->representatives()->create(['full_name' => $representative]);
+                    }
+                }
+            }
+
+            $pricing = $request->input('pricing');
+            if ($pricing) {
+                $company->pricing()->update($pricing);
+            }
+
+            $monitoring = $request->input('monitoring');
+            if ($monitoring) {
+                $company->monitoring()->update($monitoring);
+            }
+
+            $operation = $request->input('operation');
+            if ($operation) {
+                $company->operation()->update($operation);
+            }
+
+            $insights = $request->input('insights');
+            if ($insights) {
+                $company->insight()->update($insights);
+            }
+
+            $documentsInput = $request->input('documents', []);
+            $uploadedDocs = $request->file('documents', []);
+            foreach ($documentsInput as $index => $doc) {
+                $uploaded = data_get($uploadedDocs, "{$index}.file");
+                $fileName = $doc['name'] ?? null;
+                if ($uploaded instanceof UploadedFile) {
+                    $storedPath = $uploaded->store('files', 'local');
+                    $fileType = $uploaded->getClientOriginalExtension();
+                } else {
+                    $storedPath = isset($doc['filepath']) ? $doc['filepath'] : null;
+                    $fileType = $doc['file_type'] ?? null;
+                }
+                if (isset($doc['id'])) {
+                    $company->documents()->where('id', $doc['id'])->update([
+                        'file_name' => $fileName,
+                        'file_type' => $fileType,
+                        'filepath' => $storedPath,
+                    ]);
+                } else {
+                    $company->documents()->create([
+                        'file_name' => $fileName,
+                        'file_type' => $fileType,
+                        'filepath' => $storedPath,
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return $this->success('Company updated successfully.', new CompanyResource($company), 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->error('Failed to update company', 500, $e->getMessage());
+        }
     }
 
     /**
