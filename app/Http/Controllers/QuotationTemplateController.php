@@ -8,8 +8,10 @@ use App\Http\Requests\UpdateQuotationTemplateRequest;
 use App\Http\Resources\BillingConfigResource;
 use App\Http\Resources\DetailsConfigResource;
 use App\Http\Resources\QuotationTemplateResource;
-use App\Models\QuotationTemplate;
-use App\Models\TemplateCharge;
+use App\Models\QuotationTemplate\{
+    QuotationTemplate,
+    TemplateCharge
+};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 

@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\QuotationField;
-use App\Models\QuotationTemplate;
+use App\Models\QuotationTemplate\QuotationTemplate;
 use App\Models\QuotationTemplateConfig\{
     BillingConfiguration,
     DetailsConfiguration,

@@ -3,7 +3,7 @@
 namespace App\Repositories\Quotation;
 
 use App\Http\Resources\ClientInputResource;
-use App\Models\QuotationTemplate;
+use App\Models\QuotationTemplate\QuotationTemplate;
 use App\Repositories\BaseRepository;
 
 class ClientInputsRepository extends BaseRepository

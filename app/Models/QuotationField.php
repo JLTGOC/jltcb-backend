@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\QuotationTemplate\QuotationTemplate;
 use Illuminate\Database\Eloquent\Model;
 
 class QuotationField extends Model

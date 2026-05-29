@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Quotation;
 
-use App\Models\QuotationTemplate;
+use App\Models\QuotationTemplate\QuotationTemplate;
 use Illuminate\Foundation\Http\FormRequest;
 
 class QuotationClientInputsRequest extends FormRequest

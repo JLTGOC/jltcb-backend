@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\QuotationTemplate;
 
-use Illuminate\Database\Eloquent\Model;
 use App\Models\IssuedQuotation\IssuedQuotation;
+use App\Models\QuotationField;
 use App\Models\QuotationTemplateConfig\DetailsConfiguration;
+use Illuminate\Database\Eloquent\Model;
 
 class QuotationTemplate extends Model
 {

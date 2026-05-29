@@ -2,7 +2,7 @@
 
 namespace App\Models\QuotationTemplateConfig;
 
-use App\Models\QuotationTemplate;
+use App\Models\QuotationTemplate\QuotationTemplate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 

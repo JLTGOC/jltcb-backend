@@ -21,7 +21,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Conversation;
 use App\Models\QuotationField;
-use App\Models\QuotationTemplate;
+use App\Models\QuotationTemplate\QuotationTemplate;
 use App\Policies\ChatPolicy;
 use App\Policies\ConfigurationPolicy;
 use Spatie\Permission\Models\Role;

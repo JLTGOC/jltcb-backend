@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
-use App\Models\QuotationTemplate;
+
+use App\Models\QuotationTemplate\QuotationTemplate;
 use App\Rules\UniqueReceiptChargeLabelRule;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

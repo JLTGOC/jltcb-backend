@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\QuotationTemplate;
 
-use App\Models\QuotationTemplate;
+use App\Models\QuotationTemplate\QuotationTemplate;
 use App\Models\QuotationTemplateConfig\BillingConfiguration;
 use Illuminate\Database\Eloquent\Model;
 
