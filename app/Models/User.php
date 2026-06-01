@@ -13,6 +13,7 @@ use App\Models\{
     Quotation
 };
 use App\Models\IssuedQuotation\IssuedQuotation;
+use App\Models\PlanningTimeline\Template\PlanningTemplate;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\Searchable\Searchable;
 use Spatie\Searchable\SearchResult;
@@ -139,5 +140,9 @@ class User extends Authenticatable implements Searchable
 
     public function activities() {
         return $this->morphMany(ActivityLog::class, 'subject');
+    }
+
+    public function planningTemplates() {
+        return $this->hasMany(PlanningTemplate::class, 'created_by');
     }
 }
