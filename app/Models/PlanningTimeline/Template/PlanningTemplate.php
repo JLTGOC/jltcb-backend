@@ -10,7 +10,11 @@ use App\Models\User;
 
 class PlanningTemplate extends Model
 {
-    protected $fillable = ['name', 'service_category', 'service_type', 'status', 'created_by'];
+    protected $fillable = ['name', 'service_category', 'service_type', 'status', 'created_by', 'is_active'];
+
+    protected $casts = [
+        'is_active' => 'boolean'
+    ];
 
     public function createdBy() {
         return $this->belongsTo(User::class, 'created_by');
