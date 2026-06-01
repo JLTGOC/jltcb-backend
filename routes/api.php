@@ -33,7 +33,7 @@ Route::post('auth/login', [AuthController::class, 'login'])->middleware(['web', 
 
 Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
-Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:api', 'session.timeout'])->group(function () {
 
     Route::prefix('auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
