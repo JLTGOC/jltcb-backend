@@ -25,6 +25,7 @@ use App\Http\Controllers\StandardConfigurationController;
 use App\Http\Controllers\ServiceOptionController;
 use App\Http\Controllers\ReassignmentRequestController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\PlanningTimelineTemplateController;
 use Illuminate\Support\Facades\Broadcast;
 
 require __DIR__ . '/public_routes.php';
@@ -147,4 +148,17 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     // Company Routes
     Route::get('companies/enums', [CompanyController::class, 'enums']);
     Route::apiResource('companies', CompanyController::class)->except(['destroy']);
+
+    // Planning & Timeline Routes
+    Route::prefix('planning-timeline')->group(function() {
+        Route::apiResource('/templates', PlanningTimelineTemplateController::class)
+            ->only(['index', 'show', 'update']);
+    });
+
+    // store template draft
+    // save template draft
+    // update template
+    
+    // store template config
+    // edit template config
 });
