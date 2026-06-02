@@ -13,6 +13,6 @@ enum RoleType: string
     case LEAD_OPERATIONS = 'Lead Operations';
     case FINANCE = 'Finance';
     case IT = 'IT';
-    case CLIENT_SUCESS = 'Client Success';
+    case CLIENT_SUCCESS = 'Client Success';
     case LEAD_CLIENT_SUCCESS = 'Lead Client Success';
 }

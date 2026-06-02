@@ -19,8 +19,8 @@ return new class extends Migration
             $table->foreignId('as_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('operations_id')->nullable()->constrained('users')->cascadeOnDelete();
             $table->foreignId('quotation_id')->constrained('quotations')->cascadeOnDelete();
-            $table->string('subject');
-            $table->text('email_body');
+            $table->string('subject')->nullable();
+            $table->text('email_body')->nullable();
             $table->date('date_issued')->nullable();
             $table->enum('shipment_creation_status', ['PENDING', 'CREATED'])->default('PENDING');
             $table->enum('assignment_status', ['AVAILABLE', 'ASSIGNED', 'REASSIGNMENT REQUESTED'])->default('AVAILABLE');

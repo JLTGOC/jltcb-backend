@@ -8,6 +8,7 @@ use App\Services\Dashboard\ClientDashboardService;
 use App\Services\Dashboard\LeadAsDashboardService;
 use App\Services\Dashboard\MarketingDashboardService;
 use App\Services\Dashboard\OperationDashboardService;
+use App\Services\Dashboard\ClientSuccessDashboardService;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -31,8 +32,8 @@ class DashboardController extends Controller
             RoleType::MARKETING->value => (new MarketingDashboardService())->getStats($user),
             RoleType::OPERATIONS->value => (new OperationDashboardService())->getStats($user),
             RoleType::LEAD_OPERATIONS->value => (new OperationDashboardService())->getStats($user),
-            RoleType::CLIENT_SUCCESS->value => (new OperationDashboardService())->getStats($user),
-            RoleType::LEAD_CLIENT_SUCCESS->value => (new OperationDashboardService())->getStats($user),
+            RoleType::CLIENT_SUCCESS->value => (new ClientSuccessDashboardService())->getStats($user),
+            RoleType::LEAD_CLIENT_SUCCESS->value => (new ClientSuccessDashboardService())->getStats($user),
             default => ['message' => 'Generic dashboard data'],
         };
 

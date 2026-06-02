@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AllowGuest;
+use App\Http\Middleware\RoleBasedSessionTimeout;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -30,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
             'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
             'allow.guest' => AllowGuest::class,
+            'session.timeout' => RoleBasedSessionTimeout::class,
         ]);
         $middleware->validateCsrfTokens(except: [
             'api/*',
