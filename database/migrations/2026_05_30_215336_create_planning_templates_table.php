@@ -25,22 +25,18 @@ return new class extends Migration
         Schema::create('planning_config_phases', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable();
-            $table->foreignId('planning_template_id')->constrained('planning_templates')->cascadeOnDelete();
-            $table->unsignedSmallInteger('sort_order')->default(0);
             $table->timestamps();
         });
 
         Schema::create('planning_config_processes', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable();
-            $table->foreignId('planning_template_id')->constrained('planning_templates')->cascadeOnDelete();
             $table->timestamps();
         });
 
         Schema::create('planning_config_tasks', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable();
-            $table->foreignId('planning_template_id')->constrained('planning_templates')->cascadeOnDelete();
             $table->timestamps();
         });
 
@@ -91,5 +87,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('planning_templates');
+        Schema::dropIfExists('planning_config_phases');
+        Schema::dropIfExists('planning_config_processes');
+        Schema::dropIfExists('planning_config_tasks');
     }
 };

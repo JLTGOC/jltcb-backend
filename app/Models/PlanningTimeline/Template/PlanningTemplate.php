@@ -20,18 +20,6 @@ class PlanningTemplate extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function configPhases() {
-        return $this->hasMany(PlanningConfigPhase::class, 'planning_template_id');
-    }
-
-    public function configProcesses() {
-        return $this->hasMany(PlanningConfigProcess::class, 'planning_template_id');
-    }
-
-    public function configTasks() {
-        return $this->hasMany(PlanningConfigTask::class, 'planning_template_id');
-    }
-
     public function phases() {
         return $this->hasMany(PlanningTemplatePhase::class, 'planning_template_id');
     }
