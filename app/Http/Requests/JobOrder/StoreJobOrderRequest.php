@@ -69,7 +69,7 @@ class StoreJobOrderRequest extends FormRequest
         $isWeb = $platform === 'web';
 
         if ($isWeb) {
-            $rules['subject.date'] = 'required|date';
+            $rules['subject.date'] = 'required|date|after_or_equal:today';
         }
 
         return $rules;
