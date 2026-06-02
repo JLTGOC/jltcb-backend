@@ -154,14 +154,15 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'session.timeout'])->group(fu
         Route::apiResource('/templates', PlanningTimelineTemplateController::class)
             ->only(['index', 'show', 'update']);
     });
-
-    // Register unregistered client
-    // Route::post('/clients/register', [ClientController::class, 'registerUnregisteredClient']);
-
+    
     // store template draft
     // save template draft
     // update template
     
     // store template config
     // edit template config
+
+    // Register unregistered client
+    // NOTE: This method is currently not in use. Implementation will be based on future requirements regarding unregistered clients.
+    Route::post('/clients/register', [ClientController::class, 'registerUnregisteredClient']);
 });
