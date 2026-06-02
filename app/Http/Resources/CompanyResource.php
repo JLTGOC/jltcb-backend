@@ -16,8 +16,24 @@ class CompanyResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $sectionRequested = function (string $field): bool {
+            $value = request()->input($field);
+
+            if (is_bool($value) || is_int($value)) {
+                return (bool) $value;
+            }
+
+            if (is_string($value)) {
+                return in_array(strtolower($value), ['true', 'false', '1', '0'], true)
+                    ? filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false
+                    : false;
+            }
+
+            return false;
+        };
+
         if ($request->routeIs('companies.show')) {
-            if ($request->basic_info) {
+            if ($sectionRequested('basic_info')) {
                 $array = parent::toArray($request);
                 $industries = $this->companyIndustries->map(function ($companyIndustry) {
                     return $companyIndustry->industry ? $companyIndustry->industry->name : null;
@@ -37,7 +53,7 @@ class CompanyResource extends JsonResource
                 $array['activation_date'] = $this->activation_date ? Carbon::parse($this->activation_date)->format('M d,Y') : null;
                 return $array;
             }
-            if ($request->address) {
+            if ($sectionRequested('address')) {
                 return [
                     'registered_address' => $this->address->registered_address ?? null,
                     'office_address' => $this->address->office_address ?? null,
@@ -48,7 +64,7 @@ class CompanyResource extends JsonResource
                     'delivery_addresses' => $this->deliveryAddresses ?? [],
                 ];
             }
-            if ($request->contacts) {
+            if ($sectionRequested('contacts')) {
                 $primaryContact = $this->contacts()->where('type', 'PRIMARY')->first();
                 $secondaryContact = $this->contacts()->where('type', 'SECONDARY')->first();
                 $billingContact = $this->contacts()->where('type', 'BILLING')->first();
@@ -74,7 +90,7 @@ class CompanyResource extends JsonResource
                     ] : null,
                 ];
             }
-            if ($request->registration) {
+            if ($sectionRequested('registration')) {
                 return [
                     'tin' => $this->registration->tin ?? null,
                     'bir_registration_number' => $this->registration->bir_registration_number ?? null,
@@ -92,19 +108,19 @@ class CompanyResource extends JsonResource
                     }),
                 ];
             }
-            if ($request->pricing) {
+            if ($sectionRequested('pricing')) {
                 return [$this->pricing ?? null];
             }
-            if ($request->monitoring) {
+            if ($sectionRequested('monitoring')) {
                 return [$this->monitoring ?? null];
             }
-            if ($request->operation) {
+            if ($sectionRequested('operation')) {
                 return [$this->operation ?? null];
             }
-            if ($request->insights) {
+            if ($sectionRequested('insights')) {
                 return [$this->insight ?? null];
             }
-            if ($request->documents) {
+            if ($sectionRequested('documents')) {
                 return $this->documents->map(function ($document) {
                     return [
                         'id' => $document->id,

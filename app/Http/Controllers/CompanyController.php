@@ -147,16 +147,32 @@ class CompanyController extends Controller
             'insights',
         ];
 
+        $booleanValueRule = function ($attribute, $value, $fail) {
+            if (is_bool($value) || is_int($value)) {
+                return true;
+            }
+
+            if (is_string($value)) {
+                $normalizedValue = strtolower($value);
+
+                if (in_array($normalizedValue, ['true', 'false', '1', '0'], true)) {
+                    return true;
+                }
+            }
+
+            $fail("The {$attribute} field must be true or false.");
+        };
+
         $validator = Validator::make($request->all(), [
-            'basic_info' => 'sometimes|boolean',
-            'address' => 'sometimes|boolean',
-            'contacts' => 'sometimes|boolean',
-            'registration' => 'sometimes|boolean',
-            'pricing' => 'sometimes|boolean',
-            'operation' => 'sometimes|boolean',
-            'monitoring' => 'sometimes|boolean',
-            'documents' => 'sometimes|boolean',
-            'insights' => 'sometimes|boolean',
+            'basic_info' => ['sometimes', $booleanValueRule],
+            'address' => ['sometimes', $booleanValueRule],
+            'contacts' => ['sometimes', $booleanValueRule],
+            'registration' => ['sometimes', $booleanValueRule],
+            'pricing' => ['sometimes', $booleanValueRule],
+            'operation' => ['sometimes', $booleanValueRule],
+            'monitoring' => ['sometimes', $booleanValueRule],
+            'documents' => ['sometimes', $booleanValueRule],
+            'insights' => ['sometimes', $booleanValueRule],
         ]);
 
         $validator->after(function ($validator) use ($request, $fields) {
