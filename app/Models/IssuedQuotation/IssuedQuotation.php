@@ -17,7 +17,6 @@ class IssuedQuotation extends Model
         'subject',
         'message',
         'rate_validity',
-        'uom',
         'currency'
     ];
 

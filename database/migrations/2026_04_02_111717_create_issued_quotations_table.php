@@ -22,8 +22,6 @@ return new class extends Migration
             $table->string('subject');
             $table->text('message');
             $table->date('rate_validity');
-
-            $table->string('uom');
             $table->string('currency');
             $table->timestamps();
         });
@@ -57,6 +55,7 @@ return new class extends Migration
             $table->unsignedInteger('quantity')->nullable();
             $table->string('container_size')->nullable();
             $table->decimal('amount', 15, 2)->default(0);
+            $table->string('uom');
             $table->timestamps();
         });
 

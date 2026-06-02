@@ -25,7 +25,6 @@ class IssuedQuotationSeeder extends Seeder
         foreach($quotations as $quotation) {
             $quotationTemplate = QuotationTemplate::find($quotation->has('regulatoryService') ? 2 : 1);
             $currency = fake()->randomElement(BillingConfiguration::currencies()->pluck('label'));
-            $uom = fake()->randomElement(BillingConfiguration::uoms()->pluck('label'));
 
             $issuedQuotation = $quotation->issuedQuotations()->create([
                 'template_id' => $quotationTemplate->id,
@@ -34,7 +33,6 @@ class IssuedQuotationSeeder extends Seeder
                 'message' => 'Sample Quotation Message',
                 'rate_validity' => fake()->dateTimeBetween('+3 days', '+3 months'),
                 'currency'       => $currency,
-                'uom'            => $uom,
             ]);
 
             $detailConfigs = $quotationTemplate->detailConfigs;
@@ -56,11 +54,42 @@ class IssuedQuotationSeeder extends Seeder
                 $randomReceiptChargeCount = fake()->numberBetween(1, $allowedReceiptCharge->count());
 
                 $randomReceiptCharges = fake()->randomElements($allowedReceiptCharge, $randomReceiptChargeCount);
-                foreach($randomReceiptCharges as $randomReceiptCharge) {
-                    $charge->items()->create([
-                        'receipt_charge_label' => $randomReceiptCharge,
-                        'amount'               => fake()->numberBetween(1000, 20000),
-                    ]);
+
+                $seenLabels = [];
+
+                foreach ($randomReceiptCharges as $randomReceiptCharge) {
+                    $uom = fake()->randomElement(BillingConfiguration::uoms()->pluck('label')->toArray());
+
+                    $containerSizes = [null]; 
+
+                    if ($uom === 'PER CONTAINER') {
+                        if (!isset($seenLabels[$randomReceiptCharge]) && fake()->boolean(50)) {
+                            $containerSizes = ['1x20', '1x40'];
+                        } else {
+                            $containerSizes = ['1x20'];
+                        }
+                    }
+
+                    if (isset($seenLabels[$randomReceiptCharge]) && $uom !== 'PER CONTAINER') {
+                        continue;
+                    }
+
+                    $seenLabels[$randomReceiptCharge] = $uom;
+
+                    foreach ($containerSizes as $containerSize) {
+                        $data = [
+                            'receipt_charge_label' => $randomReceiptCharge,
+                            'amount'               => fake()->numberBetween(1000, 20000),
+                            'uom'                  => $uom,
+                        ];
+
+                        if ($uom === 'PER CONTAINER') {
+                            $data['quantity']       = fake()->numberBetween(1, 10);
+                            $data['container_size'] = $containerSize;
+                        }
+
+                        $charge->items()->create($data);
+                    }
                 }
 
                 $charge->update([

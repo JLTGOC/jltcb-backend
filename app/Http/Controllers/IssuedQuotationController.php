@@ -59,7 +59,6 @@ class IssuedQuotationController extends Controller
                 'subject' => $validated['subject'],
                 'message' => $validated['message'],
                 'rate_validity' => $validated['rate_validity'],
-                'uom' => $validated['uom'],
                 'currency' => $validated['currency'],
             ]);
 
@@ -75,9 +74,10 @@ class IssuedQuotationController extends Controller
                     $data = [
                         'receipt_charge_label' => $item['receipt_charge_label'],
                         'amount' => $item['amount'],
+                        'uom' => $item['uom'],
                     ];
 
-                    if ($validated['uom'] === 'PER CONTAINER') {
+                    if ($item['uom'] === 'PER CONTAINER') {
                         return [
                             ...$data,
                             'quantity' => $item['quantity'],
@@ -188,7 +188,6 @@ class IssuedQuotationController extends Controller
                 'subject' => $validated['subject'],
                 'message' => $validated['message'],
                 'rate_validity' => $validated['rate_validity'],
-                'uom' => $validated['uom'],
                 'currency' => $validated['currency']
             ]);
 
@@ -206,9 +205,10 @@ class IssuedQuotationController extends Controller
                     $data = [
                         'receipt_charge_label' => $item['receipt_charge_label'],
                         'amount' => $item['amount'],
+                        'uom' => $item['uom'],
                     ];
 
-                    if ($validated['uom'] === 'PER CONTAINER') {
+                    if ($item['uom'] === 'PER CONTAINER') {
                         $data['quantity'] = $item['quantity'];
                         $data['container_size'] = $item['container_size'];
                     }

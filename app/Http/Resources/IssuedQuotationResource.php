@@ -2,13 +2,10 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Quotation;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 
 use function Illuminate\Support\minutes;
@@ -31,8 +28,6 @@ class IssuedQuotationResource extends JsonResource
             'subject' => $this->subject,
             'message' => $this->message,
             'rate_validity' => $this->rate_validity,
-
-            'uom' => $this->uom,
             'currency' => $this->currency,
 
             'quotation_details' => $this->whenLoaded('detailValues', function () {
@@ -55,9 +50,10 @@ class IssuedQuotationResource extends JsonResource
                                     $data = [
                                         'receipt_charge_label' => $item->receipt_charge_label,
                                         'amount' => $item->amount,
+                                        'uom' => $item->uom,
                                     ];
 
-                                    if ($this->uom === 'PER CONTAINER') {
+                                    if ($item->uom === 'PER CONTAINER') {
                                         return [
                                             ...$data,
                                             'quantity' => $item->quantity,
