@@ -33,17 +33,14 @@ class QuotationSeeder extends Seeder
      */
     public function run(): void
     {
-        $clients = User::role('Client')->limit(4)->pluck('id');
+        $clients = User::role('Client')->limit(2)->pluck('id');
         $specialists = User::role(['Account Specialist', 'Lead Account Specialist', 'Client Success', 'Lead Client Success'])->pluck('id');
         $ops = User::role(['Operations', 'Lead Operations', 'Client Success', 'Lead Client Success'])->get();
 
         $i = 0;
         do {
             $serviceDomain = fake()->randomElement(['LOGISTICS', 'LOGISTICS', 'REGULATORY']);
-            $serviceSection = $serviceDomain === 'LOGISTICS' ? 'LOG' : 'REG';
-            $dateSection = Carbon::now()->format('mdY');
-            $lastId = Quotation::max('id') ?? 0;
-            $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
+            $reference = $this->generateReference($serviceDomain);
 
             $lastName = fake()->lastName();
             $firstName = fake()->firstName();
@@ -71,7 +68,7 @@ class QuotationSeeder extends Seeder
             }
 
             $quotation = Quotation::create([
-                'reference_number' => "RQ-{$serviceSection}-{$dateSection}-{$idSection}",
+                'reference_number' => $reference,
                 'status' => $status,
                 'client_id' => $client,
                 'client_name' => User::find($client)->full_name,
@@ -88,66 +85,17 @@ class QuotationSeeder extends Seeder
                 'updated_at' => Carbon::now()->subDays(fake()->numberBetween(10, 20)),
             ]);
 
-            for ($n=0; $n<3; $n++) {
-                $quotation->files()->updateOrCreate([
-                    'quotation_id' => $quotation->id,
-                    'file_path' => 'files/ClientDoc' . ($n+1) . '.pdf' ?? 'files/ClientDoc.pdf',
-                ], [
-                    'uploaded_by' => $quotation->client_id,
-                    'type' => 'REQUESTED',
-                    'original_file_name' => 'DOCUMENT.pdf',
-                    'file_type' => 'pdf',
-                    'created_at' => $quotation->created_at,
-                    'updated_at' => $quotation->updated_at,
-                ]);
-            }
+            $this->attachClientFiles($quotation, $quotation->client_id, 3, $quotation->created_at, $quotation->updated_at);
 
             if ($serviceDomain === 'LOGISTICS') {
-                $num = fake()->numberBetween(1, 5);
-                $serviceOptions = '';
-                while ($num > 0) {
-                    $option = fake()->randomElement(ServiceOption::pluck('name')->toArray());
-                    if ($option === 'ALL IN') {
-                        $serviceOptions = 'ALL IN';
-                        break;
-                    }
-                    $serviceOptions .= $option . ($num-1 > 0 ? ',' : '');
-                    $num--;
-                }
-                $cargoType = fake()->randomElement(['CONTAINERIZED', 'LCL']);
-                $containerSize = fake()->randomElement(ContainerSize::pluck('size')->toArray());
-
-                LogisticsService::create([
-                    'quotation_id' => $quotation->id,
-                    'service_type' => fake()->randomElement(['IMPORT', 'EXPORT']),
-                    'transport_mode' => fake()->randomElement(['AIR', 'SEA']),
-                    'service_options' => $serviceOptions,
-                    'commodity' => 'CASTABLE 16 REFRACTOR',
-                    'cargo_type' => $cargoType,
-                    'container_size' => $cargoType === 'CONTAINERIZED' ? $containerSize : null,
-                    'origin' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
-                    'destination' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
-                    'remarks' => fake()->sentence(),
-                    'created_at' => $quotation->created_at,
-                    'updated_at' => $quotation->created_at,
-                ]);
+                $this->createLogisticsService($quotation, ['commodity' => 'CASTABLE 16 REFRACTOR']);
             } else {
-                RegulatoryService::create([
-                    'quotation_id' => $quotation->id,
-                    'full_name' => $quotation->contact_person,
-                    'contact_person_contact_number' => $quotation->contact_number,
-                    'business_type' => $quotation->client->company ? $quotation->client->company->businessType->name : $quotation->client->company?->business_type_other ?? null,
-                    'position' => $quotation->client->company_position ?? null,
-                    'type_of_regulatory_assistance' => fake()->randomElement(RegulatoryAssistanceType::pluck('name')->toArray()),
-                    'application_type' => fake()->randomElement(['NEW', 'RENEWAL']),
-                    'message' => fake()->sentence(),
-                    'created_at' => $quotation->created_at,
-                    'updated_at' => $quotation->created_at,
-                ]);
+                $this->createRegulatoryService($quotation);
             }
 
             if ($quotation->status === 'RESPONDED' || $quotation->status === 'ACCEPTED') {
                 $monthYear = Carbon::now()->format('m-Y');
+                $idSection = str_pad($quotation->id, 3, '0', STR_PAD_LEFT);
                 $quotation->update([
                     'reference_number' => "QT-{$monthYear}-{$idSection}",
                     'created_by' => $quotation->as_id,
@@ -327,7 +275,7 @@ class QuotationSeeder extends Seeder
             }
 
             $i+=1;
-        } while ($i<75);
+        } while ($i<91);
 
         $csd1Quotations = Quotation::whereHas('accountSpecialist', function($query) {
             $query->where('username', 'csd1');
@@ -353,8 +301,44 @@ class QuotationSeeder extends Seeder
             }
         }
 
+        // Quotations for new clients
+        $newClients = User::role('Client')->whereDoesntHave('quotations')->pluck('id');
+
+        foreach ($newClients as $clientId) {
+            $serviceDomain = fake()->randomElement(['LOGISTICS', 'REGULATORY']);
+            $serviceSection = $serviceDomain === 'LOGISTICS' ? 'LOG' : 'REG';
+            $dateSection = Carbon::now()->format('mdY');
+            $lastId = Quotation::max('id') ?? 0;
+            $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
+
+            $q = Quotation::create([
+                'reference_number' => "RQ-{$serviceSection}-{$dateSection}-{$idSection}",
+                'status' => 'REQUESTED',
+                'client_id' => $clientId,
+                'client_name' => User::find($clientId)->full_name,
+                'company_name' => User::find($clientId)->company ? User::find($clientId)->company->name : fake()->company(),
+                'company_address' => User::find($clientId)->company ? User::find($clientId)->company->address->registered_address : fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
+                'contact_person' => User::find($clientId)->full_name,
+                'contact_number' => fake()->numerify('09#########'),
+                'email' => User::find($clientId)->email,
+                'position' => User::find($clientId)->company_position ?? null,
+                'assignment_status' => 'AVAILABLE',
+                'assigned_at' => null,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ]);
+
+                $this->attachClientFiles($quotation, $quotation->client_id, 3, $quotation->created_at, $quotation->updated_at);
+
+            if ($serviceDomain === 'LOGISTICS') {
+                $this->createLogisticsService($q, ['commodity' => 'COMMODITY']);
+            } else {
+                $this->createRegulatoryService($q, ['application_type' => 'NEW']);
+            }
+        }
+
         // Quotations for unregistered clients
-        for ($j=0; $j<25; $j++) {
+        for ($j=0; $j<5; $j++) {
             $serviceDomain = fake()->randomElement(['LOGISTICS', 'LOGISTICS', 'REGULATORY']);
             $serviceSection = $serviceDomain === 'LOGISTICS' ? 'LOG' : 'REG';
             $dateSection = Carbon::now()->format('mdY');
@@ -379,49 +363,92 @@ class QuotationSeeder extends Seeder
                 'updated_at' => Carbon::now()->subDays(fake()->numberBetween(10, 20)),
             ]);
 
-            for ($n=0; $n<3; $n++) {
-                $quotation->files()->updateOrCreate([
-                    'quotation_id' => $quotation->id,
-                    'file_path' => 'files/ClientDoc' . ($n+1) . '.pdf' ?? 'files/ClientDoc.pdf',
-                ], [
-                    'uploaded_by' => $quotation->client_id,
-                    'type' => 'REQUESTED',
-                    'original_file_name' => 'DOCUMENT.pdf',
-                    'file_type' => 'pdf',
-                    'created_at' => $quotation->created_at,
-                    'updated_at' => $quotation->updated_at,
-                ]);
-            }
+            $this->attachClientFiles($quotation, $quotation->client_id, 3, $quotation->created_at, $quotation->updated_at);
 
             if ($serviceDomain === 'LOGISTICS') {
-                LogisticsService::create([
-                    'quotation_id' => $q->id,
-                    'service_type' => fake()->randomElement(['IMPORT', 'EXPORT']),
-                    'transport_mode' => fake()->randomElement(['AIR', 'SEA']),
-                    'service_options' => fake()->randomElement(ServiceOption::pluck('name')->toArray()),
-                    'commodity' => 'COMMODITY',
-                    'cargo_type' => fake()->randomElement(['CONTAINERIZED', 'LCL']),
-                    'container_size' => fake()->randomElement(ContainerSize::pluck('size')->toArray()),
-                    'origin' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
-                    'destination' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
-                    'remarks' => fake()->sentence(),
-                    'created_at' => $q->created_at,
-                    'updated_at' => $q->created_at,
-                ]);
+                $this->createLogisticsService($q, ['commodity' => 'COMMODITY']);
             } else {
-                RegulatoryService::create([
-                    'quotation_id' => $q->id,
-                    'full_name' => $q->contact_person,
-                    'contact_person_contact_number' => $q->contact_number,
-                    'business_type' => null,
-                    'position' => null,
-                    'type_of_regulatory_assistance' => fake()->randomElement(RegulatoryAssistanceType::pluck('name')->toArray()),
-                    'application_type' => 'NEW',
-                    'message' => fake()->sentence(),
-                    'created_at' => $q->created_at,
-                    'updated_at' => $q->created_at,
-                ]);
+                $this->createRegulatoryService($q, ['application_type' => 'NEW']);
             }
         }
+
+    }
+
+    private function generateReference(string $serviceDomain): string
+    {
+        $serviceSection = $serviceDomain === 'LOGISTICS' ? 'LOG' : 'REG';
+        $dateSection = Carbon::now()->format('mdY');
+        $lastId = Quotation::max('id') ?? 0;
+        $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
+
+        return "RQ-{$serviceSection}-{$dateSection}-{$idSection}";
+    }
+
+    private function attachClientFiles($quotation, $uploadedBy = null, $count = 3, $createdAt = null, $updatedAt = null)
+    {
+        for ($n = 0; $n < $count; $n++) {
+            $quotation->files()->updateOrCreate([
+                'quotation_id' => $quotation->id,
+                'file_path' => 'files/ClientDoc' . ($n + 1) . '.pdf',
+            ], [
+                'uploaded_by' => $uploadedBy,
+                'type' => 'REQUESTED',
+                'original_file_name' => 'DOCUMENT.pdf',
+                'file_type' => 'pdf',
+                'created_at' => $createdAt ?? $quotation->created_at,
+                'updated_at' => $updatedAt ?? $quotation->updated_at,
+            ]);
+        }
+    }
+
+    private function createLogisticsService($quotation, array $overrides = [])
+    {
+        $num = fake()->numberBetween(1, 5);
+        $serviceOptions = '';
+        $optionsPool = ServiceOption::pluck('name')->toArray();
+
+        while ($num > 0) {
+            $option = fake()->randomElement($optionsPool);
+            if ($option === 'ALL IN') {
+                $serviceOptions = 'ALL IN';
+                break;
+            }
+            $serviceOptions .= $option . ($num - 1 > 0 ? ',' : '');
+            $num--;
+        }
+
+        $cargoType = fake()->randomElement(['CONTAINERIZED', 'LCL']);
+        $containerSize = fake()->randomElement(ContainerSize::pluck('size')->toArray());
+
+        return LogisticsService::create(array_merge([
+            'quotation_id' => $quotation->id,
+            'service_type' => fake()->randomElement(['IMPORT', 'EXPORT']),
+            'transport_mode' => fake()->randomElement(['AIR', 'SEA']),
+            'service_options' => $serviceOptions,
+            'commodity' => $overrides['commodity'] ?? 'COMMODITY',
+            'cargo_type' => $cargoType,
+            'container_size' => $cargoType === 'CONTAINERIZED' ? $containerSize : null,
+            'origin' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
+            'destination' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
+            'remarks' => fake()->sentence(),
+            'created_at' => $quotation->created_at,
+            'updated_at' => $quotation->created_at,
+        ], $overrides));
+    }
+
+    private function createRegulatoryService($quotation, array $overrides = [])
+    {
+        return RegulatoryService::create(array_merge([
+            'quotation_id' => $quotation->id,
+            'full_name' => $quotation->contact_person,
+            'contact_person_contact_number' => $quotation->contact_number,
+            'business_type' => $quotation->client?->company ? $quotation->client->company->businessType->name : $quotation->client?->company?->business_type_other ?? null,
+            'position' => $quotation->client?->company_position ?? null,
+            'type_of_regulatory_assistance' => fake()->randomElement(RegulatoryAssistanceType::pluck('name')->toArray()),
+            'application_type' => $overrides['application_type'] ?? fake()->randomElement(['NEW', 'RENEWAL']),
+            'message' => fake()->sentence(),
+            'created_at' => $quotation->created_at,
+            'updated_at' => $quotation->created_at,
+        ], $overrides));
     }
 }

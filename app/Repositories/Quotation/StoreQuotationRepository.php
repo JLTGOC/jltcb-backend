@@ -42,16 +42,7 @@ class StoreQuotationRepository extends BaseRepository
             $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
 
             if ($user) {
-                $previousQuotation = Quotation::where('client_id', $user->id)->latest()->first();
-                $assignedSpecialist = null;
-                if ($previousQuotation) {
-                    $assignedSpecialist = $previousQuotation->accountSpecialist;
-                } 
-
-                if ($assignedSpecialist) {
-                    $assignmentStatus = 'ASSIGNED';
-                    $assignedAt = Carbon::now();
-                }
+                $assignedSpecialist = $user->company ? $user->company->accountHandler : null;
             }
 
             $quotation = Quotation::create([

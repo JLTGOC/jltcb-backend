@@ -155,6 +155,9 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'session.timeout'])->group(fu
             ->only(['index', 'show', 'update']);
     });
 
+    // Register unregistered client
+    // Route::post('/clients/register', [ClientController::class, 'registerUnregisteredClient']);
+
     // store template draft
     // save template draft
     // update template
