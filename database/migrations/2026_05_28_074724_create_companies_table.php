@@ -17,10 +17,14 @@ return new class extends Migration
             $table->string('consignee_used');
             $table->string('trade_name');
             $table->foreignId('account_handler_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('transaction_type_id')->constrained('transaction_types')->onDelete('cascade');
-            $table->foreignId('company_type_id')->constrained('company_types')->onDelete('cascade');
-            $table->foreignId('client_classification_id')->constrained('client_classifications')->onDelete('cascade');
-            $table->foreignId('business_type_id')->constrained('business_types')->onDelete('cascade');
+            $table->foreignId('transaction_type_id')->nullable()->constrained('transaction_types')->onDelete('cascade');
+            $table->string('transaction_type_other')->nullable();
+            $table->foreignId('company_type_id')->nullable()->constrained('company_types')->onDelete('cascade');
+            $table->string('company_type_other')->nullable();
+            $table->foreignId('client_classification_id')->nullable()->constrained('client_classifications')->onDelete('cascade');
+            $table->string('client_classification_other')->nullable();
+            $table->foreignId('business_type_id')->nullable()->constrained('business_types')->onDelete('cascade');
+            $table->string('business_type_other')->nullable();
             $table->string('business_registration_number');
             $table->string('website');
             $table->unsignedBigInteger('years_in_operation');

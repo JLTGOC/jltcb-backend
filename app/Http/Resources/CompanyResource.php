@@ -45,10 +45,10 @@ class CompanyResource extends JsonResource
                     'role' => $this->accountHandler->roles()->first()->name ?? null,
                     'image_path' => asset($this->accountHandler->image_path),
                 ] : null;
-                $array['transaction_type'] = $this->transactionType ? $this->transactionType->name : null;
-                $array['client_classification'] = $this->clientClassification ? $this->clientClassification->name : null;
-                $array['company_type'] = $this->companyType ? $this->companyType->name : null;
-                $array['business_type'] = $this->businessType ? $this->businessType->name : null;
+                $array['transaction_type'] = $this->transactionType ? $this->transactionType->name : $this->transaction_type_other;
+                $array['client_classification'] = $this->clientClassification ? $this->clientClassification->name : $this->client_classification_other;
+                $array['company_type'] = $this->companyType ? $this->companyType->name : $this->company_type_other;
+                $array['business_type'] = $this->businessType ? $this->businessType->name : $this->business_type_other;
                 $array['industry'] = $industries;
                 $array['activation_date'] = $this->activation_date ? Carbon::parse($this->activation_date)->format('M d,Y') : null;
                 return $array;

@@ -32,10 +32,14 @@ class StoreCompanyRequest extends FormRequest
                     $fail('The selected account handler is invalid.');
                 }
             }],
-            'basic_info.transaction_type_id' => 'required',
-            'basic_info.client_classification_id' => 'required',
-            'basic_info.company_type_id' => 'required',
-            'basic_info.business_type_id' => 'required',
+            'basic_info.transaction_type_id' => 'sometimes|nullable|exists:transaction_types,id',
+            'basic_info.transaction_type_other' => 'required_if:basic_info.transaction_type_id,null|string|max:255',
+            'basic_info.client_classification_id' => 'sometimes|nullable|exists:client_classifications,id',
+            'basic_info.client_classification_other' => 'required_if:basic_info.client_classification_id,null|string|max:255',
+            'basic_info.company_type_id' => 'sometimes|nullable|exists:company_types,id',
+            'basic_info.company_type_other' => 'required_if:basic_info.company_type_id,null|string|max:255',
+            'basic_info.business_type_id' => 'sometimes|nullable|exists:business_types,id',
+            'basic_info.business_type_other' => 'required_if:basic_info.business_type_id,null|string|max:255',
             'basic_info.business_registration_number' => 'required|string|max:255',
             'basic_info.website' => 'required|string|max:255',
             'basic_info.years_in_operation' => 'required|integer|min:0',
