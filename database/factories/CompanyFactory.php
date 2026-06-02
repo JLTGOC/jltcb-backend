@@ -29,7 +29,7 @@ class CompanyFactory extends Factory
             'name' => $name,
             'consignee_used' => $this->faker->company(),
             'trade_name' => $name,
-            'account_handler_id' => User::role(['Account Specialist', 'Lead Account Specialist', 'Client Success', 'Lead Client Success'])->inRandomOrder()->first()->id,
+            'account_handler_id' => null,
             'transaction_type_id' => TransactionType::inRandomOrder()->first()->id,
             'company_type_id' => CompanyType::inRandomOrder()->first()->id,
             'client_classification_id' => ClientClassification::inRandomOrder()->first()->id,

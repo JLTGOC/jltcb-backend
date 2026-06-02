@@ -38,10 +38,11 @@ class User extends Authenticatable implements Searchable
         // 'password_length',
         'address',
         'contact_number',
-        'company_name',
-        'company_address',
+        // 'company_name',
+        // 'company_address',
+        'company_id',
         'company_position',
-        'business_type',
+        // 'business_type',
         'image_path',
         'id_image_path',
         'created_at'
@@ -144,5 +145,9 @@ class User extends Authenticatable implements Searchable
 
     public function planningTemplates() {
         return $this->hasMany(PlanningTemplate::class, 'created_by');
+    }
+
+    public function company() {
+        return $this->belongsTo(Company::class, 'company_id');
     }
 }

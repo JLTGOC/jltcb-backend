@@ -16,7 +16,12 @@ class CompanySeeder extends Seeder
      */
     public function run(): void
     {
-        $companies = Company::factory()->count(10)->create();
+        $companies = Company::factory()->count(9)->create();
+        $jltcbCompany = Company::factory()->create([
+            'name' => 'JLTCB',
+            'business_type_id' => 1,
+        ]);
+        $companies->push($jltcbCompany);
 
         foreach ($companies as $company) {
             $industryIds = Industry::inRandomOrder()->take(rand(1, 3))->pluck('id')->toArray();
@@ -24,9 +29,13 @@ class CompanySeeder extends Seeder
                 return ['industry_id' => $industryId];
             }, $industryIds));
 
+            $companyAddress = null;
+            if ($company->id === $jltcbCompany->id) {
+                $companyAddress = 'Suite 508, Pacific Centre, 460 Quintin Paredes St. Brgy. 289 Binondo, Manila, Philippines 1006';
+            }
             $company->address()->create([
-                'registered_address' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
-                'office_address' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
+                'registered_address' => $companyAddress ? $companyAddress : fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
+                'office_address' => $companyAddress ? $companyAddress : fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
                 'usual_port' => fake()->city(),
                 'origin_country' => fake()->country(),
                 'destination_country' => fake()->country(),

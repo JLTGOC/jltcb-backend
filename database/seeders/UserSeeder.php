@@ -7,6 +7,7 @@ use Database\Seeders\Traits\SeederFileTrait;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use App\Models\Company;
 
 class UserSeeder extends Seeder
 {
@@ -62,6 +63,8 @@ class UserSeeder extends Seeder
         $idImagePath = $this->copySeederFile('images', 'id.png');
         $this->copySeederFile('images', 'jltcb.png');
 
+        $companies = Company::all();
+
         foreach($accounts as $account) {
             $user = User::create([
                 'first_name' => fake()->firstName(),
@@ -72,21 +75,11 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('Jltcb2025'),
                 'address' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
                 'contact_number' => fake()->numerify('09#########'),
-                'company_name' => ($account['role'] === 'Client') ? fake()->company() : 'JLTCB',
-                'company_address' => ($account['role'] === 'Client') ? 
-                    fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode()
-                    : 'Suite 508, Pacific Centre, 460 Quintin Paredes St. Brgy. 289 Binondo, Manila, Philippines 1006',
-                'company_position' => ($account['role'] === 'Client') ? null : $account['role'],
+                'company_id' => ($account['role'] === 'Client') ? $companies->random()->id : Company::where('name', 'JLTCB')->first()->id,
+                'company_position' => ($account['role'] === 'Client') ? fake()->randomElement(['Import Operations Specialist', 'Export Operations Specialist', 'Logistics Coordinator', 'Supply Chain Analyst']) : $account['role'],
                 'image_path' => $profileImagePath,
                 'id_image_path' => $idImagePath,
             ]);
-
-            if ($account['role'] === 'Client') {
-                $user->update([
-                    'company_position' => fake()->randomElement(['Import Operations Specialist', 'Export Operations Specialist', 'Logistics Coordinator', 'Supply Chain Analyst']),
-                    'business_type' => fake()->randomElement(['COOPERATIVE', 'CORPORATION', 'E-COMMERCE', 'INDIVIDUAL IMPORTER', 'GOVERNMENT AGENCY', 'IMPORT-EXPORT AGENT', 'MULTINATIONAL COMPANY', 'NON-PROFIT ORGANIZATION', 'PARTNERSHIP', 'PEZA-REGISTERED ENTERPRISE', 'SOLE PROPRIETORSHIP']),
-                ]);
-            }
 
             $user->assignRole($account['role']);
         }

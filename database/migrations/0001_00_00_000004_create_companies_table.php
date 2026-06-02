@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('consignee_used');
             $table->string('trade_name');
-            $table->foreignId('account_handler_id')->constrained('users')->onDelete('cascade');
+            // $table->foreignId('account_handler_id')->nullable()->constrained('users')->onDelete('cascade');
             $table->foreignId('transaction_type_id')->nullable()->constrained('transaction_types')->onDelete('cascade');
             $table->string('transaction_type_other')->nullable();
             $table->foreignId('company_type_id')->nullable()->constrained('company_types')->onDelete('cascade');

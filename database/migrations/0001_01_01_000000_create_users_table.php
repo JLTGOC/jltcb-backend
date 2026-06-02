@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Models\Company;
 
 return new class extends Migration
 {
@@ -25,22 +26,23 @@ return new class extends Migration
             // $table->integer('password_length')->nullable();
             $table->string('address');
             $table->string('contact_number')->unique();
-            $table->string('company_name');
-            $table->string('company_address');
+            // $table->string('company_name');
+            // $table->string('company_address');
+            $table->foreignIdFor(Company::class)->nullable()->constrained()->nullOnDelete();
             $table->string('company_position')->nullable();
-            $table->enum('business_type', [
-                'COOPERATIVE',
-                'CORPORATION',
-                'E-COMMERCE',
-                'INDIVIDUAL IMPORTER',
-                'GOVERNMENT AGENCY',
-                'IMPORT-EXPORT AGENT',
-                'MULTINATIONAL COMPANY',
-                'NON-PROFIT ORGANIZATION',
-                'PARTNERSHIP',
-                'PEZA-REGISTERED ENTERPRISE',
-                'SOLE PROPRIETORSHIP',
-            ])->default('COOPERATIVE');
+            // $table->enum('business_type', [
+            //     'COOPERATIVE',
+            //     'CORPORATION',
+            //     'E-COMMERCE',
+            //     'INDIVIDUAL IMPORTER',
+            //     'GOVERNMENT AGENCY',
+            //     'IMPORT-EXPORT AGENT',
+            //     'MULTINATIONAL COMPANY',
+            //     'NON-PROFIT ORGANIZATION',
+            //     'PARTNERSHIP',
+            //     'PEZA-REGISTERED ENTERPRISE',
+            //     'SOLE PROPRIETORSHIP',
+            // ])->default('COOPERATIVE');
             $table->string('image_path')->nullable();
             $table->string('id_image_path')->nullable();
             $table->rememberToken();
