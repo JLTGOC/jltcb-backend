@@ -38,8 +38,8 @@ class StoreJobOrderRequest extends FormRequest
         $rules = [
             'quotation_reference_number' => 'sometimes|string|unique:job_orders,reference_number',
             'job_type' => 'required|string|in:LOGISTICS,REGULATORY',
-            'subject.subject' => 'required|string',
-            'subject.email_body' => 'required|string',
+            'subject.subject' => 'sometimes|nullable|string',
+            'subject.email_body' => 'sometimes|nullable|string',
             'client.client_type' => 'required|string|in:NEW,RENEWAL',
             'client.accredited' => 'required|string|in:REGULAR,EXPEDITED',
             'client.service_type' => 'required_if:job_type,REGULATORY|string',
