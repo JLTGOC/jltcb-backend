@@ -242,4 +242,22 @@ class ClientController extends Controller
             ]
         );
     }
+
+    /**
+     * Register Unregistered Client
+     * 
+     * Create a client account for an unregistered client.
+     * NOTE: This method is currently not in use. Implementation will be based on future requirements regarding unregistered clients.
+     */
+    public function registerUnregisteredClient(Request $request) {
+        $this->authorize('registerUnregisteredClient', [User::class]);
+
+        $request->validate([
+            //,
+        ]);
+
+        return $this->success('Client account created successfully', 
+            new ClientDetailResource($client)
+        );
+    }
 }

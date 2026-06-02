@@ -84,4 +84,8 @@ class UserPolicy
     public function viewAccountsList(User $user): bool {
         return $user->hasRole(['Lead Account Specialist', 'Account Specialist', 'IT', 'Operations']);
     }
+
+    public function registerUnregisteredClient(User $user): bool {
+        return $user->hasRole(['Lead Account Specialist', 'Account Specialist', 'Lead Client Success', 'Client Success']);
+    }
 }
