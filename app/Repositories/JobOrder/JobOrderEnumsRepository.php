@@ -16,7 +16,7 @@ class JobOrderEnumsRepository extends BaseRepository
             $quotation = Quotation::where('reference_number', $request->quotation_reference_number)->first() ?? null;
             $client = $quotation->client ?? null;
             $autofillDetails = [
-                'company_name' => $client->company_name ?? null,
+                'company_name' => $client->company?->name ?? null,
                 'full_name' => $client->full_name ?? null,
                 'commodity' => $quotation->logisticsService?->commodity ?? null,
                 'cargo_type' => $quotation->logisticsService?->cargo_type ?? null,

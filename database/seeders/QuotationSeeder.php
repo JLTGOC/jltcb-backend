@@ -47,9 +47,12 @@ class QuotationSeeder extends Seeder
 
             $lastName = fake()->lastName();
             $firstName = fake()->firstName();
-            $companyName = fake()->company();
+            // $companyName = fake()->company();
 
             $client = fake()->randomElement($clients);
+            $company = User::find($client)->company;
+            $companyName = $company ? $company->name : fake()->company();
+            $companyAddress = $company ? $company->address->registered_address : fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode();
             $status = fake()->randomElement(['REQUESTED', 'RESPONDED', 'ACCEPTED', 'ACCEPTED']);
             if ($status === 'ACCEPTED') {
                 $assignmentStatus = fake()->randomElement(['ASSIGNED', 'REASSIGNMENT REQUESTED']);
@@ -74,7 +77,7 @@ class QuotationSeeder extends Seeder
                 'client_name' => User::find($client)->full_name,
                 'as_id' => $assignedSpecialist,
                 'company_name' => $companyName,
-                'company_address' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
+                'company_address' => $companyAddress,
                 'contact_person' => $firstName . ' ' . $lastName,
                 'contact_number' => fake()->numerify('09#########'),
                 'email' => mb_strtolower($lastName) . '.' . mb_strtolower($firstName) . '@gmail.com',
@@ -133,7 +136,7 @@ class QuotationSeeder extends Seeder
                     'quotation_id' => $quotation->id,
                     'full_name' => $quotation->contact_person,
                     'contact_person_contact_number' => $quotation->contact_number,
-                    'business_type' => $quotation->client->business_type ?? null,
+                    'business_type' => $quotation->client->company ? $quotation->client->company->businessType->name : $quotation->client->company?->business_type_other ?? null,
                     'position' => $quotation->client->company_position ?? null,
                     'type_of_regulatory_assistance' => fake()->randomElement(RegulatoryAssistanceType::pluck('name')->toArray()),
                     'application_type' => fake()->randomElement(['NEW', 'RENEWAL']),
