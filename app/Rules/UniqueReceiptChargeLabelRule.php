@@ -6,21 +6,21 @@ use Illuminate\Contracts\Validation\Validator;
 
 class UniqueReceiptChargeLabelRule
 {
-    public function __construct(private string $uom, private array $charges) {}
+    public function __construct(private array $charges) {}
 
-    
     public function __invoke(Validator $validator): void
     {
         foreach ($this->charges as $chargeIndex => $charge) {
-            $seen = []; 
+            $seen = [];
 
             foreach ($charge['items'] ?? [] as $itemIndex => $item) {
                 $label = $item['receipt_charge_label'] ?? null;
                 $containerSize = $item['container_size'] ?? null;
+                $uom = $item['uom'] ?? null;
 
                 if (!$label) continue;
 
-                if ($this->uom === 'PER CONTAINER') {
+                if ($uom === 'PER CONTAINER') {
                     $key = $label . '||' . $containerSize;
 
                     if (isset($seen[$key])) {
