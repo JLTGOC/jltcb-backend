@@ -46,7 +46,11 @@ class WebQuotationResource extends JsonResource
             }
         }
 
-        $clientType = $this->client->quotations()->count() > 1 ? 'OLD' : 'NEW';
+        $client = $this->client ?? null;
+        $clientType = null;
+        if ($client) {
+            $clientType = $this->client->quotations()->count() > 1 ? 'OLD' : 'NEW';
+        }
 
         $reassignmentRequest = $this->latestReassignmentRequest;
 
@@ -62,7 +66,7 @@ class WebQuotationResource extends JsonResource
             'id' => $this->id,
             'reference_number' => $this->reference_number,
             'date' => $this->created_at->format($dateFormat),
-            'client_full_name' => $this->client->full_name,
+            'client_full_name' => $client ? $client->full_name : null,
             'company_name' => $this->company_name,
             'client_type' => $clientType,
             'status' => $this->status,

@@ -170,7 +170,7 @@ class IndexQuotationRepository extends BaseRepository
 
     private function buildRoleBasedQueries($user, bool $isWeb): ?array
     {
-        $query = Quotation::query();
+        $query = Quotation::query()->has('client');
         $myQuotationsQuery = null;
 
         if ($user->hasRole('Client')) {
