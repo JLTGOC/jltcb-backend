@@ -22,8 +22,17 @@ class StoreQuotationRepository extends BaseRepository
     }
 
     public function execute($request){
-        $user = User::find(auth()->id());
-
+        if (auth()->user()->hasRole('Client')) {
+            $user = User::find(auth()->id());
+            $clientName = $user->full_name;
+        } elseif (auth()->user()->hasRole(['Account Specialist, Lead Account Specialist', 'Client Success', 'Lead Client Success'])) {
+            $user = User::find($request->input('client'));
+            $clientName = $user->full_name ?? null;
+            if (!$user) {
+                $clientName = $request->input('client_name');
+            }
+        }
+        
         DB::beginTransaction();
 
         try {
@@ -45,14 +54,15 @@ class StoreQuotationRepository extends BaseRepository
 
             $quotation = Quotation::create([
                 'reference_number' => "RQ-{$serviceSection}-{$dateSection}-{$idSection}",
-                'client_id' => $user->id,
+                'client_id' => $user->id ?? null,
+                'client_name' => $clientName,
                 'as_id' => $assignedSpecialist?->id ?? null,
                 'company_name' => $request->input('company.name'),
                 'company_address' => $request->input('company.address'),
                 'contact_person' => $request->input('company.contact_person'),
                 'contact_number' => $request->input('company.contact_number'),
                 'email' => $request->input('company.email'),
-                'position' => $request->input('company.position'),
+                'position' => $request->input('company.position') ?? null,
                 'assignment_status' => $assignmentStatus ?? 'AVAILABLE',
                 'assigned_at' => $assignedAt ?? null
             ]);
@@ -84,8 +94,8 @@ class StoreQuotationRepository extends BaseRepository
                 $regulatoryService = $quotation->regulatoryService()->create([
                     'full_name' => $request->input('full_name'),
                     'contact_person_contact_number' => $request->input('company.cp_contact_number'),
-                    'business_type' => $request->input('company.business_type'),
-                    'position' => $request->input('company.position'),
+                    'business_type' => $request->input('company.business_type') ?? null,
+                    'position' => $request->input('company.position') ?? null,
                     'type_of_regulatory_assistance' => $typeOfRegulatoryAssistance,
                     'application_type' => $request->service_level,
                     'message' => $request->message ?? null,

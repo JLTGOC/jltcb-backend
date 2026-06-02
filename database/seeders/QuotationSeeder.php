@@ -71,13 +71,14 @@ class QuotationSeeder extends Seeder
                 'reference_number' => "RQ-{$serviceSection}-{$dateSection}-{$idSection}",
                 'status' => $status,
                 'client_id' => $client,
+                'client_name' => User::find($client)->full_name,
                 'as_id' => $assignedSpecialist,
                 'company_name' => $companyName,
                 'company_address' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
                 'contact_person' => $firstName . ' ' . $lastName,
                 'contact_number' => fake()->numerify('09#########'),
                 'email' => mb_strtolower($lastName) . '.' . mb_strtolower($firstName) . '@gmail.com',
-                'position' => User::find($client)->position,
+                'position' => User::find($client)->company_position ?? null,
                 'assignment_status' => $assignmentStatus,
                 'assigned_at' => $assignedAt,
                 'created_at' => Carbon::now()->subDays(fake()->numberBetween(20, 30)),
@@ -132,8 +133,8 @@ class QuotationSeeder extends Seeder
                     'quotation_id' => $quotation->id,
                     'full_name' => $quotation->contact_person,
                     'contact_person_contact_number' => $quotation->contact_number,
-                    'business_type' => $quotation->client->business_type,
-                    'position' => $quotation->client->company_position,
+                    'business_type' => $quotation->client->business_type ?? null,
+                    'position' => $quotation->client->company_position ?? null,
                     'type_of_regulatory_assistance' => fake()->randomElement(RegulatoryAssistanceType::pluck('name')->toArray()),
                     'application_type' => fake()->randomElement(['NEW', 'RENEWAL']),
                     'message' => fake()->sentence(),
@@ -323,7 +324,7 @@ class QuotationSeeder extends Seeder
             }
 
             $i+=1;
-        } while ($i<100);
+        } while ($i<75);
 
         $csd1Quotations = Quotation::whereHas('accountSpecialist', function($query) {
             $query->where('username', 'csd1');
@@ -346,6 +347,77 @@ class QuotationSeeder extends Seeder
                     }
                     $quotation->jobOrder->delete();
                 }
+            }
+        }
+
+        // Quotations for unregistered clients
+        for ($j=0; $j<25; $j++) {
+            $serviceDomain = fake()->randomElement(['LOGISTICS', 'LOGISTICS', 'REGULATORY']);
+            $serviceSection = $serviceDomain === 'LOGISTICS' ? 'LOG' : 'REG';
+            $dateSection = Carbon::now()->format('mdY');
+            $lastId = Quotation::max('id') ?? 0;
+            $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
+
+            $q = Quotation::create([
+                'reference_number' => "RQ-{$serviceSection}-{$dateSection}-{$idSection}",
+                'status' => 'REQUESTED',
+                'client_id' => null,
+                'client_name' => fake()->firstName() . ' ' . fake()->lastName(),
+                'as_id' => fake()->randomElement($specialists, null),
+                'company_name' => fake()->company(),
+                'company_address' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
+                'contact_person' => fake()->name(),
+                'contact_number' => fake()->numerify('09#########'),
+                'email' => fake()->unique()->safeEmail(),
+                'position' => null,
+                'assignment_status' => fake()->randomElement(['AVAILABLE', 'ASSIGNED', 'REASSIGNMENT REQUESTED']),
+                'assigned_at' => null,
+                'created_at' => Carbon::now()->subDays(fake()->numberBetween(20, 30)),
+                'updated_at' => Carbon::now()->subDays(fake()->numberBetween(10, 20)),
+            ]);
+
+            for ($n=0; $n<3; $n++) {
+                $quotation->files()->updateOrCreate([
+                    'quotation_id' => $quotation->id,
+                    'file_path' => 'files/ClientDoc' . ($n+1) . '.pdf' ?? 'files/ClientDoc.pdf',
+                ], [
+                    'uploaded_by' => $quotation->client_id,
+                    'type' => 'REQUESTED',
+                    'original_file_name' => 'DOCUMENT.pdf',
+                    'file_type' => 'pdf',
+                    'created_at' => $quotation->created_at,
+                    'updated_at' => $quotation->updated_at,
+                ]);
+            }
+
+            if ($serviceDomain === 'LOGISTICS') {
+                LogisticsService::create([
+                    'quotation_id' => $q->id,
+                    'service_type' => fake()->randomElement(['IMPORT', 'EXPORT']),
+                    'transport_mode' => fake()->randomElement(['AIR', 'SEA']),
+                    'service_options' => fake()->randomElement(ServiceOption::pluck('name')->toArray()),
+                    'commodity' => 'COMMODITY',
+                    'cargo_type' => fake()->randomElement(['CONTAINERIZED', 'LCL']),
+                    'container_size' => fake()->randomElement(ContainerSize::pluck('size')->toArray()),
+                    'origin' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
+                    'destination' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
+                    'remarks' => fake()->sentence(),
+                    'created_at' => $q->created_at,
+                    'updated_at' => $q->created_at,
+                ]);
+            } else {
+                RegulatoryService::create([
+                    'quotation_id' => $q->id,
+                    'full_name' => $q->contact_person,
+                    'contact_person_contact_number' => $q->contact_number,
+                    'business_type' => null,
+                    'position' => null,
+                    'type_of_regulatory_assistance' => fake()->randomElement(RegulatoryAssistanceType::pluck('name')->toArray()),
+                    'application_type' => 'NEW',
+                    'message' => fake()->sentence(),
+                    'created_at' => $q->created_at,
+                    'updated_at' => $q->created_at,
+                ]);
             }
         }
     }

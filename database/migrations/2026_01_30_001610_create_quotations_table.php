@@ -15,8 +15,9 @@ return new class extends Migration
         Schema::create('quotations', function (Blueprint $table) {
             $table->id();
             $table->string('reference_number')->unique();
-            $table->unsignedBigInteger('client_id');
+            $table->unsignedBigInteger('client_id')->nullable();
             $table->foreign('client_id')->references('id')->on('users')->constrained()->cascadeOnDelete();
+            $table->string('client_name');
             $table->unsignedBigInteger('as_id')->nullable();
             $table->foreign('as_id')->references('id')->on('users')->constrained();
             $table->enum('status', ['REQUESTED', 'RESPONDED', 'ACCEPTED', 'DISCARDED'])->default('REQUESTED');

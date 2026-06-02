@@ -13,6 +13,7 @@ class Quotation extends Model implements Searchable
      protected $fillable = [
         'reference_number',
         'client_id',
+        'client_name',
         'as_id',
         'status',
         'contact_person',
