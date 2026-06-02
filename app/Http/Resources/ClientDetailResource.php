@@ -23,9 +23,9 @@ class ClientDetailResource extends JsonResource
             'contact_number' => $this->contact_number,
             'email' => $this->email,
             'date_created' => $this->created_at,
-            'company_name' => $this->company_name,
-            'company_address' => $this->company_address,
-            'business_type' => $this->business_type,
+            'company_name' => $this->company?->name ?? null,
+            'company_address' => $this->company?->address->registered_address ?? null,
+            'business_type' => $this->company?->business_type ?? null,
             'quotations' => [
                 'pending' => $this->quotations_pending_count,
                 'accepted' => $this->quotations_accepted_count,

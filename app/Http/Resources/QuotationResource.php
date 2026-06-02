@@ -63,7 +63,7 @@ class QuotationResource extends JsonResource
             'client' => $request->routeIs('job-orders.quotation') 
                 ? [
                     'full_name' => $this->client->full_name,
-                    'company_name' => $this->client->company_name,
+                    'company_name' => $this->client->company?->name ?? null,
                     'contact_number' => $this->client->contact_number,
                     'email' => $this->client->email,
                 ]
@@ -86,8 +86,8 @@ class QuotationResource extends JsonResource
                 'contact_person' => $this->contact_person,
                 'contact_number' => $this->contact_number,
                 'email' => $this->email,
-                'position' => $regulatoryService?->position ?? $this->client->company_position,
-                'business_type' => $regulatoryService?->business_type ?? $this->client->business_type,
+                'position' => $regulatoryService?->position ?? ($this->client->company?->position ?? null),
+                'business_type' => $regulatoryService?->business_type ?? ($this->client->company?->business_type ?? null),
             ],
             'service' => $isRegulatory ? null : [
                 'type' => $logisticsService?->service_type,
@@ -164,7 +164,7 @@ class QuotationResource extends JsonResource
         if ($isWeb) {
             $response['client'] = [
                 'full_name' => $this->client ? $this->client->full_name : $this->client_name,
-                'company_name' => $this->client ? $this->client->company_name : null,
+                'company_name' => $this->client ? $this->client->company?->name : null,
                 'contact_number' => $this->client ? $this->client->contact_number : null,
                 'email' => $this->client ? $this->client->email : null,
             ];

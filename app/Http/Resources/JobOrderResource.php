@@ -39,7 +39,8 @@ class JobOrderResource extends JsonResource
             'email_body' => $this->email_body ?? null,
             'date' => $this->date_issued ? Carbon::parse($this->date_issued)->format('F d, Y') : null,
             'client' => [
-                'consignee' => $this->quotation->company_name,
+                'consignee' => $this->quotation->company?->consignee_used ?? null,
+                'company_name' => $this->quotation->company?->name ?? null,
                 'shipper' => $this->quotation->client->full_name,
                 'client_type' => $this->jobOrderClient->client_type,
                 'accredited' => $this->jobOrderClient->accredited,

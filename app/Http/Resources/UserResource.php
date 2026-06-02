@@ -25,10 +25,10 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'address' => $this->address,
             'contact_number' => $this->contact_number,
-            'company_name' => $this->company_name,
-            'company_address' => $this->company_address,
+            'company_name' => $this->company?->name ?? null,
+            'company_address' => $this->company?->address->registered_address ?? null,
             'company_position' => $this->company_position,
-            'business_type' => $this->business_type,
+            'business_type' => $this->company?->business_type ?? null,
             'image_path' => $this->image_path ? asset(Storage::url($this->image_path)) : null,
             'id_image_path' => $this->id_image_path ? asset(Storage::url($this->id_image_path)) : null,
             'tabs' => [
