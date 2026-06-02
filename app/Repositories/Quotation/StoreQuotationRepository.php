@@ -22,15 +22,15 @@ class StoreQuotationRepository extends BaseRepository
     }
 
     public function execute($request){
+        $user = User::find($request->input('client'));
+        $clientName = $user ? $user->full_name : null;
+        if ($user === null) {
+            $clientName = $request->input('client');
+        }
+
         if (auth()->user()->hasRole('Client')) {
             $user = User::find(auth()->id());
             $clientName = $user->full_name;
-        } elseif (auth()->user()->hasRole(['Account Specialist, Lead Account Specialist', 'Client Success', 'Lead Client Success'])) {
-            $user = User::find($request->input('client'));
-            $clientName = $user->full_name ?? null;
-            if (!$user) {
-                $clientName = $request->input('client_name');
-            }
         }
         
         DB::beginTransaction();
@@ -41,20 +41,22 @@ class StoreQuotationRepository extends BaseRepository
             $lastId = Quotation::max('id') ?? 0;
             $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
 
-            $previousQuotation = Quotation::where('client_id', $user->id)->latest()->first();
-            $assignedSpecialist = null;
-            if ($previousQuotation) {
-                $assignedSpecialist = $previousQuotation->accountSpecialist;
-            } 
+            if ($user) {
+                $previousQuotation = Quotation::where('client_id', $user->id)->latest()->first();
+                $assignedSpecialist = null;
+                if ($previousQuotation) {
+                    $assignedSpecialist = $previousQuotation->accountSpecialist;
+                } 
 
-            if ($assignedSpecialist) {
-                $assignmentStatus = 'ASSIGNED';
-                $assignedAt = Carbon::now();
+                if ($assignedSpecialist) {
+                    $assignmentStatus = 'ASSIGNED';
+                    $assignedAt = Carbon::now();
+                }
             }
 
             $quotation = Quotation::create([
                 'reference_number' => "RQ-{$serviceSection}-{$dateSection}-{$idSection}",
-                'client_id' => $user->id ?? null,
+                'client_id' => $user ? $user->id : null,
                 'client_name' => $clientName,
                 'as_id' => $assignedSpecialist?->id ?? null,
                 'company_name' => $request->input('company.name'),
@@ -104,7 +106,7 @@ class StoreQuotationRepository extends BaseRepository
 
             // Upload client documents
             $fileUploaded = $this->quotationFileService->syncClientDocuments(
-                $quotation, $user, newFiles: $request->file('documents')
+                $quotation, auth()->user(), newFiles: $request->file('documents')
             );
 
             if ($fileUploaded !== true) {
@@ -114,7 +116,7 @@ class StoreQuotationRepository extends BaseRepository
             $activityLog = ActivityLog::create([
                 'subject_id' => $quotation->id,
                 'subject_type' => Quotation::class,
-                'user_id' => $user->id,
+                'user_id' => auth()->id(),
                 'action' => 'Quotation Requested',
             ]);
 

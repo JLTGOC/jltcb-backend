@@ -44,6 +44,11 @@ class EnumQuotationOptionsRequest extends FormRequest
                     $fail("The {$attribute} must be one of: ".implode(', ', $allowedTypes).'.');
                 }
             }],
+            'client_id' => function ($attribute, $value, $fail) {
+                if (auth()->user()->hasRole(['Account Specialist, Lead Account Specialist', 'Client Success', 'Lead Client Success']) && !$value) {
+                    $fail('The client_id field is required for your role.');
+                }
+            },
         ];
     }
 }

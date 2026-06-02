@@ -163,10 +163,10 @@ class QuotationResource extends JsonResource
 
         if ($isWeb) {
             $response['client'] = [
-                'full_name' => $this->client->full_name,
-                'company_name' => $this->client->company_name,
-                'contact_number' => $this->client->contact_number,
-                'email' => $this->client->email,
+                'full_name' => $this->client ? $this->client->full_name : $this->client_name,
+                'company_name' => $this->client ? $this->client->company_name : null,
+                'contact_number' => $this->client ? $this->client->contact_number : null,
+                'email' => $this->client ? $this->client->email : null,
             ];
         }
 
