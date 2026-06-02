@@ -22,12 +22,12 @@ class EnumQuotationOptionsRepository extends BaseRepository
         $autofillDetails = [
             'full_name' => $user->full_name,
             'company' => [
-                'name' => $user->company_name,
-                'address' => $user->company_address,
+                'name' => $user->company?->name ?? null,
+                'address' => $user->company?->address->registered_address ?? null,
                 'position' => $user->company_position,
                 'contact_number' => $user->contact_number,
                 'email' => $user->email,
-                'business_type' => $user->business_type,
+                'business_type' => $user->company ? $user->company->businessType->name : $user->company?->business_type_other ?? null,
             ],
         ];
         $clients = User::role('Client')->pluck('full_name', 'id');
