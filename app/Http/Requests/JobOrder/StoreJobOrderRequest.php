@@ -47,7 +47,7 @@ class StoreJobOrderRequest extends FormRequest
             'client.remarks' => 'sometimes|nullable|string',
             'service.service_level' => ['required_if:job_type,LOGISTICS', 'string', Rule::in(ServiceLevel::pluck('name')->toArray())],
             'service.bl_no' => 'required_if:job_type,LOGISTICS|string',
-            'service.eta' => 'required_if:job_type,LOGISTICS|date',
+            'service.eta' => 'required_if:job_type,LOGISTICS|date|after_or_equal:today',
             'service.etd' => 'required_if:job_type,LOGISTICS|date|after_or_equal:service.eta',
             'shipment.hs_code' => ['sometimes','nullable','string', $setNullRule('shipment.hs_code')],
             'shipment.rod' => ['sometimes','nullable','string', $setNullRule('shipment.rod')],
@@ -58,7 +58,7 @@ class StoreJobOrderRequest extends FormRequest
             'target.completion_date' => ['sometimes','nullable','string', $setNullRule('target.completion_date')],
             'target.special_remarks' => ['sometimes','nullable','string', $setNullRule('target.special_remarks')],
             'billing.terms_of_payment' => ['sometimes','nullable','string', $setNullRule('billing.terms_of_payment')],
-            'billing.billing_date' => 'sometimes|nullable|date',
+            'billing.billing_date' => 'sometimes|nullable|date|after_or_equal:today',
             'billing.shall_be_billed' => ['sometimes', 'string', Rule::in(BillingMode::pluck('name')->toArray())],
             'billing.listed_docs' => ['sometimes','nullable','string', $setNullRule('billing.listed_docs')],
             'billing.attached_docs' => 'sometimes|nullable|array',
@@ -69,7 +69,7 @@ class StoreJobOrderRequest extends FormRequest
         $isWeb = $platform === 'web';
 
         if ($isWeb) {
-            $rules['subject.date'] = 'required|date';
+            $rules['subject.date'] = 'required|date|after_or_equal:today';
         }
 
         return $rules;
