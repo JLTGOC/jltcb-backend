@@ -32,7 +32,7 @@ class QuotationPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole(['Client']);
+        return $user->hasRole(['Client', 'Lead Account Specialist', 'Lead Client Success', 'Account Specialist', 'Client Success']);
     }
 
     /**

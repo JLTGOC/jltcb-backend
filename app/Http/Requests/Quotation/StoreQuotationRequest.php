@@ -8,7 +8,8 @@ use App\Models\{
     ServiceOption,
     ContainerSize,
     BusinessType,
-    RegulatoryAssistanceType
+    RegulatoryAssistanceType,
+    User
 };
 
 class StoreQuotationRequest extends FormRequest
@@ -29,7 +30,7 @@ class StoreQuotationRequest extends FormRequest
     public function rules(): array
     {
         if ($this->input('services') === 'LOGISTICS') {
-            return [
+            $rules = [
                 'services' => 'required|in:LOGISTICS,REGULATORY',
                 'company.name' => 'required|string',
                 'company.address' => 'required|string',
@@ -57,7 +58,7 @@ class StoreQuotationRequest extends FormRequest
                 'remarks' => ['nullable', 'string']
             ];
         } elseif ($this->input('services') === 'REGULATORY') {
-            return [
+            $rules = [
                 'services' => 'required|in:LOGISTICS,REGULATORY',
                 'full_name' => 'required|string',
                 'company.contact_person' => ['sometimes', 'nullable', 'string', function ($attribute, $value, $fail) {
@@ -74,10 +75,10 @@ class StoreQuotationRequest extends FormRequest
                 }],
                 'company.name' => 'required|string',
                 'company.address' => 'required|string',
-                'company.position' => 'required|string',
+                'company.position' => 'sometimes|nullable|string',
                 'company.contact_number' => 'required|string|min:11|max:11|regex:/^09\d{9}$/',
                 'company.email' => 'required|email',
-                'company.business_type' => ['required', Rule::in(BusinessType::pluck('name')->toArray())],
+                'company.business_type' => ['sometimes', 'nullable', Rule::in(BusinessType::pluck('name')->toArray())],
                 'type_of_regulatory_assistance' => 'required|array',
                 'type_of_regulatory_assistance.*' => ['required', 'string'],
                 'service_level' => 'required|string|in:NEW,RENEWAL',
@@ -91,5 +92,11 @@ class StoreQuotationRequest extends FormRequest
                 'documents.*' => ['required', 'file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
             ];
         }
+
+        if (auth()->user()->hasRole(['Account Specialist, Lead Account Specialist', 'Client Success', 'Lead Client Success'])) {
+            $rules['client'] = 'required';
+        }
+
+        return $rules;
     }
 }

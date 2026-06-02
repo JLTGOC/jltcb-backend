@@ -8,12 +8,16 @@ use App\Models\RegulatoryAssistanceType;
 use App\Models\ServiceOption;
 use App\Models\ServiceType;
 use App\Repositories\BaseRepository;
+use App\Models\User;
 
 class EnumQuotationOptionsRepository extends BaseRepository
 {
     public function execute($request){
         $validated = $request->validated();
-        $user = auth()->user();
+        $user = User::find($request->input('client_id'));
+        if (auth()->user()->hasRole('Client')) {
+            $user = User::find(auth()->id());
+        }
 
         $autofillDetails = [
             'full_name' => $user->full_name,
@@ -26,6 +30,7 @@ class EnumQuotationOptionsRepository extends BaseRepository
                 'business_type' => $user->business_type,
             ],
         ];
+        $clients = User::role('Client')->pluck('full_name', 'id');
         $businessTypes = [];
         $regulatoryAssistanceTypes = [];
         $serviceTypes = [];
@@ -56,6 +61,7 @@ class EnumQuotationOptionsRepository extends BaseRepository
         }
 
         $quotationOptions = [
+            'clients' => $clients,
             'autofill_details' => $autofillDetails,
             'business_types' => $businessTypes,
             'regulatory_assistance_types' => $regulatoryAssistanceTypes,

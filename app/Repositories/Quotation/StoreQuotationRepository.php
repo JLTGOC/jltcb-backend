@@ -22,8 +22,17 @@ class StoreQuotationRepository extends BaseRepository
     }
 
     public function execute($request){
-        $user = User::find(auth()->id());
+        $user = User::find($request->input('client'));
+        $clientName = $user ? $user->full_name : null;
+        if ($user === null) {
+            $clientName = $request->input('client');
+        }
 
+        if (auth()->user()->hasRole('Client')) {
+            $user = User::find(auth()->id());
+            $clientName = $user->full_name;
+        }
+        
         DB::beginTransaction();
 
         try {
@@ -32,27 +41,30 @@ class StoreQuotationRepository extends BaseRepository
             $lastId = Quotation::max('id') ?? 0;
             $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
 
-            $previousQuotation = Quotation::where('client_id', $user->id)->latest()->first();
-            $assignedSpecialist = null;
-            if ($previousQuotation) {
-                $assignedSpecialist = $previousQuotation->accountSpecialist;
-            } 
+            if ($user) {
+                $previousQuotation = Quotation::where('client_id', $user->id)->latest()->first();
+                $assignedSpecialist = null;
+                if ($previousQuotation) {
+                    $assignedSpecialist = $previousQuotation->accountSpecialist;
+                } 
 
-            if ($assignedSpecialist) {
-                $assignmentStatus = 'ASSIGNED';
-                $assignedAt = Carbon::now();
+                if ($assignedSpecialist) {
+                    $assignmentStatus = 'ASSIGNED';
+                    $assignedAt = Carbon::now();
+                }
             }
 
             $quotation = Quotation::create([
                 'reference_number' => "RQ-{$serviceSection}-{$dateSection}-{$idSection}",
-                'client_id' => $user->id,
+                'client_id' => $user ? $user->id : null,
+                'client_name' => $clientName,
                 'as_id' => $assignedSpecialist?->id ?? null,
                 'company_name' => $request->input('company.name'),
                 'company_address' => $request->input('company.address'),
                 'contact_person' => $request->input('company.contact_person'),
                 'contact_number' => $request->input('company.contact_number'),
                 'email' => $request->input('company.email'),
-                'position' => $request->input('company.position'),
+                'position' => $request->input('company.position') ?? null,
                 'assignment_status' => $assignmentStatus ?? 'AVAILABLE',
                 'assigned_at' => $assignedAt ?? null
             ]);
@@ -84,8 +96,8 @@ class StoreQuotationRepository extends BaseRepository
                 $regulatoryService = $quotation->regulatoryService()->create([
                     'full_name' => $request->input('full_name'),
                     'contact_person_contact_number' => $request->input('company.cp_contact_number'),
-                    'business_type' => $request->input('company.business_type'),
-                    'position' => $request->input('company.position'),
+                    'business_type' => $request->input('company.business_type') ?? null,
+                    'position' => $request->input('company.position') ?? null,
                     'type_of_regulatory_assistance' => $typeOfRegulatoryAssistance,
                     'application_type' => $request->service_level,
                     'message' => $request->message ?? null,
@@ -94,7 +106,7 @@ class StoreQuotationRepository extends BaseRepository
 
             // Upload client documents
             $fileUploaded = $this->quotationFileService->syncClientDocuments(
-                $quotation, $user, newFiles: $request->file('documents')
+                $quotation, auth()->user(), newFiles: $request->file('documents')
             );
 
             if ($fileUploaded !== true) {
@@ -104,7 +116,7 @@ class StoreQuotationRepository extends BaseRepository
             $activityLog = ActivityLog::create([
                 'subject_id' => $quotation->id,
                 'subject_type' => Quotation::class,
-                'user_id' => $user->id,
+                'user_id' => auth()->id(),
                 'action' => 'Quotation Requested',
             ]);
 
