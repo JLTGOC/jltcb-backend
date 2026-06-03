@@ -32,6 +32,7 @@ class JobOrderResource extends JsonResource
             'id' => $this->id,
             'reference_number' => $this->reference_number,
             'quotation_id' => $this->quotation->id,
+            'shipment_id' => $this->shipment?->id ?? null,
             'job_type' => $this->job_type,
             'as_id' => $this->as_id,
             'operations_id' => $this->operations_id,
