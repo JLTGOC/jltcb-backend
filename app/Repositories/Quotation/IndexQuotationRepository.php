@@ -127,7 +127,7 @@ class IndexQuotationRepository extends BaseRepository
             } else {
                 if ($request->filter['status'] === 'REQUESTED') {
                     $resultsQuery = $quotations
-                        ->with(['accountSpecialist', 'logisticsService', 'regulatoryService'])
+                        ->with(['client', 'accountSpecialist', 'logisticsService', 'regulatoryService'])
                         ->orderBy('created_at', 'desc');
 
                     $results = $resultsQuery->get();
@@ -149,7 +149,7 @@ class IndexQuotationRepository extends BaseRepository
 
                     return $this->success('All quotations fetched', $groupedByClient, 200);
                 } else {
-                    $resultsQuery = $quotations->with(['client', 'logisticsService'])->orderBy('created_at', 'desc');
+                    $resultsQuery = $quotations->with(['client', 'logisticsService', 'regulatoryService'])->orderBy('created_at', 'desc');
 
                     $results = $resultsQuery->get()->map(function ($result) {
                         return (new MobileQuotationResource($result))->toArray(request());
@@ -163,7 +163,7 @@ class IndexQuotationRepository extends BaseRepository
                 }
             }
         } else {
-            $resultsQuery = $quotations->with(['client', 'logisticsService'])->orderBy('created_at', 'desc');
+            $resultsQuery = $quotations->with(['client', 'logisticsService', 'regulatoryService'])->orderBy('created_at', 'desc');
 
             if ($isWeb) {
                 $paginated = $resultsQuery->paginate($perPage);
