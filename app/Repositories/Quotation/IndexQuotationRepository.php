@@ -127,7 +127,7 @@ class IndexQuotationRepository extends BaseRepository
             } else {
                 if ($request->filter['status'] === 'REQUESTED') {
                     $resultsQuery = $quotations
-                        ->with(['client', 'accountSpecialist', 'logisticsService', 'regulatoryService'])
+                        ->with(['accountSpecialist', 'logisticsService', 'regulatoryService'])
                         ->orderBy('created_at', 'desc');
 
                     $results = $resultsQuery->get();
@@ -135,6 +135,13 @@ class IndexQuotationRepository extends BaseRepository
                     $groupedByClient = $results->groupBy('client_id')->map(function ($clientQuotations) {
                         return (new MobileRequestedQuotationCollection($clientQuotations))->toArray(request());
                     })->values();
+
+                    // $unregisteredQuotations = $results->whereNull('client_id');
+                    // $unregisteredQuotationsFormatted = $unregisteredQuotations->map(function ($quotation) {
+                    //     return (new MobileQuotationResource($quotation))->toArray(request());
+                    // });
+
+                    // $groupedByClient = $groupedByClient->concat($unregisteredQuotationsFormatted);
 
                     if ($groupedByClient->isEmpty()) {
                         return $this->success('No quotations found', [], 200);
@@ -177,6 +184,9 @@ class IndexQuotationRepository extends BaseRepository
     private function buildRoleBasedQueries($user, bool $isWeb): ?array
     {
         $query = Quotation::query();
+        if (!$isWeb) {
+            $query->has('client');
+        }
         $myQuotationsQuery = null;
 
         if ($user->hasRole('Client')) {
@@ -191,12 +201,7 @@ class IndexQuotationRepository extends BaseRepository
                     ->where('as_id', $user->id);
             }
         } elseif ($user->hasRole(['Account Specialist', 'Client Success'])) {
-            if ($isWeb) {
-                $query->whereNot('assignment_status', 'ASSIGNED');
-            } else {
-                $query->where('as_id', $user->id);
-            }
-
+            $query->whereNot('assignment_status', 'ASSIGNED');
             $myQuotationsQuery = Quotation::query()
                 ->where('as_id', $user->id);
         } elseif ($user->hasRole(['Operations', 'Lead Operations'])) {
