@@ -93,12 +93,17 @@ class IndexQuotationRepository extends BaseRepository
                     })
                     ->count();
 
+                $unregisteredClientsCount = (clone $countQuery)
+                    ->whereNull('client_id')
+                    ->count();
+
                 if ($quotations->isEmpty() && $myQuotationsResults->isEmpty()) {
                     return $this->success('No quotations found', [
                         'counts' => [
                             'all_quotations' => $allQuotationsCount,
                             'old_user_quotations' => $oldClientsCount,
                             'new_user_quotations' => $newClientsCount,
+                            'prospect_user_quotations' => $unregisteredClientsCount,
                         ],
                         'quotations' => [],
                         'my_quotations' => $myQuotationsResults,
@@ -112,6 +117,7 @@ class IndexQuotationRepository extends BaseRepository
                         'all_quotations' => $allQuotationsCount,
                         'old_user_quotations' => $oldClientsCount,
                         'new_user_quotations' => $newClientsCount,
+                        'prospect_user_quotations' => $unregisteredClientsCount,
                     ],
                     'quotations' => $quotations->values(),
                     'my_quotations' => $myQuotationsResults,
@@ -170,7 +176,7 @@ class IndexQuotationRepository extends BaseRepository
 
     private function buildRoleBasedQueries($user, bool $isWeb): ?array
     {
-        $query = Quotation::query()->has('client');
+        $query = Quotation::query();
         $myQuotationsQuery = null;
 
         if ($user->hasRole('Client')) {
@@ -193,7 +199,7 @@ class IndexQuotationRepository extends BaseRepository
 
             $myQuotationsQuery = Quotation::query()
                 ->where('as_id', $user->id);
-        } elseif ($user->hasRole(['Operations', 'Client Success'])) {
+        } elseif ($user->hasRole(['Operations', 'Lead Operations'])) {
              // No additional constraints for these roles, they can see all quotations.
         } else {
             return null;
@@ -317,6 +323,8 @@ class IndexQuotationRepository extends BaseRepository
             }
 
             $builder->whereIn('client_id', $newClientIds);
+        } elseif (isset($request->client_type) && $request->client_type === 'PROSPECT') {
+            $builder->whereNull('client_id');
         }
     }
 

@@ -43,7 +43,7 @@ class IndexQuotationRequest extends FormRequest
                 }
             }],
             'filter.service' => 'sometimes|in:LOGISTICS,REGULATORY,ALL',
-            'client_type' => 'sometimes|in:OLD,NEW',
+            'client_type' => 'sometimes|in:OLD,NEW,PROSPECT',
             'search' => 'sometimes|string',
             'as_search' => 'sometimes|string',
             'page' => 'sometimes|integer|min:1',
