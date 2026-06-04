@@ -319,6 +319,10 @@ class CompanyController extends Controller
                 $company->insight()->update($insights);
             }
 
+            if ($request->has('documents_to_delete')) {
+                $company->documents()->whereIn('id', $request->input('documents_to_delete'))->delete();
+            }
+
             $documentsInput = $request->input('documents', []);
             $uploadedDocs = $request->file('documents', []);
             foreach ($documentsInput as $index => $doc) {

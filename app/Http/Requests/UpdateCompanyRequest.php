@@ -114,6 +114,8 @@ class UpdateCompanyRequest extends FormRequest
             'documents' => 'sometimes|nullable|array',
             'documents.*.name' => 'required_with:documents|string|max:255',
             'documents.*.file' => 'required_with:documents|file|max:10240',
+            'documents_to_delete' => 'sometimes|nullable|array',
+            'documents_to_delete.*' => 'sometimes|nullable|integer|exists:company_documents,id',
         ];
 
         $insightRules = [
