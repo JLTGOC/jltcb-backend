@@ -38,9 +38,9 @@ class JobOrderResource extends JsonResource
             'as_id' => $this->as_id,
             'operations_id' => $this->operations_id,
             'person_in_charge' => [
-                'role' => $this->operations->getRoleNames()->first() ?? null,
-                'username' => $this->operations->username ?? null,
-                'full_name' => $this->operations->full_name ?? null,
+                'role' => $this->operations ? $this->operations->getRoleNames()->first() : null,
+                'username' => $this->operations ? $this->operations->username ?? null : null,
+                'full_name' => $this->operations ? $this->operations->full_name ?? null : null,
             ],
             'subject' => $this->subject ?? null,
             'email_body' => $this->email_body ?? null,
@@ -48,7 +48,7 @@ class JobOrderResource extends JsonResource
             'client' => [
                 'consignee' => $this->quotation->client->company?->consignee_used ?? null,
                 'company_name' => $this->quotation->client->company?->name ?? null,
-                'shipper' => $this->quotation->client->full_name,
+                'shipper' => $this->quotation->client?->full_name,
                 'client_type' => $this->jobOrderClient->client_type,
                 'accredited' => $this->jobOrderClient->accredited,
                 'service_type' => $this->jobOrderClient->service_type,
