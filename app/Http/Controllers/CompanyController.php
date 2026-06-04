@@ -236,13 +236,13 @@ class CompanyController extends Controller
                     'destination_country' => $address['destination_country'] ?? $company->address->destination_country,
                 ]);
 
-                if ($address['warehouse_addresses']) {
+                if (isset($address['warehouse_addresses'])) {
                     $company->warehouseAddresses()->delete();
                     foreach ($address['warehouse_addresses'] as $warehouseAddress) {
                         $company->warehouseAddresses()->create(['address' => $warehouseAddress]);
                     }
                 }
-                if ($address['delivery_addresses']) {
+                if (isset($address['delivery_addresses'])) {
                     $company->deliveryAddresses()->delete();
                     foreach ($address['delivery_addresses'] as $deliveryAddress) {
                         $company->deliveryAddresses()->create(['address' => $deliveryAddress]);
@@ -291,7 +291,7 @@ class CompanyController extends Controller
                     'importer_accreditation_expiry' => isset($registration['importer_accreditation_expiry']) ? Carbon::parse($registration['importer_accreditation_expiry'])->format('Y-m-d') : $company->registration->importer_accreditation_expiry,
                 ]);
 
-                if ($registration['representatives']) {
+                if (isset($registration['representatives'])) {
                     $company->representatives()->delete();
                     foreach ($registration['representatives'] as $representative) {
                         $company->representatives()->create(['full_name' => $representative]);

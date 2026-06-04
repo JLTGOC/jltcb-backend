@@ -82,7 +82,7 @@ class UpdateCompanyRequest extends FormRequest
             'registration.special_permits' => 'sometimes|nullable|string|max:255',
             'registration.compliance_risk' => 'sometimes|nullable|string|max:255',
             'registration.representatives' => 'sometimes|nullable|array',
-            'registration.representatives.*' => 'sometimes|string|max:255', 
+            'registration.representatives.*' => 'sometimes|required_with:registration.representatives|string|max:255', 
         ];
 
         $pricingRules = [
