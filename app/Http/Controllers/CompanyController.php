@@ -371,6 +371,7 @@ class CompanyController extends Controller
      */
     public function enums()
     {
+        $accountHandlers = User::role(['Account Specialist', 'Lead Account Specialist', 'Client Success', 'Lead Client Success'])->get(['id', 'username', 'full_name']);
         $transactionTypes = TransactionType::all();
         $clientClassifications = ClientClassification::all();
         $companyTypes = CompanyType::all();
@@ -379,6 +380,12 @@ class CompanyController extends Controller
         $growth = ['LOW', 'MEDIUM', 'HIGH'];
 
         return response()->json([
+            'account_handlers' => $accountHandlers->map(function ($handler) {
+                return [
+                    'id' => $handler->id,
+                    'username' => mb_strtoupper($handler->username) . ' ' . mb_strtoupper($handler->full_name),
+                ];
+            }),
             'transaction_types' => $transactionTypes,
             'client_classifications' => $clientClassifications,
             'company_types' => $companyTypes,
