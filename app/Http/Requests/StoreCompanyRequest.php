@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use App\Models\User;
+use App\Models\Industry;
 
 class StoreCompanyRequest extends FormRequest
 {
@@ -45,7 +46,11 @@ class StoreCompanyRequest extends FormRequest
             'basic_info.years_in_operation' => 'required|integer|min:0',
             'basic_info.activation_date' => 'required|date',
             'basic_info.industry' => 'required|array',
-            'basic_info.industry.*' => 'sometimes',
+            'basic_info.industry.*' => ['sometimes', function ($attribute, $value, $fail) {
+                if (!in_array($value, Industry::pluck('id')->toArray())) {
+                    $fail('The selected industry is invalid. Must be a valid industry ID.');
+                }
+            }],
         ];
 
         $addressRules = [
