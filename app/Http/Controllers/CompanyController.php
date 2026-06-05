@@ -36,6 +36,7 @@ class CompanyController extends Controller
     public function index(Request $request)
     {
         $asSearch = $request->input('as_search');
+        $companyNameSearch = $request->input('company_name');
 
         $companiesQuery = Company::query();
 
@@ -47,6 +48,10 @@ class CompanyController extends Controller
                 });
             });
         }
+        if ($companyNameSearch) {
+            $companiesQuery->where('name', 'like', "%{$companyNameSearch}%");
+        }
+        
         return $this->success('All companies fetched successfully', CompanyResource::collection($companiesQuery->get()), 200);
     }
 
