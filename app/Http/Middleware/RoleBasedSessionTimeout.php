@@ -14,10 +14,10 @@ class RoleBasedSessionTimeout
         'Account Specialist'      => 60,
         'Lead Account Specialist' => 30,
         'Operations'              => 60,
-        'Lead Operations'         => 30,
+        // 'Lead Operations'         => 30,
         'Marketing'               => 60,
-        'Client Success'          => 60,
-        'Lead Client Success'     => 30,
+        'Client Success'          => 30,
+        // 'Lead Client Success'     => 30,
     ];
 
     protected int $defaultTimeout = 60;

@@ -21,6 +21,7 @@ class PlanningTemplateSeeder extends Seeder
         $this->createConfigs();
 
         $leadOpsId = User::role('Lead Operations')->value('id');
+        $leadOpsId = User::role('Client Success')->value('id');
 
         $templates = [
             [

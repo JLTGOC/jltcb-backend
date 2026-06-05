@@ -18,7 +18,7 @@ class RoleSeeder extends Seeder
 
         $guard = 'sanctum';
 
-        $roles = ['Client', 'Lead Account Specialist', 'Account Specialist', 'Marketing', 'Human Resource', 'Lead Operations','Operations', 'Lead Finance', 'Finance', 'IT', 'Client Success', 'Lead Client Success'];
+        $roles = ['Client', 'Lead Account Specialist', 'Account Specialist', 'Marketing', 'Human Resource', 'Operations', 'Lead Finance', 'Finance', 'IT', 'Client Success'];
         $permissions = [
             'dashboard.view',
             'leads.view',
@@ -87,13 +87,16 @@ class RoleSeeder extends Seeder
                         'dashboard.view'
                     ])->get());
                     break;
-                case 'Lead Operations':
+                case 'Client Success':
                     $role->syncPermissions(Permission::query()->where('guard_name', $guard)->whereIn('name', [
                         'dashboard.view',
                         'job_orders.view',
                         'job_orders.create',
                         'shipments.view',
-                        'shipments.create'
+                        'shipments.create',
+                        'quotations.view',
+                        'templates.view',
+                        'templates.create'
                     ])->get());
                     break;
                 case 'Operations':
@@ -118,30 +121,6 @@ class RoleSeeder extends Seeder
                 case 'IT':
                     $role->syncPermissions(Permission::query()->where('guard_name', $guard)->whereIn('name', [
                         'dashboard.view'
-                    ])->get());
-                    break;
-                case 'Client Success':
-                    $role->syncPermissions(Permission::query()->where('guard_name', $guard)->whereIn('name', [
-                        'dashboard.view',
-                        'job_orders.view',
-                        'job_orders.create',
-                        'shipments.view',
-                        'shipments.create',
-                        'quotations.view',
-                        'templates.view',
-                        'templates.create'
-                    ])->get());
-                    break;
-                case 'Lead Client Success':
-                    $role->syncPermissions(Permission::query()->where('guard_name', $guard)->whereIn('name', [
-                        'dashboard.view',
-                        'job_orders.view',
-                        'job_orders.create',
-                        'shipments.view',
-                        'shipments.create',
-                        'quotations.view',
-                        'templates.view',
-                        'templates.create'
                     ])->get());
                     break;
             }

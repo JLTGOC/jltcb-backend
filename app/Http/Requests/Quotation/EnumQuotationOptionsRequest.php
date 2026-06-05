@@ -45,7 +45,7 @@ class EnumQuotationOptionsRequest extends FormRequest
                 }
             }],
             'client_id' => function ($attribute, $value, $fail) {
-                if (auth()->user()->hasRole(['Account Specialist, Lead Account Specialist', 'Client Success', 'Lead Client Success']) && !$value) {
+                if (auth()->user()->hasRole(['Account Specialist, Lead Account Specialist', 'Client Success']) && !$value) {
                     $fail('The client_id field is required for your role.');
                 }
             },

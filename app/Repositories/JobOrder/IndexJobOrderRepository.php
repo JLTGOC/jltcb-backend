@@ -151,7 +151,7 @@ class IndexJobOrderRepository extends BaseRepository
             return [JobOrder::query()->whereNot('shipment_creation_status', 'CREATED'), null];
         } elseif ($user->hasRole('Account Specialist')) {
             return [JobOrder::query()->whereNot('shipment_creation_status', 'CREATED')->where('as_id', $user->id), null];
-        } elseif ($user->hasRole(['Lead Operations', 'Lead Client Success'])) {
+        } elseif ($user->hasRole(['Client Success'])) {
             if ($isWeb) {
                 return [
                     JobOrder::query()->whereNot('shipment_creation_status', 'CREATED'),
@@ -162,7 +162,7 @@ class IndexJobOrderRepository extends BaseRepository
                 JobOrder::query(),
                 JobOrder::query()->where('operations_id', $user->id)
             ];
-        } elseif ($user->hasRole(['Operations', 'Client Success'])) {
+        } elseif ($user->hasRole(['Operations'])) {
             if ($isWeb) {
                 return [
                     JobOrder::query()->whereNot('shipment_creation_status', 'CREATED')->whereNot('assignment_status', 'ASSIGNED'),

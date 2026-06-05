@@ -10,6 +10,7 @@ use App\Models\{
     CompanyType,
     Industry,
     BusinessType,
+    CompanyDocument
 };
 use App\Http\Resources\{
     CompanyResource
@@ -35,6 +36,7 @@ class CompanyController extends Controller
     public function index(Request $request)
     {
         $asSearch = $request->input('as_search');
+        $companyNameSearch = $request->input('company_name');
 
         $companiesQuery = Company::query();
 
@@ -46,6 +48,10 @@ class CompanyController extends Controller
                 });
             });
         }
+        if ($companyNameSearch) {
+            $companiesQuery->where('name', 'like', "%{$companyNameSearch}%");
+        }
+        
         return $this->success('All companies fetched successfully', CompanyResource::collection($companiesQuery->get()), 200);
     }
 
@@ -101,8 +107,9 @@ class CompanyController extends Controller
                 $fileName = $doc['name'] ?? null;
 
                 if ($uploaded instanceof UploadedFile) {
-                    $storedPath = $uploaded->store('files', 'local');
-                    $fileType = $uploaded->getClientOriginalExtension();
+                    $storedPath = $uploaded->storeAs('files', $fileName, 'local');
+                    $fileType = pathinfo($fileName, PATHINFO_EXTENSION)
+                                ?: $uploaded->getClientOriginalExtension();
                 } else {
                     $storedPath = isset($doc['filepath']) ? $doc['filepath'] : null;
                     $fileType = $doc['file_type'] ?? null;
@@ -236,13 +243,13 @@ class CompanyController extends Controller
                     'destination_country' => $address['destination_country'] ?? $company->address->destination_country,
                 ]);
 
-                if ($address['warehouse_addresses']) {
+                if (isset($address['warehouse_addresses'])) {
                     $company->warehouseAddresses()->delete();
                     foreach ($address['warehouse_addresses'] as $warehouseAddress) {
                         $company->warehouseAddresses()->create(['address' => $warehouseAddress]);
                     }
                 }
-                if ($address['delivery_addresses']) {
+                if (isset($address['delivery_addresses'])) {
                     $company->deliveryAddresses()->delete();
                     foreach ($address['delivery_addresses'] as $deliveryAddress) {
                         $company->deliveryAddresses()->create(['address' => $deliveryAddress]);
@@ -291,7 +298,7 @@ class CompanyController extends Controller
                     'importer_accreditation_expiry' => isset($registration['importer_accreditation_expiry']) ? Carbon::parse($registration['importer_accreditation_expiry'])->format('Y-m-d') : $company->registration->importer_accreditation_expiry,
                 ]);
 
-                if ($registration['representatives']) {
+                if (isset($registration['representatives'])) {
                     $company->representatives()->delete();
                     foreach ($registration['representatives'] as $representative) {
                         $company->representatives()->create(['full_name' => $representative]);
@@ -319,14 +326,77 @@ class CompanyController extends Controller
                 $company->insight()->update($insights);
             }
 
+            if ($request->has('documents_to_delete')) {
+                if (!CompanyDocument::whereIn('id', $request->input('documents_to_delete'))->where('company_id', $company->id)->exists()) {
+                    return $this->error('One or more documents to delete do not exist for this company.', 400);
+                }
+                $company->documents()->whereIn('id', $request->input('documents_to_delete'))->delete();
+            }
+
+            if ($request->has('documents_to_rename')) {
+                if (!CompanyDocument::whereIn('id', collect($request->input('documents_to_rename'))->pluck('id'))->where('company_id', $company->id)->exists()) {
+                    return $this->error('One or more documents to rename do not exist for this company.', 400);
+                }
+                if (count($request->input('documents_to_rename')) !== count(collect($request->input('documents_to_rename'))->pluck('id')->unique())) {
+                    return $this->error('Duplicate document IDs found in documents_to_rename.', 400);
+                }
+                foreach ($request->input('documents_to_rename') as $rename) {
+                    $doc = $company->documents()->where('id', $rename['id'])->first();
+                    if ($doc->file_name === $rename['new_name']) {
+                        continue; // Skip if the new name is the same as the current name
+                    }
+                    $doc->update(['file_name' => $rename['new_name']]);
+                }
+            }
+
+            if ($request->has('documents_to_replace')) {
+                $replacements = $request->input('documents_to_replace');
+                $files = $request->file('documents_to_replace'); // keyed by index
+
+                if (!CompanyDocument::whereIn('id', collect($replacements)->pluck('id'))
+                    ->where('company_id', $company->id)
+                    ->exists()) {
+                    return $this->error('One or more documents to replace do not exist for this company.', 400);
+                }
+
+                foreach ($replacements as $index => $replace) {
+                    // Grab the uploaded file by the same array index
+                    $file = $files[$index]['file'] ?? null;
+
+                    if (!$file) {
+                        return $this->error("Missing file for document ID {$replace['id']}.", 400);
+                    }
+
+                    $doc = $company->documents()->where('id', $replace['id'])->first();
+
+                    if (!$doc) {
+                        return $this->error("Document ID {$replace['id']} not found.", 404);
+                    }
+
+                    if (Storage::disk('local')->exists($doc->filepath)) {
+                        Storage::disk('local')->delete($doc->filepath);
+                    }
+
+                    $storedPath = $file->storeAs('files', $doc->file_name, 'local');
+                    $fileType = pathinfo($doc->file_name, PATHINFO_EXTENSION)
+                                ?: $file->getClientOriginalExtension();
+
+                    $doc->update([
+                        'filepath' => $storedPath,
+                        'file_type' => $fileType,
+                    ]);
+                }
+            }
+
             $documentsInput = $request->input('documents', []);
             $uploadedDocs = $request->file('documents', []);
             foreach ($documentsInput as $index => $doc) {
                 $uploaded = data_get($uploadedDocs, "{$index}.file");
                 $fileName = $doc['name'] ?? null;
                 if ($uploaded instanceof UploadedFile) {
-                    $storedPath = $uploaded->store('files', 'local');
-                    $fileType = $uploaded->getClientOriginalExtension();
+                    $storedPath = $uploaded->storeAs('files', $fileName, 'local');
+                    $fileType = pathinfo($fileName, PATHINFO_EXTENSION)
+                                ?: $uploaded->getClientOriginalExtension();
                 } else {
                     $storedPath = isset($doc['filepath']) ? $doc['filepath'] : null;
                     $fileType = $doc['file_type'] ?? null;
@@ -350,7 +420,8 @@ class CompanyController extends Controller
             return $this->success('Company updated successfully.', new CompanyResource($company), 200);
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->error('Failed to update company', 500, $e->getMessage());
+            return $e;
+            // return $this->error('Failed to update company', 500, $e->getMessage());
         }
     }
 
@@ -371,6 +442,7 @@ class CompanyController extends Controller
      */
     public function enums()
     {
+        $accountHandlers = User::role(['Account Specialist', 'Lead Account Specialist', 'Client Success'])->get(['id', 'username', 'full_name']);
         $transactionTypes = TransactionType::all();
         $clientClassifications = ClientClassification::all();
         $companyTypes = CompanyType::all();
@@ -379,6 +451,12 @@ class CompanyController extends Controller
         $growth = ['LOW', 'MEDIUM', 'HIGH'];
 
         return response()->json([
+            'account_handlers' => $accountHandlers->map(function ($handler) {
+                return [
+                    'id' => $handler->id,
+                    'username' => mb_strtoupper($handler->username) . ' ' . mb_strtoupper($handler->full_name),
+                ];
+            }),
             'transaction_types' => $transactionTypes,
             'client_classifications' => $clientClassifications,
             'company_types' => $companyTypes,

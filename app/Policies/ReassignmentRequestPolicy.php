@@ -13,7 +13,7 @@ class ReassignmentRequestPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(['Lead Account Specialist', 'Account Specialist', 'Lead Operations', 'Operations', 'Lead Client Success', 'Client Success']);
+        return $user->hasRole(['Lead Account Specialist', 'Account Specialist', 'Operations', 'Client Success']);
     }
 
     /**
@@ -66,7 +66,7 @@ class ReassignmentRequestPolicy
 
     public function enums(User $user): bool
     {
-        return $user->hasRole(['Lead Account Specialist', 'Account Specialist', 'Lead Operations', 'Operations', 'Lead Client Success', 'Client Success']);
+        return $user->hasRole(['Lead Account Specialist', 'Account Specialist', 'Operations', 'Client Success']);
     }
 
     public function cancel(User $user, ReassignmentRequest $reassignmentRequest): bool

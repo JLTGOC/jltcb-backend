@@ -24,7 +24,7 @@ class AccountHandlerSeeder extends Seeder
         }
         $companies = Company::where('account_handler_id', null)->where('name', '!=', 'JLTCB')->get();
         foreach ($companies as $company) {
-            $accountHandler = User::role(['Account Specialist', 'Lead Account Specialist', 'Client Success', 'Lead Client Success'])->inRandomOrder()->first();
+            $accountHandler = User::role(['Account Specialist', 'Lead Account Specialist', 'Client Success'])->inRandomOrder()->first();
             if ($accountHandler) {
                 $company->update(['account_handler_id' => $accountHandler->id]);
             }

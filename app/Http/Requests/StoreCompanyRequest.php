@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use App\Models\User;
+use App\Models\Industry;
 
 class StoreCompanyRequest extends FormRequest
 {
@@ -28,7 +29,7 @@ class StoreCompanyRequest extends FormRequest
             'basic_info.consignee_used' => 'required|string|max:255',
             'basic_info.trade_name' => 'required|string|max:255',
             'basic_info.account_handler_id' => ['required', function ($attribute, $value, $fail) {
-                if (!User::where('id', $value)->role(['Account Specialist', 'Client Success', 'Lead Account Specialist', 'Lead Client Success'])->exists()) {
+                if (!User::where('id', $value)->role(['Account Specialist', 'Client Success', 'Lead Account Specialist'])->exists()) {
                     $fail('The selected account handler is invalid.');
                 }
             }],
@@ -45,7 +46,11 @@ class StoreCompanyRequest extends FormRequest
             'basic_info.years_in_operation' => 'required|integer|min:0',
             'basic_info.activation_date' => 'required|date',
             'basic_info.industry' => 'required|array',
-            'basic_info.industry.*' => 'sometimes',
+            'basic_info.industry.*' => ['sometimes', function ($attribute, $value, $fail) {
+                if (!in_array($value, Industry::pluck('id')->toArray())) {
+                    $fail('The selected industry is invalid. Must be a valid industry ID.');
+                }
+            }],
         ];
 
         $addressRules = [
@@ -116,7 +121,17 @@ class StoreCompanyRequest extends FormRequest
 
         $documentRules = [
             'documents' => 'sometimes|nullable|array',
-            'documents.*.name' => 'required_with:documents|string|max:255',
+            'documents.*.name' => [
+                'required_with:documents',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    $company = $this->route('company');
+                    if ($company && $company->documents()->where('file_name', $value)->exists()) {
+                        $fail("A document named \"{$value}\" already exists for this company.");
+                    }
+                },
+            ],
             'documents.*.file' => 'required_with:documents|file|max:10240',
         ];
 

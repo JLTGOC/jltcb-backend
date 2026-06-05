@@ -25,8 +25,8 @@ class MobileRequestedQuotationCollection extends ResourceCollection
         $client = $this->collection->first()->client;
 
         return [
-            'client_id' => $client->id,
-            'client_full_name' => $client->full_name,
+            'client_id' => $client?->id ?? null,
+            'client_full_name' => $client?->full_name ?? null,
             'quotations_count' => $this->collection->count(),
             'date' => $this->collection->first()->created_at->format($dateFormat),
             'quotations' => $this->collection->map(function ($quotation) use ($dateFormat, $user) {
@@ -63,12 +63,12 @@ class MobileRequestedQuotationCollection extends ResourceCollection
                     'id' => $quotation->id,
                     'reference_number' => $quotation->reference_number,
                     'date' => $quotation->created_at->format($dateFormat),
-                    'client_full_name' => $quotation->client->full_name,
-                    'company_name' => $quotation->company_name,
+                    'client_full_name' => $quotation->client?->full_name ?? null,
+                    'company_name' => $quotation->company?->name ?? null,
                     'status' => $quotation->status,
                     'assignment_status' => $quotation->assignment_status,
-                    'as_username' => $quotation->accountSpecialist->username ?? 'Available',
-                    'as_full_name' => $quotation->accountSpecialist->full_name ?? null,
+                    'as_username' => $quotation->accountSpecialist?->username ?? 'Available',
+                    'as_full_name' => $quotation->accountSpecialist?->full_name ?? null,
                     'assigned_at' => $quotation->assigned_at ? Carbon::parse($quotation->assigned_at)->format($dateFormat) : null,
                     'reassignment_request_id' => $reassignmentRequest ? $reassignmentRequest->id : null,
                     'requested_at' => $reassignmentRequest ? Carbon::parse($reassignmentRequest->created_at)->format($dateFormat) : null,

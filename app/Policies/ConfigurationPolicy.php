@@ -63,7 +63,7 @@ class ConfigurationPolicy
     }
 
     private function isAuthorized($user): bool {
-        if ($user->hasRole(['Account Specialist', 'Lead Account Specialist', 'Client Success', 'Lead Client Success'])) {
+        if ($user->hasRole(['Account Specialist', 'Lead Account Specialist', 'Client Success'])) {
             return true;
         }
         return false;

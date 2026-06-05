@@ -34,8 +34,8 @@ class QuotationSeeder extends Seeder
     public function run(): void
     {
         $clients = User::role('Client')->limit(2)->pluck('id');
-        $specialists = User::role(['Account Specialist', 'Lead Account Specialist', 'Client Success', 'Lead Client Success'])->pluck('id');
-        $ops = User::role(['Operations', 'Lead Operations', 'Client Success', 'Lead Client Success'])->get();
+        $specialists = User::role(['Account Specialist', 'Lead Account Specialist', 'Client Success'])->pluck('id');
+        $ops = User::role(['Operations' , 'Client Success'])->get();
 
         $i = 0;
         do {
@@ -350,14 +350,14 @@ class QuotationSeeder extends Seeder
                 'status' => 'REQUESTED',
                 'client_id' => null,
                 'client_name' => fake()->firstName() . ' ' . fake()->lastName(),
-                'as_id' => fake()->randomElement($specialists, null),
+                'as_id' => null,
                 'company_name' => fake()->company(),
                 'company_address' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
                 'contact_person' => fake()->name(),
                 'contact_number' => fake()->numerify('09#########'),
                 'email' => fake()->unique()->safeEmail(),
                 'position' => null,
-                'assignment_status' => fake()->randomElement(['AVAILABLE', 'ASSIGNED', 'REASSIGNMENT REQUESTED']),
+                'assignment_status' => 'AVAILABLE',
                 'assigned_at' => null,
                 'created_at' => Carbon::now()->subDays(fake()->numberBetween(20, 30)),
                 'updated_at' => Carbon::now()->subDays(fake()->numberBetween(10, 20)),

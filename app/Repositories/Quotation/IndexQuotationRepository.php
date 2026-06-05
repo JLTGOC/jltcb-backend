@@ -51,7 +51,7 @@ class IndexQuotationRepository extends BaseRepository
         $pagination = null;
         $myQuotationsPagination = null;
 
-        if ($user->hasRole(['Account Specialist', 'Lead Account Specialist', 'Operations', 'Lead Operations', 'Client Success', 'Lead Client Success'])) {
+        if ($user->hasRole(['Account Specialist', 'Lead Account Specialist', 'Operations' , 'Client Success'])) {
             if ($isWeb) {
                 $formatQuotation = function ($quotation) {
                     return (new WebQuotationResource($quotation))->toArray(request());
@@ -93,12 +93,17 @@ class IndexQuotationRepository extends BaseRepository
                     })
                     ->count();
 
+                $unregisteredClientsCount = (clone $countQuery)
+                    ->whereNull('client_id')
+                    ->count();
+
                 if ($quotations->isEmpty() && $myQuotationsResults->isEmpty()) {
                     return $this->success('No quotations found', [
                         'counts' => [
                             'all_quotations' => $allQuotationsCount,
                             'old_user_quotations' => $oldClientsCount,
                             'new_user_quotations' => $newClientsCount,
+                            'prospect_user_quotations' => $unregisteredClientsCount,
                         ],
                         'quotations' => [],
                         'my_quotations' => $myQuotationsResults,
@@ -112,6 +117,7 @@ class IndexQuotationRepository extends BaseRepository
                         'all_quotations' => $allQuotationsCount,
                         'old_user_quotations' => $oldClientsCount,
                         'new_user_quotations' => $newClientsCount,
+                        'prospect_user_quotations' => $unregisteredClientsCount,
                     ],
                     'quotations' => $quotations->values(),
                     'my_quotations' => $myQuotationsResults,
@@ -130,13 +136,20 @@ class IndexQuotationRepository extends BaseRepository
                         return (new MobileRequestedQuotationCollection($clientQuotations))->toArray(request());
                     })->values();
 
+                    // $unregisteredQuotations = $results->whereNull('client_id');
+                    // $unregisteredQuotationsFormatted = $unregisteredQuotations->map(function ($quotation) {
+                    //     return (new MobileQuotationResource($quotation))->toArray(request());
+                    // });
+
+                    // $groupedByClient = $groupedByClient->concat($unregisteredQuotationsFormatted);
+
                     if ($groupedByClient->isEmpty()) {
                         return $this->success('No quotations found', [], 200);
                     }
 
                     return $this->success('All quotations fetched', $groupedByClient, 200);
                 } else {
-                    $resultsQuery = $quotations->with(['client', 'logisticsService'])->orderBy('created_at', 'desc');
+                    $resultsQuery = $quotations->with(['client', 'logisticsService', 'regulatoryService'])->orderBy('created_at', 'desc');
 
                     $results = $resultsQuery->get()->map(function ($result) {
                         return (new MobileQuotationResource($result))->toArray(request());
@@ -150,7 +163,7 @@ class IndexQuotationRepository extends BaseRepository
                 }
             }
         } else {
-            $resultsQuery = $quotations->with(['client', 'logisticsService'])->orderBy('created_at', 'desc');
+            $resultsQuery = $quotations->with(['client', 'logisticsService', 'regulatoryService'])->orderBy('created_at', 'desc');
 
             if ($isWeb) {
                 $paginated = $resultsQuery->paginate($perPage);
@@ -170,12 +183,15 @@ class IndexQuotationRepository extends BaseRepository
 
     private function buildRoleBasedQueries($user, bool $isWeb): ?array
     {
-        $query = Quotation::query()->has('client');
+        $query = Quotation::query();
+        if (!$isWeb) {
+            $query->has('client');
+        }
         $myQuotationsQuery = null;
 
         if ($user->hasRole('Client')) {
             $query->where('client_id', $user->id);
-        } elseif ($user->hasRole(['Lead Account Specialist', 'Lead Client Success'])) {
+        } elseif ($user->hasRole(['Lead Account Specialist'])) {
             if ($isWeb) {
                 $query->where(function ($q) use ($user) {
                     $q->whereNull('as_id')
@@ -185,15 +201,10 @@ class IndexQuotationRepository extends BaseRepository
                     ->where('as_id', $user->id);
             }
         } elseif ($user->hasRole(['Account Specialist', 'Client Success'])) {
-            if ($isWeb) {
-                $query->whereNot('assignment_status', 'ASSIGNED');
-            } else {
-                $query->where('as_id', $user->id);
-            }
-
+            $query->whereNot('assignment_status', 'ASSIGNED');
             $myQuotationsQuery = Quotation::query()
                 ->where('as_id', $user->id);
-        } elseif ($user->hasRole(['Operations', 'Client Success'])) {
+        } elseif ($user->hasRole(['Operations' ])) {
              // No additional constraints for these roles, they can see all quotations.
         } else {
             return null;
@@ -317,6 +328,8 @@ class IndexQuotationRepository extends BaseRepository
             }
 
             $builder->whereIn('client_id', $newClientIds);
+        } elseif (isset($request->client_type) && $request->client_type === 'PROSPECT') {
+            $builder->whereNull('client_id');
         }
     }
 
