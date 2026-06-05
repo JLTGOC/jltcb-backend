@@ -53,8 +53,8 @@ class StoreQuotationRequest extends FormRequest
                 }],
                 'shipment.origin' => 'required|string',
                 'shipment.destination' => 'required|string',
-                'documents' => ['required', 'array'],
-                'documents.*' => ['required', 'file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
+                'documents' => ['sometimes', 'nullable', 'array'],
+                'documents.*' => ['required_with:documents', 'file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
                 'remarks' => ['nullable', 'string']
             ];
         } elseif ($this->input('services') === 'REGULATORY') {
@@ -88,8 +88,8 @@ class StoreQuotationRequest extends FormRequest
                         return;
                     }
                 }],
-                'documents' => ['required', 'array'],
-                'documents.*' => ['required', 'file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
+                'documents' => ['sometimes', 'nullable', 'array'],
+                'documents.*' => ['required_with:documents', 'file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
             ];
         }
 
