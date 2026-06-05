@@ -34,7 +34,7 @@ class ShipmentController extends Controller
      */     
     public function index(Request $request)
     {
-        $opsNames = User::role(['Operations', 'Lead Operations'])->pluck('full_name');
+        $opsNames = User::role(['Operations', 'Client Success'])->pluck('full_name');
         $shipmentCounts = [
             'ALL' => $allShipmentsCount = Shipment::count(),
             'NOT YET DEPARTED' => $notYetDepartedCount = Shipment::where('status', 'NOT YET DEPARTED')->count(),
@@ -64,7 +64,7 @@ class ShipmentController extends Controller
             }],
             'search' => 'sometimes|string|max:255',
             'filter.eta' => 'sometimes|date',
-            'filter.person_in_charge' => 'sometimes|in:' . implode(',', User::role(['Operations', 'Lead Operations'])->pluck('full_name')->toArray()),
+            'filter.person_in_charge' => 'sometimes|in:' . implode(',', User::role(['Operations', 'Client Success'])->pluck('full_name')->toArray()),
         ]);
 
         $user = $request->user();

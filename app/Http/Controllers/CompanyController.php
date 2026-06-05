@@ -442,7 +442,7 @@ class CompanyController extends Controller
      */
     public function enums()
     {
-        $accountHandlers = User::role(['Account Specialist', 'Lead Account Specialist', 'Client Success', 'Lead Client Success'])->get(['id', 'username', 'full_name']);
+        $accountHandlers = User::role(['Account Specialist', 'Lead Account Specialist', 'Client Success'])->get(['id', 'username', 'full_name']);
         $transactionTypes = TransactionType::all();
         $clientClassifications = ClientClassification::all();
         $companyTypes = CompanyType::all();

@@ -51,7 +51,7 @@ class IndexQuotationRepository extends BaseRepository
         $pagination = null;
         $myQuotationsPagination = null;
 
-        if ($user->hasRole(['Account Specialist', 'Lead Account Specialist', 'Operations', 'Lead Operations', 'Client Success', 'Lead Client Success'])) {
+        if ($user->hasRole(['Account Specialist', 'Lead Account Specialist', 'Operations' , 'Client Success'])) {
             if ($isWeb) {
                 $formatQuotation = function ($quotation) {
                     return (new WebQuotationResource($quotation))->toArray(request());
@@ -191,7 +191,7 @@ class IndexQuotationRepository extends BaseRepository
 
         if ($user->hasRole('Client')) {
             $query->where('client_id', $user->id);
-        } elseif ($user->hasRole(['Lead Account Specialist', 'Lead Client Success'])) {
+        } elseif ($user->hasRole(['Lead Account Specialist'])) {
             if ($isWeb) {
                 $query->where(function ($q) use ($user) {
                     $q->whereNull('as_id')
@@ -204,7 +204,7 @@ class IndexQuotationRepository extends BaseRepository
             $query->whereNot('assignment_status', 'ASSIGNED');
             $myQuotationsQuery = Quotation::query()
                 ->where('as_id', $user->id);
-        } elseif ($user->hasRole(['Operations', 'Lead Operations'])) {
+        } elseif ($user->hasRole(['Operations' ])) {
              // No additional constraints for these roles, they can see all quotations.
         } else {
             return null;

@@ -9,7 +9,7 @@ class OperationDashboardService
 {
     public function getStats($user): array
     {
-        if ($user->hasRole('Lead Operations')) {
+        if ($user->hasRole('Client Success')) {
             $createdCount = JobOrder::where('shipment_creation_status', 'PENDING')->count();
             $processedCount = JobOrder::where('shipment_creation_status', 'CREATED')->count();
 

@@ -34,8 +34,8 @@ class QuotationSeeder extends Seeder
     public function run(): void
     {
         $clients = User::role('Client')->limit(2)->pluck('id');
-        $specialists = User::role(['Account Specialist', 'Lead Account Specialist', 'Client Success', 'Lead Client Success'])->pluck('id');
-        $ops = User::role(['Operations', 'Lead Operations', 'Client Success', 'Lead Client Success'])->get();
+        $specialists = User::role(['Account Specialist', 'Lead Account Specialist', 'Client Success'])->pluck('id');
+        $ops = User::role(['Operations' , 'Client Success'])->get();
 
         $i = 0;
         do {

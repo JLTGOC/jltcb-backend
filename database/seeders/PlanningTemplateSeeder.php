@@ -15,7 +15,7 @@ class PlanningTemplateSeeder extends Seeder
      */
     public function run(): void
     {
-        $leadOpsId = User::role('Lead Operations')->value('id');
+        $leadOpsId = User::role('Client Success')->value('id');
 
         $templates = [
             [

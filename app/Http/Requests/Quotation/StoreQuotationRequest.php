@@ -93,7 +93,7 @@ class StoreQuotationRequest extends FormRequest
             ];
         }
 
-        if (auth()->user()->hasRole(['Account Specialist, Lead Account Specialist', 'Client Success', 'Lead Client Success'])) {
+        if (auth()->user()->hasRole(['Account Specialist, Lead Account Specialist', 'Client Success'])) {
             $rules['client'] = 'required';
         }
 

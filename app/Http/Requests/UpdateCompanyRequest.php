@@ -28,7 +28,7 @@ class UpdateCompanyRequest extends FormRequest
             'basic_info.consignee_used' => 'sometimes|nullable|string|max:255',
             'basic_info.trade_name' => 'sometimes|nullable|string|max:255',
             'basic_info.account_handler_id' => ['sometimes',  'nullable', function ($attribute, $value, $fail) {
-                if (!User::where('id', $value)->role(['Account Specialist', 'Client Success', 'Lead Account Specialist', 'Lead Client Success'])->exists()) {
+                if (!User::where('id', $value)->role(['Account Specialist', 'Client Success', 'Lead Account Specialist'])->exists()) {
                     $fail('The selected account handler is invalid.');
                 }
             }],

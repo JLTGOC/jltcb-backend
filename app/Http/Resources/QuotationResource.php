@@ -153,7 +153,7 @@ class QuotationResource extends JsonResource
                 return [
                     'id' => $activity->id,
                     'action' => $activity->action,
-                    'user' => $activity->user->hasRole(['Account Specialist', 'Lead Account Specialist', 'Operations', 'Lead Operations']) 
+                    'user' => $activity->user->hasRole(['Account Specialist', 'Lead Account Specialist', 'Operations', 'Client Success']) 
                         ? mb_strtoupper($activity->user->username) 
                         : $activity->user->full_name,
                     'datetime' => $activity->created_at->format('F d, Y h:i A'),

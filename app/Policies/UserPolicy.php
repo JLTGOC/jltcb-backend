@@ -20,7 +20,7 @@ class UserPolicy
      */
     public function view(User $user, User $model): bool
     {
-        return $user->id === $model->id || $user->hasRole(['Lead Account Specialist', 'Account Specialist', 'IT', 'Operations', 'Lead Operations']);
+        return $user->id === $model->id || $user->hasRole(['Lead Account Specialist', 'Account Specialist', 'IT', 'Operations' ]);
     }
 
     /**
@@ -86,6 +86,6 @@ class UserPolicy
     }
 
     public function registerUnregisteredClient(User $user): bool {
-        return $user->hasRole(['Lead Account Specialist', 'Account Specialist', 'Lead Client Success', 'Client Success']);
+        return $user->hasRole(['Lead Account Specialist', 'Account Specialist', 'Client Success']);
     }
 }

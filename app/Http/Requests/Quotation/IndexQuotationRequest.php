@@ -29,7 +29,7 @@ class IndexQuotationRequest extends FormRequest
                 $user = auth()->user();
                 $allowedStatuses = [];
 
-                if ($user?->hasRole(['Lead Account Specialist', 'Client Success', 'Lead Client Success'])) {
+                if ($user?->hasRole(['Lead Account Specialist', 'Client Success'])) {
                     $allowedStatuses = ['AVAILABLE', 'ASSIGNED', 'REASSIGNMENT REQUESTED', 'ALL'];
                 } elseif ($user?->hasRole('Account Specialist')) {
                     $allowedStatuses = ['AVAILABLE', 'REASSIGNMENT REQUESTED', 'ALL'];
