@@ -10,6 +10,7 @@ use App\Models\{
     CompanyType,
     Industry,
     BusinessType,
+    CompanyDocument
 };
 use App\Http\Resources\{
     CompanyResource
@@ -320,7 +321,26 @@ class CompanyController extends Controller
             }
 
             if ($request->has('documents_to_delete')) {
+                if (!CompanyDocument::whereIn('id', $request->input('documents_to_delete'))->where('company_id', $company->id)->exists()) {
+                    return $this->error('One or more documents to delete do not exist for this company.', 400);
+                }
                 $company->documents()->whereIn('id', $request->input('documents_to_delete'))->delete();
+            }
+
+            if ($request->has('documents_to_rename')) {
+                if (!CompanyDocument::whereIn('id', collect($request->input('documents_to_rename'))->pluck('id'))->where('company_id', $company->id)->exists()) {
+                    return $this->error('One or more documents to rename do not exist for this company.', 400);
+                }
+                if (count($request->input('documents_to_rename')) !== count(collect($request->input('documents_to_rename'))->pluck('id')->unique())) {
+                    return $this->error('Duplicate document IDs found in documents_to_rename.', 400);
+                }
+                foreach ($request->input('documents_to_rename') as $rename) {
+                    $doc = $company->documents()->where('id', $rename['id'])->first();
+                    if ($doc->file_name === $rename['new_name']) {
+                        continue; // Skip if the new name is the same as the current name
+                    }
+                    $doc->update(['file_name' => $rename['new_name']]);
+                }
             }
 
             $documentsInput = $request->input('documents', []);
@@ -354,7 +374,8 @@ class CompanyController extends Controller
             return $this->success('Company updated successfully.', new CompanyResource($company), 200);
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->error('Failed to update company', 500, $e->getMessage());
+            return $e;
+            // return $this->error('Failed to update company', 500, $e->getMessage());
         }
     }
 

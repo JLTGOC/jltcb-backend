@@ -115,7 +115,10 @@ class UpdateCompanyRequest extends FormRequest
             'documents.*.name' => 'required_with:documents|string|max:255',
             'documents.*.file' => 'required_with:documents|file|max:10240',
             'documents_to_delete' => 'sometimes|nullable|array',
-            'documents_to_delete.*' => 'sometimes|nullable|integer|exists:company_documents,id',
+            'documents_to_delete.*' => 'required_with:documents_to_delete|nullable|integer|exists:company_documents,id',
+            'documents_to_rename' => 'sometimes|nullable|array',
+            'documents_to_rename.*.id' => 'required_with:documents_to_rename|integer|exists:company_documents,id',
+            'documents_to_rename.*.new_name' => 'required_with:documents_to_rename|string|max:255',
         ];
 
         $insightRules = [

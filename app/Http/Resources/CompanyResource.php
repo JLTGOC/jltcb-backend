@@ -140,104 +140,83 @@ class CompanyResource extends JsonResource
         }
 
         if ($request->routeIs('companies.update')) {
-            $allowed = ['basic_info', 'address', 'contacts', 'registration', 'pricing', 'monitoring', 'operation', 'insights', 'documents', 'documents_to_delete'];
+            $allowed = ['basic_info', 'address', 'contacts', 'registration', 'pricing', 'monitoring', 'operation', 'insights', 'documents', 'documents_to_delete', 'documents_to_rename'];
             $requested = array_values(array_intersect($allowed, array_keys($request->all())));
 
             $data = [];
             foreach ($requested as $field) {
-                switch ($field) {
-                    case 'basic_info':
-                        break;
+                if ($field === 'basic_info') {
+                    // Handled by parent toArray
+                } elseif ($field === 'address') {
+                    $data['address'] = [
+                        'registered_address' => $this->address->registered_address ?? null,
+                        'office_address' => $this->address->office_address ?? null,
+                        'usual_port' => $this->address->usual_port ?? null,
+                        'origin_country' => $this->address->origin_country ?? null,
+                        'destination_country' => $this->address->destination_country ?? null,
+                        'warehouse_addresses' => $this->warehouseAddresses ?? [],
+                        'delivery_addresses' => $this->deliveryAddresses ?? [],
+                    ];
+                } elseif ($field === 'contacts') {
+                    $primaryContact = $this->contacts()->where('type', 'PRIMARY')->first();
+                    $secondaryContact = $this->contacts()->where('type', 'SECONDARY')->first();
+                    $billingContact = $this->contacts()->where('type', 'BILLING')->first();
 
-                    case 'address':
-                        $data['address'] = [
-                            'registered_address' => $this->address->registered_address ?? null,
-                            'office_address' => $this->address->office_address ?? null,
-                            'usual_port' => $this->address->usual_port ?? null,
-                            'origin_country' => $this->address->origin_country ?? null,
-                            'destination_country' => $this->address->destination_country ?? null,
-                            'warehouse_addresses' => $this->warehouseAddresses ?? [],
-                            'delivery_addresses' => $this->deliveryAddresses ?? [],
-                        ];
-                        break;
-
-                    case 'contacts':
-                        $primaryContact = $this->contacts()->where('type', 'PRIMARY')->first();
-                        $secondaryContact = $this->contacts()->where('type', 'SECONDARY')->first();
-                        $billingContact = $this->contacts()->where('type', 'BILLING')->first();
-
-                        $data['contacts'] = [
-                            'primary_contact' => $primaryContact ? [
-                                'full_name' => $primaryContact->full_name,
-                                'position' => $primaryContact->position,
-                                'email' => $primaryContact->email,
-                                'contact_number' => $primaryContact->contact_number,
-                            ] : null,
-                            'secondary_contact' => $secondaryContact ? [
-                                'full_name' => $secondaryContact->full_name,
-                                'position' => $secondaryContact->position,
-                                'email' => $secondaryContact->email,
-                                'contact_number' => $secondaryContact->contact_number,
-                            ] : null,
-                            'billing_contact' => $billingContact ? [
-                                'full_name' => $billingContact->full_name,
-                                'position' => $billingContact->position,
-                                'email' => $billingContact->email,
-                                'contact_number' => $billingContact->contact_number,
-                            ] : null,
-                        ];
-                        break;
-
-                    case 'registration':
-                        $data['registration'] = [
-                            'tin' => $this->registration->tin ?? null,
-                            'bir_registration_number' => $this->registration->bir_registration_number ?? null,
-                            'cprs_status' => $this->registration->cprs_status ?? null,
-                            'importer_accreditation_number' => $this->registration->importer_accreditation_number ?? null,
-                            'importer_accreditation_expiry' => $this->registration->importer_accreditation_expiry ? Carbon::parse($this->registration->importer_accreditation_expiry)->format('m/d/Y') : null,
-                            'exporter_accreditation_number' => $this->registration->exporter_accreditation_number ?? null,
-                            'exporter_accreditation_expiry' => $this->registration->exporter_accreditation_expiry ? Carbon::parse($this->registration->exporter_accreditation_expiry)->format('m/d/Y') : null,
-                            'special_permits' => $this->registration->special_permits ?? null,
-                            'compliance_risk' => $this->registration->compliance_risk ?? null,
-                            'representatives' => $this->representatives->map(function ($representative) {
-                                return [
-                                    'full_name' => $representative->full_name,
-                                ];
-                            }),
-                        ];
-                        break;
-
-                    case 'pricing':
-                        $data['pricing'] = $this->pricing ?? null;
-                        break;
-
-                    case 'monitoring':
-                        $data['monitoring'] = $this->monitoring ?? null;
-                        break;
-
-                    case 'operation':
-                        $data['operation'] = $this->operation ?? null;
-                        break;
-
-                    case 'insights':
-                        $data['insights'] = $this->insight ?? null;
-                        break;
-
-                    case 'documents':
-                        $data['documents'] = $this->documents->map(function ($document) {
+                    $data['contacts'] = [
+                        'primary_contact' => $primaryContact ? [
+                            'full_name' => $primaryContact->full_name,
+                            'position' => $primaryContact->position,
+                            'email' => $primaryContact->email,
+                            'contact_number' => $primaryContact->contact_number,
+                        ] : null,
+                        'secondary_contact' => $secondaryContact ? [
+                            'full_name' => $secondaryContact->full_name,
+                            'position' => $secondaryContact->position,
+                            'email' => $secondaryContact->email,
+                            'contact_number' => $secondaryContact->contact_number,
+                        ] : null,
+                        'billing_contact' => $billingContact ? [
+                            'full_name' => $billingContact->full_name,
+                            'position' => $billingContact->position,
+                            'email' => $billingContact->email,
+                            'contact_number' => $billingContact->contact_number,
+                        ] : null,
+                    ];
+                } elseif ($field === 'registration') {
+                    $data['registration'] = [
+                        'tin' => $this->registration->tin ?? null,
+                        'bir_registration_number' => $this->registration->bir_registration_number ?? null,
+                        'cprs_status' => $this->registration->cprs_status ?? null,
+                        'importer_accreditation_number' => $this->registration->importer_accreditation_number ?? null,
+                        'importer_accreditation_expiry' => $this->registration->importer_accreditation_expiry ? Carbon::parse($this->registration->importer_accreditation_expiry)->format('m/d/Y') : null,
+                        'exporter_accreditation_number' => $this->registration->exporter_accreditation_number ?? null,
+                        'exporter_accreditation_expiry' => $this->registration->exporter_accreditation_expiry ? Carbon::parse($this->registration->exporter_accreditation_expiry)->format('m/d/Y') : null,
+                        'special_permits' => $this->registration->special_permits ?? null,
+                        'compliance_risk' => $this->registration->compliance_risk ?? null,
+                        'representatives' => $this->representatives->map(function ($representative) {
                             return [
-                                'id' => $document->id,
-                                'file_name' => $document->file_name,
-                                'file_type' => $document->file_type,
-                                'created_at' => $document->created_at,
-                                'updated_at' => $document->updated_at,
+                                'full_name' => $representative->full_name,
                             ];
-                        })->toArray();
-                        break;
-
-                    case 'documents_to_delete':
-                        $data['documents_to_delete'] = $request->input('documents_to_delete');
-                        break;
+                        }),
+                    ];
+                } elseif ($field === 'pricing') {
+                    $data['pricing'] = $this->pricing ?? null;
+                } elseif ($field === 'monitoring') {
+                    $data['monitoring'] = $this->monitoring ?? null;
+                } elseif ($field === 'operation') {
+                    $data['operation'] = $this->operation ?? null;
+                } elseif ($field === 'insights') {
+                    $data['insights'] = $this->insight ?? null;
+                } elseif (in_array($field, ['documents', 'documents_to_delete', 'documents_to_rename'])) {
+                    $documents = $this->documents->map(function ($document) {
+                        return [
+                            'id' => $document->id,
+                            'file_name' => $document->file_name,
+                            'file_type' => $document->file_type,
+                            'created_at' => $document->created_at,
+                            'updated_at' => $document->updated_at,
+                        ];
+                    })->toArray();
                 }
             }
 
