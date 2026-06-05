@@ -102,8 +102,9 @@ class CompanyController extends Controller
                 $fileName = $doc['name'] ?? null;
 
                 if ($uploaded instanceof UploadedFile) {
-                    $storedPath = $uploaded->store('files', 'local');
-                    $fileType = $uploaded->getClientOriginalExtension();
+                    $storedPath = $uploaded->storeAs('files', $fileName, 'local');
+                    $fileType = pathinfo($fileName, PATHINFO_EXTENSION)
+                                ?: $uploaded->getClientOriginalExtension();
                 } else {
                     $storedPath = isset($doc['filepath']) ? $doc['filepath'] : null;
                     $fileType = $doc['file_type'] ?? null;
@@ -343,14 +344,54 @@ class CompanyController extends Controller
                 }
             }
 
+            if ($request->has('documents_to_replace')) {
+                $replacements = $request->input('documents_to_replace');
+                $files = $request->file('documents_to_replace'); // keyed by index
+
+                if (!CompanyDocument::whereIn('id', collect($replacements)->pluck('id'))
+                    ->where('company_id', $company->id)
+                    ->exists()) {
+                    return $this->error('One or more documents to replace do not exist for this company.', 400);
+                }
+
+                foreach ($replacements as $index => $replace) {
+                    // Grab the uploaded file by the same array index
+                    $file = $files[$index]['file'] ?? null;
+
+                    if (!$file) {
+                        return $this->error("Missing file for document ID {$replace['id']}.", 400);
+                    }
+
+                    $doc = $company->documents()->where('id', $replace['id'])->first();
+
+                    if (!$doc) {
+                        return $this->error("Document ID {$replace['id']} not found.", 404);
+                    }
+
+                    if (Storage::disk('local')->exists($doc->filepath)) {
+                        Storage::disk('local')->delete($doc->filepath);
+                    }
+
+                    $storedPath = $file->storeAs('files', $doc->file_name, 'local');
+                    $fileType = pathinfo($doc->file_name, PATHINFO_EXTENSION)
+                                ?: $file->getClientOriginalExtension();
+
+                    $doc->update([
+                        'filepath' => $storedPath,
+                        'file_type' => $fileType,
+                    ]);
+                }
+            }
+
             $documentsInput = $request->input('documents', []);
             $uploadedDocs = $request->file('documents', []);
             foreach ($documentsInput as $index => $doc) {
                 $uploaded = data_get($uploadedDocs, "{$index}.file");
                 $fileName = $doc['name'] ?? null;
                 if ($uploaded instanceof UploadedFile) {
-                    $storedPath = $uploaded->store('files', 'local');
-                    $fileType = $uploaded->getClientOriginalExtension();
+                    $storedPath = $uploaded->storeAs('files', $fileName, 'local');
+                    $fileType = pathinfo($fileName, PATHINFO_EXTENSION)
+                                ?: $uploaded->getClientOriginalExtension();
                 } else {
                     $storedPath = isset($doc['filepath']) ? $doc['filepath'] : null;
                     $fileType = $doc['file_type'] ?? null;

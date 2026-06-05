@@ -119,6 +119,9 @@ class UpdateCompanyRequest extends FormRequest
             'documents_to_rename' => 'sometimes|nullable|array',
             'documents_to_rename.*.id' => 'required_with:documents_to_rename|integer|exists:company_documents,id',
             'documents_to_rename.*.new_name' => 'required_with:documents_to_rename|string|max:255',
+            'documents_to_replace' => 'sometimes|nullable|array',
+            'documents_to_replace.*.id' => 'required_with:documents_to_replace|integer|exists:company_documents,id',
+            'documents_to_replace.*.file' => 'required_with:documents_to_replace|file|max:10240',
         ];
 
         $insightRules = [
