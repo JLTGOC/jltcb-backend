@@ -8,12 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class PlanningConfigPhase extends Model
 {
-    protected $fillable = ['name', 'planning_template_id', 'sort_order'];
-
-    public function planningTemplate() {
-        return $this->belongsTo(PlanningTemplate::class, 'planning_template_id');
-    }
-
+    protected $fillable = ['name'];
+    
     public function templatePhases() {
         return $this->hasMany(PlanningTemplatePhase::class, 'config_phase_id');
     }

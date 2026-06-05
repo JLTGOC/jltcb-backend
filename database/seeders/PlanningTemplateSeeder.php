@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\PlanningTimeline\Config\PlanningConfigPhase;
+use App\Models\PlanningTimeline\Config\PlanningConfigProcess;
+use App\Models\PlanningTimeline\Config\PlanningConfigTask;
 use App\Models\PlanningTimeline\Template\PlanningTemplate;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -15,6 +18,9 @@ class PlanningTemplateSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->createConfigs();
+
+        $leadOpsId = User::role('Lead Operations')->value('id');
         $leadOpsId = User::role('Client Success')->value('id');
 
         $templates = [
@@ -23,33 +29,6 @@ class PlanningTemplateSeeder extends Seeder
                 'service_category' => 'LOGISTICS',
                 'service_type' => 'IMPORT',
                 'created_by' => $leadOpsId,
-
-                'phases' => [
-                    'PURCHASE ORDER AND INITIATION',
-                    'SHIPMENT PLANNING',
-                    'ORIGIN OPERATIONS',
-                    'FREIGHT/TRANSIT',
-                    'ARRIVAL & IMPORT CLEARANCE',
-                    'FINAL DELIVERY',
-                ],
-
-                'processes' => [
-                    'PO Receipt',
-                    'Scope Validation',
-                    'Incoterm Validation',
-                    'Service Requirement Review',
-                    'Cost Validation',
-                    'Initial Cost Build-Up',
-                    'Budget Approval',
-                ],
-
-                'tasks' => [
-                    'Receive Purchase Order/Shipping Instruction',
-                    'Validate scope vs quotation',
-                    'Secure space',
-                    'Define routing & mode',
-                    'Approve shipment budget',
-                ],
 
                 'workflow' => [
 
@@ -116,26 +95,6 @@ class PlanningTemplateSeeder extends Seeder
                 'service_type' => 'EXPORT',
                 'created_by' => $leadOpsId,
 
-                'phases' => [
-                    'BOOKING AND PLANNING',
-                    'ORIGIN OPERATIONS',
-                    'EXPORT CLEARANCE',
-                    'FREIGHT/TRANSIT',
-                    'DESTINATION OPERATIONS',
-                ],
-
-                'processes' => [
-                    'Booking Confirmation',
-                    'Export Documentation',
-                    'Customs Clearance',
-                ],
-
-                'tasks' => [
-                    'Receive booking request',
-                    'Prepare export documents',
-                    'Coordinate cargo pickup',
-                ],
-
                 'workflow' => [
 
                     'BOOKING AND PLANNING' => [
@@ -192,66 +151,14 @@ class PlanningTemplateSeeder extends Seeder
             'service_category' => $templateData['service_category'],
             'service_type'     => $templateData['service_type'],
             'created_by'       => $templateData['created_by'],
-            'status' => 'SAVED',
+            'status'           => 'SAVED',
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Create Config Records
-        |--------------------------------------------------------------------------
-        */
+        $phaseConfigs = PlanningConfigPhase::all()->keyBy('name');
+        $processConfigs = PlanningConfigProcess::all()->keyBy('name');
+        $taskConfigs = PlanningConfigTask::all()->keyBy('name');
 
-        $planningTemplate->configPhases()->createMany(
-            collect($templateData['phases'])
-                ->map(fn ($phase, $index) => [
-                    'name'       => $phase,
-                    'sort_order' => $index + 1,
-                ])
-                ->all()
-        );
-
-        $planningTemplate->configProcesses()->createMany(
-            collect($templateData['processes'])
-                ->map(fn ($process) => [
-                    'name' => $process,
-                ])
-                ->all()
-        );
-
-        $planningTemplate->configTasks()->createMany(
-            collect($templateData['tasks'])
-                ->map(fn ($task) => [
-                    'name' => $task,
-                ])
-                ->all()
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Build Lookup Maps
-        |--------------------------------------------------------------------------
-        */
-
-        $phaseConfigs = $planningTemplate
-            ->configPhases()
-            ->get()
-            ->keyBy('name');
-
-        $processConfigs = $planningTemplate
-            ->configProcesses()
-            ->get()
-            ->keyBy('name');
-
-        $taskConfigs = $planningTemplate
-            ->configTasks()
-            ->get()
-            ->keyBy('name');
-
-        /*
-        |--------------------------------------------------------------------------
-        | Create Template Workflow
-        |--------------------------------------------------------------------------
-        */
+        $sortOrder = 1;
 
         foreach ($templateData['workflow'] as $phaseName => $processes) {
 
@@ -259,7 +166,7 @@ class PlanningTemplateSeeder extends Seeder
 
             $templatePhase = $planningTemplate->phases()->create([
                 'config_phase_id' => $configPhase->id,
-                'sort_order'      => $configPhase->sort_order,
+                'sort_order'      => $sortOrder++,
             ]);
 
             foreach ($processes as $processName => $tasks) {
@@ -270,7 +177,7 @@ class PlanningTemplateSeeder extends Seeder
                     'config_process_id' => $configProcess->id,
                 ]);
 
-                foreach ($tasks as $index => $taskName) {
+                foreach ($tasks as $taskName) {
 
                     $configTask = $taskConfigs[$taskName];
 
@@ -280,5 +187,59 @@ class PlanningTemplateSeeder extends Seeder
                 }
             }
         }
+    }
+
+    private function createConfigs() {
+        $configs = [
+            'phases' => [
+                'PURCHASE ORDER AND INITIATION',
+                'SHIPMENT PLANNING',
+                'ORIGIN OPERATIONS',
+                'FREIGHT/TRANSIT',
+                'ARRIVAL & IMPORT CLEARANCE',
+                'FINAL DELIVERY',
+                'BOOKING AND PLANNING',
+                'EXPORT CLEARANCE',
+                'DESTINATION OPERATIONS',
+            ],
+
+            'processes' => [
+                'PO Receipt',
+                'Scope Validation',
+                'Incoterm Validation',
+                'Service Requirement Review',
+                'Cost Validation',
+                'Initial Cost Build-Up',
+                'Budget Approval',
+                'Booking Confirmation',
+                'Export Documentation',
+                'Customs Clearance',
+            ],
+
+            'tasks' => [
+                'Receive Purchase Order/Shipping Instruction',
+                'Validate scope vs quotation',
+                'Secure space',
+                'Define routing & mode',
+                'Approve shipment budget',
+                'Receive booking request',
+                'Prepare export documents',
+                'Coordinate cargo pickup',
+            ],
+        ];
+
+        $this->insertConfigData(PlanningConfigPhase::class, $configs['phases']);
+        $this->insertConfigData(PlanningConfigProcess::class, $configs['processes']);
+        $this->insertConfigData(PlanningConfigTask::class, $configs['tasks']);
+    }
+
+    private function insertConfigData(string $modelClass, array $data) {
+        $modelClass::insert(
+            collect($data)
+                ->map(fn ($task) => [
+                    'name' => $task,
+                ])
+                ->all()
+        );
     }
 }
