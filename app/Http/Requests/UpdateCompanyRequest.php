@@ -112,13 +112,64 @@ class UpdateCompanyRequest extends FormRequest
 
         $documentRules = [
             'documents' => 'sometimes|nullable|array',
-            'documents.*.name' => 'required_with:documents|string|max:255',
+            'documents.*.name' => [
+                'required_with:documents',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    $company = $this->route('company');
+                    if (!$company) return;
+
+                    // Get the index from the attribute path e.g. "documents.2.name"
+                    preg_match('/documents\.(\d+)\.name/', $attribute, $matches);
+                    $index = $matches[1] ?? null;
+
+                    // If this document has an id (update), exclude it from the check
+                    $docId = $index !== null
+                        ? $this->input("documents.{$index}.id")
+                        : null;
+
+                    $query = $company->documents()->where('file_name', $value);
+                    if ($docId) {
+                        $query->where('id', '!=', $docId);
+                    }
+
+                    if ($query->exists()) {
+                        $fail("A document named \"{$value}\" already exists for this company.");
+                    }
+                },
+            ],
             'documents.*.file' => 'required_with:documents|file|max:10240',
             'documents_to_delete' => 'sometimes|nullable|array',
             'documents_to_delete.*' => 'required_with:documents_to_delete|nullable|integer|exists:company_documents,id',
             'documents_to_rename' => 'sometimes|nullable|array',
             'documents_to_rename.*.id' => 'required_with:documents_to_rename|integer|exists:company_documents,id',
-            'documents_to_rename.*.new_name' => 'required_with:documents_to_rename|string|max:255',
+            'documents_to_rename.*.new_name' => [
+                'required_with:documents_to_rename',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    $company = $this->route('company');
+                    if (!$company) return;
+
+                    preg_match('/documents_to_rename\.(\d+)\.new_name/', $attribute, $matches);
+                    $index = $matches[1] ?? null;
+
+                    // Exclude the document being renamed from the collision check
+                    $docId = $index !== null
+                        ? $this->input("documents_to_rename.{$index}.id")
+                        : null;
+
+                    $query = $company->documents()->where('file_name', $value);
+                    if ($docId) {
+                        $query->where('id', '!=', $docId);
+                    }
+
+                    if ($query->exists()) {
+                        $fail("A document named \"{$value}\" already exists for this company.");
+                    }
+                },
+            ],
             'documents_to_replace' => 'sometimes|nullable|array',
             'documents_to_replace.*.id' => 'required_with:documents_to_replace|integer|exists:company_documents,id',
             'documents_to_replace.*.file' => 'required_with:documents_to_replace|file|max:10240',

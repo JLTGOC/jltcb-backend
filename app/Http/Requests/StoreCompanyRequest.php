@@ -121,7 +121,17 @@ class StoreCompanyRequest extends FormRequest
 
         $documentRules = [
             'documents' => 'sometimes|nullable|array',
-            'documents.*.name' => 'required_with:documents|string|max:255',
+            'documents.*.name' => [
+                'required_with:documents',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    $company = $this->route('company');
+                    if ($company && $company->documents()->where('file_name', $value)->exists()) {
+                        $fail("A document named \"{$value}\" already exists for this company.");
+                    }
+                },
+            ],
             'documents.*.file' => 'required_with:documents|file|max:10240',
         ];
 
