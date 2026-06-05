@@ -9,6 +9,7 @@ class CompanyOperation extends Model
     protected $fillable = [
         'company_id',
         'preferred_communication_style',
+        'decision_making_process',
         'response_time_expectation',
         'client_specific_sop',
         'approval_workflow',

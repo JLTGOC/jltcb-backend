@@ -18,6 +18,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/signatures/{id}', [IssuedQuotationController::class, 'viewSignature'])
             ->name('signatures.view');
+
+        Ro
     });
 
     Route::get('/chat/attachments/{message}', [ChatController::class, 'viewAttachments'])

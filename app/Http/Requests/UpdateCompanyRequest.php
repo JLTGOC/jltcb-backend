@@ -94,6 +94,7 @@ class UpdateCompanyRequest extends FormRequest
 
         $operationRules = [
             'operation.preferred_communication_style' => 'sometimes|nullable|string|max:255',
+            'operation.decision_making_process' => 'sometimes|nullable|string|max:255',
             'operation.response_time_expectation' => 'sometimes|nullable|string|max:255',
             'operation.client_specific_sop' => 'sometimes|nullable|string|max:255',
             'operation.approval_workflow' => 'sometimes|nullable|string|max:255',

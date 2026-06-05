@@ -90,6 +90,7 @@ class CompanySeeder extends Seeder
 
             $company->operation()->create([
                 'preferred_communication_style' => fake()->randomElement(['EMAIL', 'PHONE', 'MEETING']),
+                'decision_making_process' => fake()->randomElement(['CONSENSUS', 'TOP-DOWN', 'DELEGATED']),
                 'response_time_expectation' => fake()->randomElement(['IMMEDIATE', 'WITHIN 24 HOURS', 'WITHIN 48 HOURS']),
                 'client_specific_sop' => fake()->sentence(),
                 'approval_workflow' => fake()->sentence(),
