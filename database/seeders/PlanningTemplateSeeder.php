@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\PlanningTimeline\Config\PlanningConfigPhase;
 use App\Models\PlanningTimeline\Config\PlanningConfigProcess;
 use App\Models\PlanningTimeline\Config\PlanningConfigTask;
+use App\Models\PlanningTimeline\Config\PlanningConfigVersion;
 use App\Models\PlanningTimeline\Template\PlanningTemplate;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -28,7 +29,6 @@ class PlanningTemplateSeeder extends Seeder
                 'name' => 'Import Shipments Template',
                 'service_category' => 'LOGISTICS',
                 'service_type' => 'IMPORT',
-                'created_by' => $leadOpsId,
 
                 'workflow' => [
 
@@ -93,7 +93,6 @@ class PlanningTemplateSeeder extends Seeder
                 'name' => 'Export Shipments Template',
                 'service_category' => 'LOGISTICS',
                 'service_type' => 'EXPORT',
-                'created_by' => $leadOpsId,
 
                 'workflow' => [
 
@@ -150,8 +149,6 @@ class PlanningTemplateSeeder extends Seeder
             'name'             => $templateData['name'],
             'service_category' => $templateData['service_category'],
             'service_type'     => $templateData['service_type'],
-            'created_by'       => $templateData['created_by'],
-            'status'           => 'SAVED',
         ]);
 
         $phaseConfigs = PlanningConfigPhase::all()->keyBy('name');
@@ -228,16 +225,25 @@ class PlanningTemplateSeeder extends Seeder
             ],
         ];
 
-        $this->insertConfigData(PlanningConfigPhase::class, $configs['phases']);
-        $this->insertConfigData(PlanningConfigProcess::class, $configs['processes']);
-        $this->insertConfigData(PlanningConfigTask::class, $configs['tasks']);
+        $configVersion = PlanningConfigVersion::create([
+            'version_number' => 1,
+            'is_current' => true,
+            'service_category' => 'logistics'
+        ]);
+
+        $versionId = $configVersion->id;
+
+        $this->insertConfigData(PlanningConfigPhase::class, $configs['phases'], $versionId);
+        $this->insertConfigData(PlanningConfigProcess::class, $configs['processes'], $versionId);
+        $this->insertConfigData(PlanningConfigTask::class, $configs['tasks'], $versionId);
     }
 
-    private function insertConfigData(string $modelClass, array $data) {
+    private function insertConfigData(string $modelClass, array $data, $versionId) {
         $modelClass::insert(
             collect($data)
                 ->map(fn ($task) => [
                     'name' => $task,
+                    'config_version_id' => $versionId
                 ])
                 ->all()
         );

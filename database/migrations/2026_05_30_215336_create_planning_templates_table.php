@@ -16,27 +16,40 @@ return new class extends Migration
             $table->string('name')->nullable();
             $table->enum('service_category', ['REGULATORY', 'LOGISTICS']);
             $table->string('service_type');
-            $table->enum('status', ['DRAFT', 'SAVED'])->default('DRAFT');
-            $table->foreignId('created_by')->constrained('users');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+        });
+
+        Schema::create('planning_config_versions', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedInteger('version_number');
+            $table->boolean('is_current')->nullable()->default(null);
+            $table->enum('service_category', ['logistics', 'regulatory']);
+            $table->timestamps();
+
+            $table->unique(['service_category', 'version_number']);
+            $table->unique(['service_category', 'is_current']); 
+            $table->index('service_category');
         });
 
         Schema::create('planning_config_phases', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable();
+            $table->foreignId('config_version_id')->constrained('planning_config_versions')->cascadeOnDelete();
             $table->timestamps();
         });
 
         Schema::create('planning_config_processes', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable();
+            $table->foreignId('config_version_id')->constrained('planning_config_versions')->cascadeOnDelete();
             $table->timestamps();
         });
 
         Schema::create('planning_config_tasks', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable();
+            $table->foreignId('config_version_id')->constrained('planning_config_versions')->cascadeOnDelete();
             $table->timestamps();
         });
 
@@ -47,7 +60,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->foreignId('config_phase_id')
                 ->constrained('planning_config_phases')
-                ->cascadeOnDelete();
+                ->restrictOnDelete();
             $table->unsignedSmallInteger('sort_order')->default(0);
             $table->timestamps();
 
@@ -61,7 +74,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->foreignId('config_process_id')
                 ->constrained('planning_config_processes')
-                ->cascadeOnDelete();
+                ->restrictOnDelete();
             $table->timestamps();
 
             $table->unique(['template_phase_id', 'config_process_id'], 'template_process_unique');
@@ -74,7 +87,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->foreignId('config_task_id')
                 ->constrained('planning_config_tasks')
-                ->cascadeOnDelete();
+                ->restrictOnDelete();
             $table->timestamps();
 
             $table->unique(['template_process_id', 'config_task_id'], 'template_task_unique');

@@ -25,6 +25,7 @@ use App\Http\Controllers\StandardConfigurationController;
 use App\Http\Controllers\ServiceOptionController;
 use App\Http\Controllers\ReassignmentRequestController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\PlanningTimeline\PlanningConfigController;
 use App\Http\Controllers\PlanningTimelineTemplateController;
 use Illuminate\Support\Facades\Broadcast;
 
@@ -151,8 +152,13 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'session.timeout'])->group(fu
 
     // Planning & Timeline Routes
     Route::prefix('planning-timeline')->group(function() {
-        Route::apiResource('/templates', PlanningTimelineTemplateController::class)
-            ->only(['index', 'show', 'update']);
+        // Route::apiResource('/templates', PlanningTimelineTemplateController::class)
+        //     ->only(['index', 'show', 'update']);
+
+        Route::get('/configs/{serviceCategory}', [PlanningConfigController::class, 'show'])
+            ->where('serviceCategory', 'logistics|regulatory');
+        Route::put('/configs/{serviceCategory}', [PlanningConfigController::class, 'update'])
+            ->where('serviceCategory', 'logistics|regulatory');
     });
     
     // store template draft
