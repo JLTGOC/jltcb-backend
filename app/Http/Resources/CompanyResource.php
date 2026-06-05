@@ -140,7 +140,7 @@ class CompanyResource extends JsonResource
         }
 
         if ($request->routeIs('companies.update')) {
-            $allowed = ['basic_info', 'address', 'contacts', 'registration', 'pricing', 'monitoring', 'operation', 'insights', 'documents', 'documents_to_delete', 'documents_to_rename'];
+            $allowed = ['basic_info', 'address', 'contacts', 'registration', 'pricing', 'monitoring', 'operation', 'insights', 'documents', 'documents_to_delete', 'documents_to_rename', 'documents_to_replace'];
             $requested = array_values(array_intersect($allowed, array_keys($request->all())));
 
             $data = [];
@@ -207,12 +207,18 @@ class CompanyResource extends JsonResource
                     $data['operation'] = $this->operation ?? null;
                 } elseif ($field === 'insights') {
                     $data['insights'] = $this->insight ?? null;
-                } elseif (in_array($field, ['documents', 'documents_to_delete', 'documents_to_rename'])) {
-                    $documents = $this->documents->map(function ($document) {
+                } elseif (in_array($field, ['documents', 'documents_to_delete', 'documents_to_rename', 'documents_to_replace'])) {
+                    $data['documents'] = $this->documents->map(function ($document) {
                         return [
                             'id' => $document->id,
                             'file_name' => $document->file_name,
                             'file_type' => $document->file_type,
+                            'file_url' => URL::temporarySignedRoute(
+                                'files.view', 
+                                Carbon::now()->addMinutes(10), 
+                                [
+                                    'file' => $document->id
+                                ]),
                             'created_at' => $document->created_at,
                             'updated_at' => $document->updated_at,
                         ];
