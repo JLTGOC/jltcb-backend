@@ -7,7 +7,7 @@ use App\Models\PlanningTimeline\Config\PlanningConfigProcess;
 use App\Models\PlanningTimeline\Config\PlanningConfigTask;
 use App\Models\PlanningTimeline\Config\PlanningConfigVersion;
 use App\Models\PlanningTimeline\Template\PlanningTemplate;
-use App\Models\User;
+use App\Models\ServiceType;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -21,67 +21,33 @@ class PlanningTemplateSeeder extends Seeder
     {
         $this->createConfigs();
 
-        $leadOpsId = User::role('Lead Operations')->value('id');
-        $leadOpsId = User::role('Client Success')->value('id');
-
         $templates = [
             [
                 'name' => 'Import Shipments Template',
                 'service_category' => 'LOGISTICS',
-                'service_type' => 'IMPORT',
+                'service_type_id' => ServiceType::where('name', 'IMPORT')->value('id'),
 
                 'workflow' => [
 
                     'PURCHASE ORDER AND INITIATION' => [
-
                         'PO Receipt' => [
                             'Receive Purchase Order/Shipping Instruction',
-                        ],
-
-                        'Scope Validation' => [
-                            'Validate scope vs quotation',
-                        ],
-
-                        'Budget Approval' => [
-                            'Approve shipment budget',
                         ],
                     ],
 
                     'SHIPMENT PLANNING' => [
-
-                        'Incoterm Validation' => [
-                            'Validate scope vs quotation',
-                        ],
-
-                        'Service Requirement Review' => [
-                            'Define routing & mode',
-                            'Secure space',
-                        ],
-                    ],
-
-                    'ORIGIN OPERATIONS' => [
-
                         'Service Requirement Review' => [
                             'Secure space',
-                        ],
-                    ],
-
-                    'FREIGHT/TRANSIT' => [
-
-                        'Initial Cost Build-Up' => [
-                            'Approve shipment budget',
                         ],
                     ],
 
                     'ARRIVAL & IMPORT CLEARANCE' => [
-
-                        'Cost Validation' => [
-                            'Validate scope vs quotation',
+                        'Customs Clearance' => [
+                            'Review customs declaration completeness',
                         ],
                     ],
 
                     'FINAL DELIVERY' => [
-
                         'Budget Approval' => [
                             'Approve shipment budget',
                         ],
@@ -92,46 +58,37 @@ class PlanningTemplateSeeder extends Seeder
             [
                 'name' => 'Export Shipments Template',
                 'service_category' => 'LOGISTICS',
-                'service_type' => 'EXPORT',
+                'service_type_id' => ServiceType::where('name', 'EXPORT')->value('id'),
 
                 'workflow' => [
 
                     'BOOKING AND PLANNING' => [
-
                         'Booking Confirmation' => [
                             'Receive booking request',
                         ],
                     ],
 
                     'ORIGIN OPERATIONS' => [
-
-                        'Booking Confirmation' => [
+                        'Service Requirement Review' => [
                             'Coordinate cargo pickup',
                         ],
                     ],
 
                     'EXPORT CLEARANCE' => [
-
                         'Export Documentation' => [
-                            'Prepare export documents',
-                        ],
-
-                        'Customs Clearance' => [
                             'Prepare export documents',
                         ],
                     ],
 
                     'FREIGHT/TRANSIT' => [
-
-                        'Booking Confirmation' => [
-                            'Coordinate cargo pickup',
+                        'Initial Cost Build-Up' => [
+                            'Define routing & mode',
                         ],
                     ],
 
-                    'DESTINATION OPERATIONS' => [
-
+                    'DOCUMENT AUDIT & COMPLIANCE' => [
                         'Customs Clearance' => [
-                            'Prepare export documents',
+                            'Verify commercial invoice accuracy',
                         ],
                     ],
                 ],
@@ -148,7 +105,7 @@ class PlanningTemplateSeeder extends Seeder
         $planningTemplate = PlanningTemplate::create([
             'name'             => $templateData['name'],
             'service_category' => $templateData['service_category'],
-            'service_type'     => $templateData['service_type'],
+            'service_type_id'     => $templateData['service_type_id'],
         ]);
 
         $phaseConfigs = PlanningConfigPhase::all()->keyBy('name');
@@ -160,6 +117,9 @@ class PlanningTemplateSeeder extends Seeder
         foreach ($templateData['workflow'] as $phaseName => $processes) {
 
             $configPhase = $phaseConfigs[$phaseName];
+            $configPhase->update([
+                'is_locked' => true
+            ]);
 
             $templatePhase = $planningTemplate->phases()->create([
                 'config_phase_id' => $configPhase->id,
@@ -169,6 +129,9 @@ class PlanningTemplateSeeder extends Seeder
             foreach ($processes as $processName => $tasks) {
 
                 $configProcess = $processConfigs[$processName];
+                $configProcess->update([
+                    'is_locked' => true
+                ]);
 
                 $templateProcess = $templatePhase->processes()->create([
                     'config_process_id' => $configProcess->id,
@@ -177,6 +140,9 @@ class PlanningTemplateSeeder extends Seeder
                 foreach ($tasks as $taskName) {
 
                     $configTask = $taskConfigs[$taskName];
+                    $configTask->update([
+                        'is_locked' => true
+                    ]);
 
                     $templateProcess->tasks()->create([
                         'config_task_id' => $configTask->id,
@@ -198,6 +164,10 @@ class PlanningTemplateSeeder extends Seeder
                 'BOOKING AND PLANNING',
                 'EXPORT CLEARANCE',
                 'DESTINATION OPERATIONS',
+
+                'CUSTOMS RISK MANAGEMENT',
+                'DOCUMENT AUDIT & COMPLIANCE',
+                'POST-CLEARANCE REVIEW',
             ],
 
             'processes' => [
@@ -211,6 +181,14 @@ class PlanningTemplateSeeder extends Seeder
                 'Booking Confirmation',
                 'Export Documentation',
                 'Customs Clearance',
+
+                'HS Code Classification',
+                'Duty & Tax Assessment',
+                'Regulatory Compliance Check',
+                'Document Verification',
+                'Inspection Coordination',
+                'Post Entry Amendment Handling',
+                'Audit Trail Review',
             ],
 
             'tasks' => [
@@ -222,13 +200,20 @@ class PlanningTemplateSeeder extends Seeder
                 'Receive booking request',
                 'Prepare export documents',
                 'Coordinate cargo pickup',
+
+                'Classify HS code',
+                'Calculate duties and taxes',
+                'Verify commercial invoice accuracy',
+                'Review customs declaration completeness',
+                'Handle customs audit request',
+                'Submit post-entry correction',
+                'Coordinate physical inspection with customs',
             ],
         ];
 
         $configVersion = PlanningConfigVersion::create([
             'version_number' => 1,
-            'is_current' => true,
-            'service_category' => 'logistics'
+            'service_category' => 'LOGISTICS'
         ]);
 
         $versionId = $configVersion->id;
@@ -236,13 +221,19 @@ class PlanningTemplateSeeder extends Seeder
         $this->insertConfigData(PlanningConfigPhase::class, $configs['phases'], $versionId);
         $this->insertConfigData(PlanningConfigProcess::class, $configs['processes'], $versionId);
         $this->insertConfigData(PlanningConfigTask::class, $configs['tasks'], $versionId);
+
+        // Regulatory Config Version
+        PlanningConfigVersion::create([
+            'version_number' => 1,
+            'service_category' => 'REGULATORY'
+        ]);
     }
 
     private function insertConfigData(string $modelClass, array $data, $versionId) {
         $modelClass::insert(
             collect($data)
-                ->map(fn ($task) => [
-                    'name' => $task,
+                ->map(fn ($name) => [
+                    'name' => $name,
                     'config_version_id' => $versionId
                 ])
                 ->all()

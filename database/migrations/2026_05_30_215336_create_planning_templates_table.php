@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('planning_templates', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable();
+            $table->string('name');
+            $table->unsignedInteger('version_number');
             $table->enum('service_category', ['REGULATORY', 'LOGISTICS']);
-            $table->string('service_type');
+            $table->foreignId('service_type_id')->constrained('service_types')->restrictOnDelete();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
@@ -23,33 +24,34 @@ return new class extends Migration
         Schema::create('planning_config_versions', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('version_number');
-            $table->boolean('is_current')->nullable()->default(null);
-            $table->enum('service_category', ['logistics', 'regulatory']);
+            $table->enum('service_category', ['REGULATORY', 'LOGISTICS']);
             $table->timestamps();
 
-            $table->unique(['service_category', 'version_number']);
-            $table->unique(['service_category', 'is_current']); 
             $table->index('service_category');
+            $table->unique('service_category');
         });
 
         Schema::create('planning_config_phases', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable();
-            $table->foreignId('config_version_id')->constrained('planning_config_versions')->cascadeOnDelete();
+            $table->string('name');
+            $table->boolean('is_locked')->default(false);
+            $table->foreignId('config_version_id')->constrained('planning_config_versions')->restrictOnDelete();
             $table->timestamps();
         });
 
         Schema::create('planning_config_processes', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable();
-            $table->foreignId('config_version_id')->constrained('planning_config_versions')->cascadeOnDelete();
+            $table->string('name');
+            $table->boolean('is_locked')->default(false);
+            $table->foreignId('config_version_id')->constrained('planning_config_versions')->restrictOnDelete();
             $table->timestamps();
         });
 
         Schema::create('planning_config_tasks', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable();
-            $table->foreignId('config_version_id')->constrained('planning_config_versions')->cascadeOnDelete();
+            $table->string('name');
+            $table->boolean('is_locked')->default(false);
+            $table->foreignId('config_version_id')->constrained('planning_config_versions')->restrictOnDelete();
             $table->timestamps();
         });
 

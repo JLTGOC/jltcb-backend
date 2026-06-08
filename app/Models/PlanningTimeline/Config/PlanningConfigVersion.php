@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class PlanningConfigVersion extends Model
 {
     protected $fillable = [
-        'version_number', 'is_current', 'service_category', 
+        'version_number', 'service_category', 
     ];
 
     public function phases() {

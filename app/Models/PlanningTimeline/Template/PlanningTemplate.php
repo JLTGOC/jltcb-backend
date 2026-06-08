@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class PlanningTemplate extends Model
 {
-    protected $fillable = ['name', 'service_category', 'service_type', 'is_active'];
+    protected $fillable = ['name', 'service_category', 'service_type_id', 'is_active', 'version_number'];
 
     protected $casts = [
         'is_active' => 'boolean'
