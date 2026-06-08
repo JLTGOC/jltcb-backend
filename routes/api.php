@@ -156,9 +156,9 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'session.timeout'])->group(fu
         //     ->only(['index', 'show', 'update']);
 
         Route::get('/configs/{serviceCategory}', [PlanningConfigController::class, 'show'])
-            ->where('serviceCategory', 'logistics|regulatory');
+            ->where('serviceCategory', 'LOGISTICS|REGULATORY');
         Route::put('/configs/{serviceCategory}', [PlanningConfigController::class, 'update'])
-            ->where('serviceCategory', 'logistics|regulatory');
+            ->where('serviceCategory', 'LOGISTICS|REGULATORY');
     });
     
     // store template draft
