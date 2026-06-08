@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->string('preferred_communication_style')->nullable();
+            $table->string('decision_making_process')->nullable();
             $table->string('response_time_expectation')->nullable();
             $table->string('client_specific_sop')->nullable();
             $table->string('approval_workflow')->nullable();

@@ -125,12 +125,13 @@ class CompanyResource extends JsonResource
                     return [
                         'id' => $document->id,
                         'file_name' => $document->file_name,
-                        'file_url' => URL::temporarySignedRoute(
-                            'files.view', 
-                            Carbon::now()->addMinutes(10), 
-                            [
-                                'file' => $document->id
-                            ]),
+                        // 'file_url' => URL::temporarySignedRoute(
+                        //     'files.view', 
+                        //     Carbon::now()->addMinutes(10), 
+                        //     [
+                        //         'file' => $document->id
+                        //     ]),
+                        'filepath' => asset($document->file_path),
                         'file_type' => $document->file_type,
                         'created_at' => $document->created_at,
                         'updated_at' => $document->updated_at,
@@ -213,12 +214,13 @@ class CompanyResource extends JsonResource
                             'id' => $document->id,
                             'file_name' => $document->file_name,
                             'file_type' => $document->file_type,
-                            'file_url' => URL::temporarySignedRoute(
-                                'files.view', 
-                                Carbon::now()->addMinutes(10), 
-                                [
-                                    'file' => $document->id
-                                ]),
+                            // 'file_url' => URL::temporarySignedRoute(
+                            //     'files.view', 
+                            //     Carbon::now()->addMinutes(10), 
+                            //     [
+                            //         'file' => $document->id
+                            //     ]),
+                            'filepath' => asset($document->file_path),
                             'created_at' => $document->created_at,
                             'updated_at' => $document->updated_at,
                         ];
