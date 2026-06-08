@@ -23,15 +23,18 @@ class UpdatePlanningConfigRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'version_id' => 'required|integer|exists:planning_config_versions,id',
+            'version_number' => 'required|integer',
 
             'phases'        => 'required|array',
+            'phases.*.id'   => 'sometimes|integer',
             'phases.*.name' => 'required|string|max:255',
 
             'processes'         => 'required|array',
+            'processes.*.id'    => 'sometimes|integer',
             'processes.*.name'  => 'required|string|max:255',
 
             'tasks'              => 'required|array',
+            'tasks.*.id'         => 'sometimes|integer',
             'tasks.*.name'       => 'required|string|max:255',
         ];
     }

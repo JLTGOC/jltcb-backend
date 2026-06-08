@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\PlanningTimeline;
 
+use App\Models\ServiceType;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -17,7 +18,7 @@ class PlanningTemplateResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'services' => $this->service_type,
+            'services' => ServiceType::where('id', $this->service_type_id)->value('name'),
             'is_active' => $this->is_active,
 
             'config' => $this->when(
