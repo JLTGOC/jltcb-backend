@@ -25,12 +25,10 @@ class ClientQuotationResource extends JsonResource
         $dateFormat = $isWeb ? 'Y-m-d' : 'd/m/Y';
         
         if ($request->has('filter.status')) {
-            $status = null;
+            $status = $this->status;
             if ($request->filter['status'] === 'RESPONDED') {
                 if ($this->status === 'RESPONDED') {
                     $status = 'NEW';
-                } else {
-                    $status = $this->status;
                 }
             }
 
@@ -57,6 +55,7 @@ class ClientQuotationResource extends JsonResource
 
             return [
                 'id' => $this->id,
+                'status' => $status,
                 'reference_number' => $this->reference_number,
                 'commodity' => $this->logisticsService?->commodity ?? $this->regulatoryService?->type_of_regulatory_assistance ?? null,
                 'date' => $this->created_at->format($dateFormat),
