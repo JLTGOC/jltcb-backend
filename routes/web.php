@@ -3,6 +3,7 @@
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\IssuedQuotationController;
 use App\Http\Controllers\QuotationFileController;
+use App\Http\Controllers\CompanyController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -18,6 +19,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/signatures/{id}', [IssuedQuotationController::class, 'viewSignature'])
             ->name('signatures.view');
+
+        Route::get('/company/{company}/files/{file}', [CompanyController::class, 'viewCompanyFile'])
+            ->name('company.files.view');
 
     });
 
