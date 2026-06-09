@@ -23,6 +23,7 @@ use App\Models\{
     ServiceLevel,
     BillingMode,
     ShipmentFile,
+    ServiceType,
 };
 use Carbon\Carbon;
 
@@ -40,6 +41,7 @@ class QuotationSeeder extends Seeder
         $i = 0;
         do {
             $serviceDomain = fake()->randomElement(['LOGISTICS', 'LOGISTICS', 'REGULATORY']);
+            $serviceType = $this->resolveServiceType($serviceDomain);
             $reference = $this->generateReference($serviceDomain);
 
             $lastName = fake()->lastName();
@@ -72,6 +74,7 @@ class QuotationSeeder extends Seeder
                 'status' => $status,
                 'client_id' => $client,
                 'client_name' => User::find($client)->full_name,
+                'service_type_id' => $serviceType->id,
                 'as_id' => $assignedSpecialist,
                 'company_name' => $companyName,
                 'company_address' => $companyAddress,
@@ -85,7 +88,9 @@ class QuotationSeeder extends Seeder
                 'updated_at' => Carbon::now()->subDays(fake()->numberBetween(10, 20)),
             ]);
 
-            $this->attachClientFiles($quotation, $quotation->client_id, 3, $quotation->created_at, $quotation->updated_at);
+            $uploadedBy = ($quotation->client?->id ?? $quotation->as_id) ?? fake()->randomElement($specialists);
+
+            $this->attachClientFiles($quotation, $uploadedBy, 3, $quotation->created_at, $quotation->updated_at);
 
             if ($serviceDomain === 'LOGISTICS') {
                 $this->createLogisticsService($quotation, ['commodity' => 'CASTABLE 16 REFRACTOR']);
@@ -174,15 +179,17 @@ class QuotationSeeder extends Seeder
                     ]);
                 }
 
-                if ($quotation->logisticsService) {
-                    $serviceType = $quotation->logisticsService->service_type;
-                } elseif ($quotation->regulatoryService) {
-                    $serviceType = 'BOC New Importer Accreditation';
-                }
+                // if ($quotation->logisticsService) {
+                //     $serviceType = $quotation->serviceType?->name;
+                // } elseif ($quotation->regulatoryService) {
+                //     $serviceType = 'BOC New Importer Accreditation';
+                // }
+
+                $serviceType = $quotation->serviceType?->name;
 
                 JobOrderClient::create([
                     'job_order_id' => $jobOrder->id,
-                    'service_type' => $serviceType,
+                    'service_type_id' => ServiceType::where('name', $serviceType)->first()?->id,
                     'client_type' => fake()->randomElement(['NEW', 'RENEWAL']),
                     'accredited' => fake()->randomElement(['REGULAR', 'EXPEDITED']),
                     'tone_and_attitude' => fake()->randomElement(['FRIENDLY', 'NEUTRAL', 'HOSTILE']),
@@ -233,11 +240,7 @@ class QuotationSeeder extends Seeder
                         continue;
                     }
 
-                    if ($logisticsService->service_type === 'IMPORT') {
-                        $prefix = 'IM';
-                    } elseif ($logisticsService->service_type === 'EXPORT') {
-                        $prefix = 'EX';
-                    }
+                    $prefix = $quotation->serviceType?->code ?? 'IM';
                     $lastId = Shipment::max('id') ?? 0;
                     $dateSection = Carbon::now()->format('m-Y');
                     $idSection = str_pad($lastId+1, 3, '0', STR_PAD_LEFT);
@@ -306,6 +309,7 @@ class QuotationSeeder extends Seeder
 
         foreach ($newClients as $clientId) {
             $serviceDomain = fake()->randomElement(['LOGISTICS', 'REGULATORY']);
+            $serviceType = $this->resolveServiceType($serviceDomain);
             $serviceSection = $serviceDomain === 'LOGISTICS' ? 'LOG' : 'REG';
             $dateSection = Carbon::now()->format('mdY');
             $lastId = Quotation::max('id') ?? 0;
@@ -316,6 +320,7 @@ class QuotationSeeder extends Seeder
                 'status' => 'REQUESTED',
                 'client_id' => $clientId,
                 'client_name' => User::find($clientId)->full_name,
+                'service_type_id' => $serviceType->id,
                 'company_name' => User::find($clientId)->company ? User::find($clientId)->company->name : fake()->company(),
                 'company_address' => User::find($clientId)->company ? User::find($clientId)->company->address->registered_address : fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
                 'contact_person' => User::find($clientId)->full_name,
@@ -328,7 +333,7 @@ class QuotationSeeder extends Seeder
                 'updated_at' => Carbon::now(),
             ]);
 
-                $this->attachClientFiles($quotation, $quotation->client_id, 3, $quotation->created_at, $quotation->updated_at);
+            $this->attachClientFiles($q, $q->client_id, 3, $q->created_at, $q->updated_at);
 
             if ($serviceDomain === 'LOGISTICS') {
                 $this->createLogisticsService($q, ['commodity' => 'COMMODITY']);
@@ -340,6 +345,7 @@ class QuotationSeeder extends Seeder
         // Quotations for unregistered clients
         for ($j=0; $j<5; $j++) {
             $serviceDomain = fake()->randomElement(['LOGISTICS', 'LOGISTICS', 'REGULATORY']);
+            $serviceType = $this->resolveServiceType($serviceDomain);
             $serviceSection = $serviceDomain === 'LOGISTICS' ? 'LOG' : 'REG';
             $dateSection = Carbon::now()->format('mdY');
             $lastId = Quotation::max('id') ?? 0;
@@ -350,6 +356,7 @@ class QuotationSeeder extends Seeder
                 'status' => 'REQUESTED',
                 'client_id' => null,
                 'client_name' => fake()->firstName() . ' ' . fake()->lastName(),
+                'service_type_id' => $serviceType->id,
                 'as_id' => null,
                 'company_name' => fake()->company(),
                 'company_address' => fake()->streetAddress() . ', ' . fake()->city() . ', ' . fake()->stateAbbr() . ' ' . fake()->postcode(),
@@ -363,7 +370,7 @@ class QuotationSeeder extends Seeder
                 'updated_at' => Carbon::now()->subDays(fake()->numberBetween(10, 20)),
             ]);
 
-            $this->attachClientFiles($quotation, $quotation->client_id, 3, $quotation->created_at, $quotation->updated_at);
+            $this->attachClientFiles($q, $q->client_id, 3, $q->created_at, $q->updated_at);
 
             if ($serviceDomain === 'LOGISTICS') {
                 $this->createLogisticsService($q, ['commodity' => 'COMMODITY']);
@@ -384,8 +391,19 @@ class QuotationSeeder extends Seeder
         return "RQ-{$serviceSection}-{$dateSection}-{$idSection}";
     }
 
+    private function resolveServiceType(string $serviceDomain): ServiceType
+    {
+        return ServiceType::query()
+            ->where('service', $serviceDomain)
+            ->inRandomOrder()
+            ->firstOrFail();
+    }
+
     private function attachClientFiles($quotation, $uploadedBy = null, $count = 3, $createdAt = null, $updatedAt = null)
     {
+        if (!$uploadedBy) {
+            $uploadedBy = $quotation->client_id ?? fake()->randomElement(User::role(['Account Specialist', 'Lead Account Specialist', 'Client Success'])->pluck('id'));
+        }
         for ($n = 0; $n < $count; $n++) {
             $quotation->files()->updateOrCreate([
                 'quotation_id' => $quotation->id,
@@ -422,7 +440,6 @@ class QuotationSeeder extends Seeder
 
         return LogisticsService::create(array_merge([
             'quotation_id' => $quotation->id,
-            'service_type' => fake()->randomElement(['IMPORT', 'EXPORT']),
             'transport_mode' => fake()->randomElement(['AIR', 'SEA']),
             'service_options' => $serviceOptions,
             'commodity' => $overrides['commodity'] ?? 'COMMODITY',
