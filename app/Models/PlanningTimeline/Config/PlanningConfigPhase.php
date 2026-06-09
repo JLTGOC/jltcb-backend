@@ -2,20 +2,19 @@
 
 namespace App\Models\PlanningTimeline\Config;
 
-use App\Models\PlanningTimeline\Template\PlanningTemplate;
 use App\Models\PlanningTimeline\Template\PlanningTemplatePhase;
 use Illuminate\Database\Eloquent\Model;
 
 class PlanningConfigPhase extends Model
 {
-    protected $fillable = ['name', 'config_version_id'];
+    protected $fillable = ['name', 'config_id'];
 
     protected $casts = [
         'is_locked' => 'boolean'
     ];
 
-    public function version() {
-        return $this->belongsTo(PlanningConfigVersion::class, 'config_version_id');
+    public function config() {
+        return $this->belongsTo(PlanningTemplateConfig::class, 'config_id');
     }
     
     public function templatePhases() {
@@ -23,13 +22,8 @@ class PlanningConfigPhase extends Model
     }
 
     public function isLocked() : bool {
-        return $this->templatePhases()->exists();
-    }
-
-    public function lockingTemplates() {
-        return PlanningTemplate::whereHas(
-            'phases',
-            fn($q) => $q->where('config_phase_id', $this->id)
-        )->get();
+        return $this->relationLoaded('templatePhases')
+            ? $this->templatePhases->isNotEmpty() 
+            : $this->templatePhases()->exists();
     }
 }

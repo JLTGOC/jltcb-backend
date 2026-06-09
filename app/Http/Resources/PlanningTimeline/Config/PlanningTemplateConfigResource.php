@@ -5,7 +5,7 @@ namespace App\Http\Resources\PlanningTimeline\Config;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PlanningConfigVersionResource extends JsonResource
+class PlanningTemplateConfigResource extends JsonResource
 {
     /**
      * Transform the resource into an array.

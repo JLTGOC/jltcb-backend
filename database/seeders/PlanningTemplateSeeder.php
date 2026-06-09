@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\PlanningTimeline\Config\PlanningConfigPhase;
 use App\Models\PlanningTimeline\Config\PlanningConfigProcess;
 use App\Models\PlanningTimeline\Config\PlanningConfigTask;
-use App\Models\PlanningTimeline\Config\PlanningConfigVersion;
+use App\Models\PlanningTimeline\Config\PlanningTemplateConfig;
 use App\Models\PlanningTimeline\Template\PlanningTemplate;
 use App\Models\ServiceType;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -203,30 +203,30 @@ class PlanningTemplateSeeder extends Seeder
             ],
         ];
 
-        $configVersion = PlanningConfigVersion::create([
+        $templateConfig = PlanningTemplateConfig::create([
             'version_number' => 1,
             'service_category' => 'LOGISTICS'
         ]);
 
-        $versionId = $configVersion->id;
+        $configId = $templateConfig->id;
 
-        $this->insertConfigData(PlanningConfigPhase::class, $configs['phases'], $versionId);
-        $this->insertConfigData(PlanningConfigProcess::class, $configs['processes'], $versionId);
-        $this->insertConfigData(PlanningConfigTask::class, $configs['tasks'], $versionId);
+        $this->insertConfigData(PlanningConfigPhase::class, $configs['phases'], $configId);
+        $this->insertConfigData(PlanningConfigProcess::class, $configs['processes'], $configId);
+        $this->insertConfigData(PlanningConfigTask::class, $configs['tasks'], $configId);
 
         // Regulatory Config Version
-        PlanningConfigVersion::create([
+        PlanningTemplateConfig::create([
             'version_number' => 1,
             'service_category' => 'REGULATORY'
         ]);
     }
 
-    private function insertConfigData(string $modelClass, array $data, $versionId) {
+    private function insertConfigData(string $modelClass, array $data, $configId) {
         $modelClass::insert(
             collect($data)
                 ->map(fn ($name) => [
                     'name' => $name,
-                    'config_version_id' => $versionId
+                    'config_id' => $configId
                 ])
                 ->all()
         );

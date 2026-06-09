@@ -16,12 +16,12 @@ return new class extends Migration
             $table->string('name');
             $table->unsignedInteger('version_number')->default(1);
             $table->enum('service_category', ['REGULATORY', 'LOGISTICS']);
-            $table->foreignId('service_type_id')->constrained('service_types')->restrictOnDelete();
+            $table->foreignId('service_type_id')->constrained('service_types')->nullOnDelete();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
 
-        Schema::create('planning_config_versions', function (Blueprint $table) {
+        Schema::create('planning_template_configs', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('version_number')->default(1);
             $table->enum('service_category', ['REGULATORY', 'LOGISTICS']);
@@ -34,21 +34,21 @@ return new class extends Migration
         Schema::create('planning_config_phases', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->foreignId('config_version_id')->constrained('planning_config_versions')->restrictOnDelete();
+            $table->foreignId('config_id')->constrained('planning_template_configs')->restrictOnDelete();
             $table->timestamps();
         });
 
         Schema::create('planning_config_processes', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->foreignId('config_version_id')->constrained('planning_config_versions')->restrictOnDelete();
+            $table->foreignId('config_id')->constrained('planning_template_configs')->restrictOnDelete();
             $table->timestamps();
         });
 
         Schema::create('planning_config_tasks', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->foreignId('config_version_id')->constrained('planning_config_versions')->restrictOnDelete();
+            $table->foreignId('config_id')->constrained('planning_template_configs')->restrictOnDelete();
             $table->timestamps();
         });
 
