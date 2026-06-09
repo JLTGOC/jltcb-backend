@@ -15,4 +15,12 @@ class ServiceType extends Model
     {
         return $this->hasMany(ServiceOption::class, 'service_type_id');
     }
+
+    public function quotations() {
+        return $this->hasMany(Quotation::class, 'service_type_id');
+    }
+
+    public function jobOrderClients() {
+        return $this->hasMany(JobOrderClient::class, 'service_type_id');
+    }
 }

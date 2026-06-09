@@ -12,6 +12,7 @@ class Quotation extends Model implements Searchable
 {
      protected $fillable = [
         'reference_number',
+        'service_type_id',
         'client_id',
         'client_name',
         'as_id',
@@ -94,9 +95,14 @@ class Quotation extends Model implements Searchable
         return $this->morphMany(ActivityLog::class, 'subject');
     }
 
+    public function serviceType() {
+        return $this->belongsTo(ServiceType::class, 'service_type_id');
+    }
+
     protected $casts = [
         'client_id' => 'integer',
         'as_id' => 'integer',
+        'service_type_id' => 'integer',
     ];
 
     protected static function booted(): void

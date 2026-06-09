@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('client_name');
             $table->unsignedBigInteger('as_id')->nullable();
             $table->foreign('as_id')->references('id')->on('users')->constrained();
+            $table->foreignId('service_type_id')->constrained()->cascadeOnDelete();
             $table->enum('status', ['REQUESTED', 'RESPONDED', 'ACCEPTED', 'DISCARDED'])->default('REQUESTED');
             $table->string('contact_person')->nullable();
             $table->string('contact_number');

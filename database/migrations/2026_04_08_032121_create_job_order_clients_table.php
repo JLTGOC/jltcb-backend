@@ -4,6 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use App\Models\JobOrder;
+use App\Models\ServiceType;
 
 return new class extends Migration
 {
@@ -17,7 +18,7 @@ return new class extends Migration
             $table->foreignIdFor(JobOrder::class)->constrained()->onDelete('cascade');
             $table->string('client_type');
             $table->string('accredited');
-            $table->string('service_type');
+            $table->foreignIdFor(ServiceType::class)->constrained()->onDelete('cascade');
             $table->string('tone_and_attitude')->nullable();
             $table->text('client_remarks')->nullable();
             $table->timestamps();

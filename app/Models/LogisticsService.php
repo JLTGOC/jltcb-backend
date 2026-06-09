@@ -8,7 +8,7 @@ class LogisticsService extends Model
 {
     protected $fillable = [
         'quotation_id',
-        'service_type',
+        // 'service_type',
         'transport_mode',
         'service_options',
         'commodity',
