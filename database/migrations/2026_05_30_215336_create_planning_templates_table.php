@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('planning_templates', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->unsignedInteger('version_number');
+            $table->unsignedInteger('version_number')->default(1);
             $table->enum('service_category', ['REGULATORY', 'LOGISTICS']);
             $table->foreignId('service_type_id')->constrained('service_types')->restrictOnDelete();
             $table->boolean('is_active')->default(true);
@@ -23,7 +23,7 @@ return new class extends Migration
 
         Schema::create('planning_config_versions', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('version_number');
+            $table->unsignedInteger('version_number')->default(1);
             $table->enum('service_category', ['REGULATORY', 'LOGISTICS']);
             $table->timestamps();
 
@@ -34,7 +34,6 @@ return new class extends Migration
         Schema::create('planning_config_phases', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->boolean('is_locked')->default(false);
             $table->foreignId('config_version_id')->constrained('planning_config_versions')->restrictOnDelete();
             $table->timestamps();
         });
@@ -42,7 +41,6 @@ return new class extends Migration
         Schema::create('planning_config_processes', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->boolean('is_locked')->default(false);
             $table->foreignId('config_version_id')->constrained('planning_config_versions')->restrictOnDelete();
             $table->timestamps();
         });
@@ -50,7 +48,6 @@ return new class extends Migration
         Schema::create('planning_config_tasks', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->boolean('is_locked')->default(false);
             $table->foreignId('config_version_id')->constrained('planning_config_versions')->restrictOnDelete();
             $table->timestamps();
         });

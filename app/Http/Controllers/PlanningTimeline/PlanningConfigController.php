@@ -25,7 +25,17 @@ class PlanningConfigController extends Controller
         $configVersion = PlanningConfigVersion::with([
             'phases.templatePhases.template', 
             'processes.templateProcesses.phase.template', 
-            'tasks.templateTasks.process.phase.template'
+            'tasks.templateTasks.process.phase.template',
+
+            'phases' => fn ($q) => $q->withExists([
+                'templatePhases as is_locked'
+            ]),
+            'processes' => fn ($q) => $q->withExists([
+                'templateProcesses as is_locked'
+            ]),
+            'tasks' => fn ($q) => $q->withExists([
+                'templateTasks as is_locked'
+            ]),
         ])->where('service_category', $serviceCategory)->firstOrFail();
 
            return $this->success(

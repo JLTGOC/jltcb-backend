@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class PlanningConfigPhase extends Model
 {
-    protected $fillable = ['name', 'is_locked', 'config_version_id'];
+    protected $fillable = ['name', 'config_version_id'];
 
     protected $casts = [
         'is_locked' => 'boolean'
@@ -20,6 +20,10 @@ class PlanningConfigPhase extends Model
     
     public function templatePhases() {
         return $this->hasMany(PlanningTemplatePhase::class, 'config_phase_id');
+    }
+
+    public function isLocked() : bool {
+        return $this->templatePhases()->exists();
     }
 
     public function lockingTemplates() {

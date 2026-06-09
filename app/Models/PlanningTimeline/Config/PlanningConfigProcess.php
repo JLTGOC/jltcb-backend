@@ -8,7 +8,7 @@ use App\Models\PlanningTimeline\Template\PlanningTemplateProcess;
 
 class PlanningConfigProcess extends Model
 {
-    protected $fillable = ['name', 'is_locked', 'config_version_id'];
+    protected $fillable = ['name', 'config_version_id'];
 
     protected $casts = [
         'is_locked' => 'boolean'
@@ -20,6 +20,10 @@ class PlanningConfigProcess extends Model
 
     public function templateProcesses() {
         return $this->hasMany(PlanningTemplateProcess::class, 'config_process_id');
+    }
+
+    public function isLocked() : bool {
+        return $this->templateProcesses()->exists();
     }
 
     public function lockingTemplates() {

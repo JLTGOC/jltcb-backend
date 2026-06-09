@@ -118,9 +118,6 @@ class PlanningTemplateSeeder extends Seeder
         foreach ($templateData['workflow'] as $phaseName => $processes) {
 
             $configPhase = $phaseConfigs[$phaseName];
-            $configPhase->update([
-                'is_locked' => true
-            ]);
 
             $templatePhase = $planningTemplate->phases()->create([
                 'config_phase_id' => $configPhase->id,
@@ -130,9 +127,6 @@ class PlanningTemplateSeeder extends Seeder
             foreach ($processes as $processName => $tasks) {
 
                 $configProcess = $processConfigs[$processName];
-                $configProcess->update([
-                    'is_locked' => true
-                ]);
 
                 $templateProcess = $templatePhase->processes()->create([
                     'config_process_id' => $configProcess->id,
@@ -141,9 +135,6 @@ class PlanningTemplateSeeder extends Seeder
                 foreach ($tasks as $taskName) {
 
                     $configTask = $taskConfigs[$taskName];
-                    $configTask->update([
-                        'is_locked' => true
-                    ]);
 
                     $templateProcess->tasks()->create([
                         'config_task_id' => $configTask->id,
