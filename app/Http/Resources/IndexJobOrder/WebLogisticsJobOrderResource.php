@@ -41,7 +41,7 @@ class WebLogisticsJobOrderResource extends JsonResource
             'date_created' => strtoupper($this->created_at->format('F d, Y')),
             'job_type' => 'LOGISTICS',
             'commodity' => $this->quotation->logisticsService->commodity,
-            'service_type' => $this->quotation->logisticsService->service_type,
+            'service_type' => $this->quotation->serviceType->name ?? null,
             'transport_mode' => $this->quotation->logisticsService->transport_mode,
             'origin' => $this->quotation->logisticsService->origin,
             'destination' => $this->quotation->logisticsService->destination,

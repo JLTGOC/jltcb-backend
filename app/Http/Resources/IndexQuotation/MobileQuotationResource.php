@@ -56,7 +56,7 @@ class MobileQuotationResource extends JsonResource
                 'conversation_id' => $conversationId ?? null,
                 'prepared_by' => $this->created_by ? User::where('id', $this->created_by)->value('full_name') : null,
                 'service' => $this->logisticsService ? 'LOGISTICS' : ($this->regulatoryService ? 'REGULATORY' : null),
-                'service_type' => $this->logisticsService ? $this->logisticsService->service_type : ($this->regulatoryService ? $this->regulatoryService->type_of_regulatory_assistance : null),
+                'service_type' => $this->serviceType->name ?? null,
                 'reassignment_request_id' => $this->latestReassignmentRequest ? $this->latestReassignmentRequest->id : null,
             ];
         }

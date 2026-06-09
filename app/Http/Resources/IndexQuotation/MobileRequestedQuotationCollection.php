@@ -75,13 +75,15 @@ class MobileRequestedQuotationCollection extends ResourceCollection
                     'service' => $quotation->logisticsService ? 'LOGISTICS' : ($quotation->regulatoryService ? 'REGULATORY' : null),
                     'logistics_service' => $quotation->logisticsService ? [
                         'commodity' => $quotation->logisticsService->commodity,
-                        'service_type' => $quotation->logisticsService->service_type,
+                        'service_type' => $quotation->serviceType->name ?? null,
                         'transport_mode' => $quotation->logisticsService->transport_mode,
                         'origin' => $quotation->logisticsService->origin,
                         'destination' => $quotation->logisticsService->destination,
                     ] : null,
                     'regulatory_service' => $quotation->regulatoryService ? [
+                        'type_of_regulatory_assistance' => $quotation->regulatoryService->type_of_regulatory_assistance,
                         'application_type' => $quotation->regulatoryService->application_type,
+                        'service_type' => $quotation->serviceType->name ?? null,
                     ] : null,
                     'conversation_id' => $conversationId ?? null,
                     'prepared_by' => $quotation->created_by ? User::where('id', $quotation->created_by)->value('full_name') : null,

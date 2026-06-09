@@ -82,13 +82,15 @@ class WebQuotationResource extends JsonResource
             'service' => $this->logisticsService ? 'LOGISTICS' : ($this->regulatoryService ? 'REGULATORY' : null),
             'logistics_service' => $this->logisticsService ? [
                 'commodity' => $this->logisticsService->commodity,
-                'service_type' => $this->logisticsService->service_type,
+                'service_type' => $this->serviceType->name ?? null,
                 'transport_mode' => $this->logisticsService->transport_mode,
                 'origin' => $this->logisticsService->origin,
                 'destination' => $this->logisticsService->destination,
             ] : null,
             'regulatory_service' => $this->regulatoryService ? [
+                'type_of_regulatory_assistance' => $this->regulatoryService->type_of_regulatory_assistance,
                 'application_type' => $this->regulatoryService->application_type,
+                'service_type' => $this->serviceType->name ?? null,
             ] : null,
             'conversation_id' => $conversationId ?? null,
             'prepared_by' => $this->created_by ? User::where('id', $this->created_by)->value('full_name') : null,

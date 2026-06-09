@@ -51,7 +51,7 @@ class JobOrderResource extends JsonResource
                 'shipper' => $this->quotation->client?->full_name,
                 'client_type' => $this->jobOrderClient->client_type,
                 'accredited' => $this->jobOrderClient->accredited,
-                'service_type' => $this->jobOrderClient->service_type,
+                'service_type' => $this->jobOrderClient->serviceType->name ?? null,
                 'tone_and_attitude' => $this->jobOrderClient->tone_and_attitude,
                 'remarks' => $this->jobOrderClient->client_remarks,
             ],
@@ -61,7 +61,7 @@ class JobOrderResource extends JsonResource
                 'eta' => ($this->jobOrderShipment->eta ? Carbon::parse($this->jobOrderShipment->eta)->format('M/d/Y') : null) ? ($isMobile ? Carbon::parse($this->jobOrderShipment->eta) : null) : null,
                 'etd' => ($this->jobOrderShipment->etd ? Carbon::parse($this->jobOrderShipment->etd)->format('M/d/Y') : null) ? ($isMobile ? Carbon::parse($this->jobOrderShipment->etd) : null) : null,
             ] : [
-                'regulatory_assistance' => $this->jobOrderClient->service_type,
+                'regulatory_assistance' => $this->quotation->regulatoryService?->type_of_regulatory_assistance ?? null,
                 'application_type' => $this->quotation->regulatoryService->application_type,
                 'accredited' => $this->jobOrderClient->accredited,
                 'remarks' => $this->jobOrderClient->client_remarks,
