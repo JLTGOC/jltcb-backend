@@ -465,4 +465,28 @@ class CompanyController extends Controller
             'growth_levels' => $growth,
         ]);
     }
+
+    /**
+     * Download Company file
+     * 
+     * Used for sharing download links of private files
+     */
+    public function downloadCompanyFile(Company $company, CompanyDocument $file)
+    {
+        $this->authorize('viewAny', [CompanyDocument::class, $company, $file]);
+
+        return Storage::disk('local')->download($file->filepath);
+    }
+
+    /**
+     * View Company File
+     * 
+     * Used for securing temporary Urls for private files
+     */
+    public function viewCompanyFile(Company $company, CompanyDocument $file)
+    {
+        $this->authorize('viewAny', [CompanyDocument::class, $company, $file]);
+
+        return Storage::disk('local')->response($file->filepath);
+    }
 }

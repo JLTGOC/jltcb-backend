@@ -149,6 +149,8 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'session.timeout'])->group(fu
     // Company Routes
     Route::get('companies/enums', [CompanyController::class, 'enums']);
     Route::apiResource('companies', CompanyController::class)->except(['destroy']);
+    Route::get('/company/{company}/files/{file}', [CompanyController::class, 'downloadCompanyFile'])
+        ->name('company.files.download');
 
     // Planning & Timeline Routes
     Route::prefix('planning-timeline')->group(function() {
