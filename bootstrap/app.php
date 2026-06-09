@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\LockedConfigItemException;
 use App\Http\Middleware\AllowGuest;
 use App\Http\Middleware\RoleBasedSessionTimeout;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -68,9 +69,16 @@ return Application::configure(basePath: dirname(__DIR__))
             ], 413);
         });
 
-        $exceptions->render(function (InvalidFilterQuery $e, $request) {
+        $exceptions->renderable(function (InvalidFilterQuery $e, $request) {
             return response()->json([
                 'message' => $e->getMessage(),
             ], 400);
+        });
+
+        $exceptions->renderable(function (LockedConfigItemException $e, $request) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'errors' => $e->violations
+            ], 422);
         });
     })->create();

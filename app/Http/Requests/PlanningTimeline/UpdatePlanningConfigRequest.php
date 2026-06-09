@@ -26,15 +26,15 @@ class UpdatePlanningConfigRequest extends FormRequest
             'version_number' => 'required|integer',
 
             'phases'        => 'required|array',
-            'phases.*.id'   => 'sometimes|integer',
+            'phases.*.id'   => 'nullable|integer',
             'phases.*.name' => 'required|string|max:255',
 
             'processes'         => 'required|array',
-            'processes.*.id'    => 'sometimes|integer',
+            'processes.*.id'    => 'nullable|integer',
             'processes.*.name'  => 'required|string|max:255',
 
             'tasks'              => 'required|array',
-            'tasks.*.id'         => 'sometimes|integer',
+            'tasks.*.id'         => 'sometimes|nullable|integer',
             'tasks.*.name'       => 'required|string|max:255',
         ];
     }
