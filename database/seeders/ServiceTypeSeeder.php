@@ -14,9 +14,10 @@ class ServiceTypeSeeder extends Seeder
     public function run(): void
     {
         $serviceTypes = [
-            ['name' => 'IMPORT', 'service' => 'LOGISTICS'],
-            ['name' => 'EXPORT', 'service' => 'LOGISTICS'],
-            ['name' => 'BUSINESS SOLUTION', 'service' => 'REGULATORY'],
+            ['name' => 'IMPORT', 'service' => 'LOGISTICS', 'code' => 'IM'],
+            ['name' => 'EXPORT', 'service' => 'LOGISTICS', 'code' => 'EX'],
+            ['name' => 'PERMITS & LICENSING', 'service' => 'REGULATORY', 'code' => 'PL'],
+            ['name' => 'PRODUCT CLASSIFICATION ASSESSMENT', 'service' => 'REGULATORY', 'code' => 'PCA'],
         ];
 
         foreach ($serviceTypes as $serviceType) {
