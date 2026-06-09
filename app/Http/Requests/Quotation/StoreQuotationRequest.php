@@ -5,6 +5,7 @@ namespace App\Http\Requests\Quotation;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use App\Models\{
+    ServiceType,
     ServiceOption,
     ContainerSize,
     BusinessType,
@@ -37,10 +38,10 @@ class StoreQuotationRequest extends FormRequest
                 'company.contact_person' => 'required|string',
                 'company.contact_number' => 'required|string|min:11|max:11|regex:/^09\d{9}$/',
                 'company.email' => 'required|email',
-                'service.type' => ['required', 'string', Rule::in(['IMPORT', 'EXPORT'])],
+                'service.type' => ['required', 'string', Rule::in(ServiceType::where('service', 'LOGISTICS')->pluck('name')->toArray())],
                 'service.transport_mode' => ['required', 'string', Rule::in(['SEA', 'AIR'])],
                 'service.options' => 'required|array',
-                'service.options.*' => ['required', 'string', Rule::in(ServiceOption::pluck('name')->toArray())],
+                'service.options.*' => ['required', 'string', Rule::in(ServiceOption::where('service_type_id', ServiceType::where('name', $this->input('service.type'))->first()->id)->pluck('name')->toArray())],
                 'commodity.commodity' => 'required|string',
                 'commodity.cargo_type' => ['required', 'string', Rule::in(['CONTAINERIZED', 'LCL'])],
                 'commodity.container_size' => ['required_if:commodity.cargo_type,CONTAINERIZED', function ($attribute, $value, $fail) {

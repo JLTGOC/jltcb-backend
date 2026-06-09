@@ -4,6 +4,9 @@ namespace App\Http\Requests\JobOrder;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use App\Models\ServiceType;
+use App\Models\ServiceOption;
 
 class IndexJobOrderRequest extends FormRequest
 {
@@ -31,7 +34,12 @@ class IndexJobOrderRequest extends FormRequest
         return [
             'filter.service' => 'sometimes|string|in:LOGISTICS,REGULATORY,ALL',
             'filter.assignment_status' => $assignmentStatusRule,
-            'filter.service_type' => 'sometimes|string|in:IMPORT,EXPORT',
+            'filter.service_type' => ['sometimes', 'string', 'in:' . implode(',', ServiceType::pluck('name')->toArray()), function ($attribute, $value, $fail) {
+                if (ServiceOption::where('name', $value)->whereIn('service_type_id', ServiceType::where('name', $this->input('filter.service'))->pluck('id'))->doesntExist()) {
+                    $fail('The selected ' . $attribute . ' is invalid for the specified service.');
+                        
+                }
+            }],
             'filter.completion_status' => 'sometimes|string|in:CREATED,PROCESSED',
             'search' => 'sometimes|string',
             'ops_search' => 'sometimes|string',

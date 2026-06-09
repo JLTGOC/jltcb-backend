@@ -18,7 +18,7 @@ class ServiceOptionController extends Controller
         $this->authorize('viewAny', ServiceOption::class);
 
         $request->validate([
-            'service_type' => 'required|in:IMPORT,EXPORT,BUSINESS SOLUTION',
+            'service_type' => 'required|in:' . implode(',', ServiceType::pluck('name')->toArray()),
         ]);
 
         $serviceOptions = ServiceOption::whereNot('name', 'ALL IN')
@@ -49,7 +49,7 @@ class ServiceOptionController extends Controller
 
         $request->validate([
             'name' => 'required|string',
-            'service_type' => 'required|in:IMPORT,EXPORT,BUSINESS SOLUTION',
+            'service_type' => 'required|in:' . implode(',', ServiceType::pluck('name')->toArray()),
         ]);
 
         if (ServiceOption::where('name', $request->name)->where('service_type_id', ServiceType::where('name', $request->service_type)->first()->id)->exists()) {

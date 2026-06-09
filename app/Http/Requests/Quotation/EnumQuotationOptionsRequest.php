@@ -4,6 +4,7 @@ namespace App\Http\Requests\Quotation;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use App\Models\ServiceType;
 
 class EnumQuotationOptionsRequest extends FormRequest
 {
@@ -35,9 +36,9 @@ class EnumQuotationOptionsRequest extends FormRequest
                 $allowedTypes = [];
 
                 if ($service === 'LOGISTICS') {
-                    $allowedTypes = ['IMPORT', 'EXPORT'];
+                    $allowedTypes = ServiceType::where('service', 'LOGISTICS')->pluck('name')->toArray();
                 } elseif ($service === 'REGULATORY') {
-                    $allowedTypes = ['BUSINESS SOLUTION'];
+                    $allowedTypes = ServiceType::where('service', 'REGULATORY')->pluck('name')->toArray();
                 }
 
                 if (!in_array($value, $allowedTypes, true)) {

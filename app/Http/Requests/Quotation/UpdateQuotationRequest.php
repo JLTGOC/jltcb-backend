@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Quotation;
 
+use App\Models\ServiceType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -94,7 +95,16 @@ class UpdateQuotationRequest extends FormRequest
             'company.contact_person' => 'sometimes|string',
             'company.contact_number' => 'sometimes|string|min:11|max:11|regex:/^09\d{9}$/',
             'company.email' => 'sometimes|email',
-            'service.type' => ['sometimes', 'string', Rule::in(['IMPORT', 'EXPORT', 'BUSINESS SOLUTION'])],
+            'service.type' => [
+                'sometimes',
+                'string',
+                Rule::in(
+                    ServiceType::query()
+                        ->forService($serviceType)
+                        ->pluck('name')
+                        ->all()
+                ),
+            ],
             'service.transport_mode' => ['sometimes', 'string', Rule::in(['SEA', 'AIR'])],
             'service.options' => 'sometimes|array',
             'commodity.commodity' => 'sometimes|string',

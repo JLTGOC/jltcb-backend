@@ -172,13 +172,14 @@ class ShipmentController extends Controller
                 return $this->error('Shipment can only be created for logistics quotations', 422);
             }
 
-            if ($logisticsService->service_type === 'IMPORT') {
-                $prefix = 'IM';
-            } elseif ($logisticsService->service_type === 'EXPORT') {
-                $prefix = 'EX';
-            } else {
-                return $this->error('Invalid logistics service type for shipment creation', 422);
-            }
+            // if ($logisticsService->service_type === 'IMPORT') {
+            //     $prefix = 'IM';
+            // } elseif ($logisticsService->service_type === 'EXPORT') {
+            //     $prefix = 'EX';
+            // } else {
+            //     return $this->error('Invalid logistics service type for shipment creation', 422);
+            // }
+            $prefix = $quotation->serviceType->code; // Use service type code as prefix
             $lastId = Shipment::max('id') ?? 0;
             $dateSection = Carbon::now()->format('m-Y');
             $idSection = str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);

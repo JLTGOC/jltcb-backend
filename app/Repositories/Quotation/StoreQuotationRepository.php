@@ -6,6 +6,7 @@ use App\Http\Resources\QuotationResource;
 use App\Models\Quotation;
 use App\Models\User;
 use App\Models\ActivityLog;
+use App\Models\ServiceType;
 use App\Repositories\BaseRepository;
 use App\Services\QuotationFileService;
 use Carbon\Carbon;
@@ -47,6 +48,7 @@ class StoreQuotationRepository extends BaseRepository
 
             $quotation = Quotation::create([
                 'reference_number' => "RQ-{$serviceSection}-{$dateSection}-{$idSection}",
+                'service_type_id' => ServiceType::where('name', $request->input('service_type'))->first()->id ?? null,
                 'client_id' => $user ? $user->id : null,
                 'client_name' => $clientName,
                 'as_id' => $assignedSpecialist?->id ?? null,
@@ -65,7 +67,7 @@ class StoreQuotationRepository extends BaseRepository
                 $specialists = User::role('Account Specialist')->pluck('id');
 
                 $logisticsService = $quotation->logisticsService()->create([
-                    'service_type' => $request->service['type'],
+                    // 'service_type' => $request->service['type'],
                     'transport_mode' => $request->service['transport_mode'],
                     'service_options' => $stringifiedServiceOptions,
                     'commodity' => $request->commodity['commodity'],
