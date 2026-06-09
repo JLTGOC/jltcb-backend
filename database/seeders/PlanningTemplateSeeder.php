@@ -103,9 +103,10 @@ class PlanningTemplateSeeder extends Seeder
     private function createTemplate(array $templateData): void
     {
         $planningTemplate = PlanningTemplate::create([
-            'name'             => $templateData['name'],
+            'name' => $templateData['name'],
+            'version_number' => 1,
             'service_category' => $templateData['service_category'],
-            'service_type_id'     => $templateData['service_type_id'],
+            'service_type_id' => $templateData['service_type_id'],
         ]);
 
         $phaseConfigs = PlanningConfigPhase::all()->keyBy('name');

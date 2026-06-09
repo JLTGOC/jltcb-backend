@@ -18,6 +18,7 @@ class PlanningTemplateResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'version_number' => $this->version_number,
             'services' => ServiceType::where('id', $this->service_type_id)->value('name'),
             'is_active' => $this->is_active,
 
