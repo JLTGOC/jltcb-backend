@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('company_registrations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
-            $table->string('tin')->unique();
-            $table->string('bir_registration_number')->unique();
-            $table->enum('cprs_status', ['ACTIVE', 'INACTIVE'])->default('INACTIVE');
+            $table->string('tin')->nullable()->unique();
+            $table->string('bir_registration_number')->nullable()->unique();
+            $table->enum('cprs_status', ['NOT SET', 'ACTIVE', 'INACTIVE'])->default('NOT SET');
             $table->string('importer_accreditation_number')->nullable()->unique();
             $table->string('exporter_accreditation_number')->nullable()->unique();
             $table->date('importer_accreditation_expiry')->nullable();

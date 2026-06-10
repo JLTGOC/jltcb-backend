@@ -26,26 +26,26 @@ class StoreCompanyRequest extends FormRequest
     {
         $basicInfoRules = [
             'basic_info.name' => 'required|string|max:255',
-            'basic_info.consignee_used' => 'required|string|max:255',
-            'basic_info.trade_name' => 'required|string|max:255',
-            'basic_info.account_handler_id' => ['required', function ($attribute, $value, $fail) {
-                if (!User::where('id', $value)->role(['Account Specialist', 'Client Success', 'Lead Account Specialist'])->exists()) {
+            'basic_info.consignee_used' => 'sometimes|nullable|string|max:255',
+            'basic_info.trade_name' => 'sometimes|nullable|string|max:255',
+            'basic_info.account_handler_id' => ['sometimes', 'nullable', function ($attribute, $value, $fail) {
+                if (!User::where('id', $value)->role(['Account Specialist', 'Client Success', 'Lead Account Specialist'])->exists() && $value !== null) {
                     $fail('The selected account handler is invalid.');
                 }
             }],
             'basic_info.transaction_type_id' => 'sometimes|nullable|exists:transaction_types,id',
-            'basic_info.transaction_type_other' => 'required_if:basic_info.transaction_type_id,null|string|max:255',
+            'basic_info.transaction_type_other' => 'required_if:basic_info.transaction_type_id,null|nullable|string|max:255',
             'basic_info.client_classification_id' => 'sometimes|nullable|exists:client_classifications,id',
-            'basic_info.client_classification_other' => 'required_if:basic_info.client_classification_id,null|string|max:255',
+            'basic_info.client_classification_other' => 'required_if:basic_info.client_classification_id,null|nullable|string|max:255',
             'basic_info.company_type_id' => 'sometimes|nullable|exists:company_types,id',
-            'basic_info.company_type_other' => 'required_if:basic_info.company_type_id,null|string|max:255',
+            'basic_info.company_type_other' => 'required_if:basic_info.company_type_id,null|nullable|string|max:255',
             'basic_info.business_type_id' => 'sometimes|nullable|exists:business_types,id',
-            'basic_info.business_type_other' => 'required_if:basic_info.business_type_id,null|string|max:255',
-            'basic_info.business_registration_number' => 'required|string|max:255',
-            'basic_info.website' => 'required|string|max:255',
-            'basic_info.years_in_operation' => 'required|integer|min:0',
-            'basic_info.activation_date' => 'required|date',
-            'basic_info.industry' => 'required|array',
+            'basic_info.business_type_other' => 'required_if:basic_info.business_type_id,null|nullable|string|max:255',
+            'basic_info.business_registration_number' => 'sometimes|nullable|string|max:255',
+            'basic_info.website' => 'sometimes|nullable|string|max:255',
+            'basic_info.years_in_operation' => 'sometimes|nullable|integer|min:0',
+            'basic_info.activation_date' => 'sometimes|nullable|date',
+            'basic_info.industry' => 'sometimes|nullable|array',
             'basic_info.industry.*' => ['sometimes', function ($attribute, $value, $fail) {
                 if (!in_array($value, Industry::pluck('id')->toArray())) {
                     $fail('The selected industry is invalid. Must be a valid industry ID.');
@@ -54,8 +54,8 @@ class StoreCompanyRequest extends FormRequest
         ];
 
         $addressRules = [
-            'address.registered_address' => 'required|string|max:255',
-            'address.office_address' => 'required|string|max:255',
+            'address.registered_address' => 'sometimes|nullable|string|max:255',
+            'address.office_address' => 'sometimes|nullable|string|max:255',
             'address.usual_port' => 'sometimes|nullable|string|max:255',
             'address.origin_country' => 'sometimes|nullable|string|max:255',
             'address.destination_country' => 'sometimes|nullable|string|max:255',
@@ -66,30 +66,34 @@ class StoreCompanyRequest extends FormRequest
         ];
 
         $contactRules = [
-            'primary.full_name' => 'required|string|max:255',
-            'primary.position' => 'required|string|max:255',
-            'primary.email' => 'required|email|max:255',
-            'primary.contact_number' => 'required|string|max:20',
-            'secondary.full_name' => 'required|string|max:255',
-            'secondary.position' => 'required|string|max:255',
-            'secondary.email' => 'required|email|max:255',
-            'secondary.contact_number' => 'required|string|max:20',
-            'billing.full_name' => 'required|string|max:255',
-            'billing.position' => 'required|string|max:255',
-            'billing.email' => 'required|email|max:255',
-            'billing.contact_number' => 'required|string|max:20',
+            'primary.full_name' => 'sometimes|nullable|string|max:255',
+            'primary.position' => 'sometimes|nullable|string|max:255',
+            'primary.email' => 'sometimes|nullable|email|max:255',
+            'primary.contact_number' => 'sometimes|nullable|string|max:20',
+            'secondary.full_name' => 'sometimes|nullable|string|max:255',
+            'secondary.position' => 'sometimes|nullable|string|max:255',
+            'secondary.email' => 'sometimes|nullable|email|max:255',
+            'secondary.contact_number' => 'sometimes|nullable|string|max:20',
+            'billing.full_name' => 'sometimes|nullable|string|max:255',
+            'billing.position' => 'sometimes|nullable|string|max:255',
+            'billing.email' => 'sometimes|nullable|email|max:255',
+            'billing.contact_number' => 'sometimes|nullable|string|max:20',
         ];
 
         $registrationRules = [
-            'registration.tin' => 'required|string|max:255',
-            'registration.bir_registration_number' => 'required|string|max:255',
-            'registration.cprs_status' => 'required|in:ACTIVE,INACTIVE',
+            'registration.tin' => 'sometimes|nullable|string|max:255',
+            'registration.bir_registration_number' => 'sometimes|nullable|string|max:255',
+            'registration.cprs_status' => ['sometimes', 'nullable', 'in:NOT SET,ACTIVE,INACTIVE', function ($attribute, $value, $fail) {
+                if ($value === null || is_empty($value)) {
+                    return $value = 'NOT SET';
+                }
+            }],
             'registration.importer_accreditation_number' => 'sometimes|nullable|string|max:255',
             'registration.exporter_accreditation_number' => 'sometimes|nullable|string|max:255',
             'registration.importer_accreditation_expiry' => 'sometimes|nullable|date',
             'registration.exporter_accreditation_expiry' => 'sometimes|nullable|date',
             'registration.special_permits' => 'sometimes|nullable|string|max:255',
-            'registration.compliance_risk' => 'required|string|max:255',
+            'registration.compliance_risk' => 'sometimes|nullable|string|max:255',
             'registration.representatives' => 'sometimes|nullable|array',
             'registration.representatives.*' => 'sometimes|string|max:255', 
         ];
@@ -137,7 +141,11 @@ class StoreCompanyRequest extends FormRequest
         ];
 
         $insightRules = [
-            'insights.growth' => 'required|in:LOW,MEDIUM,HIGH',
+            'insights.growth' => ['sometimes', 'nullable', 'in:NOT SET,LOW,MEDIUM,HIGH', function ($attribute, $value, $fail) {
+                if ($value === null || is_empty($value)) {
+                    return $value = 'NOT SET';
+                }
+            }],
             'insights.expansion_plan' => 'sometimes|nullable|string|max:255',
             'insights.competitors' => 'sometimes|nullable|string|max:255',
             'insights.opportunities' => 'sometimes|nullable|string|max:255',

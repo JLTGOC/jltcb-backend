@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('company_addresses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
-            $table->string('registered_address');
-            $table->string('office_address');
+            $table->string('registered_address')->nullable();
+            $table->string('office_address')->nullable();
             $table->string('usual_port')->nullable();
             $table->string('origin_country')->nullable();
             $table->string('destination_country')->nullable();

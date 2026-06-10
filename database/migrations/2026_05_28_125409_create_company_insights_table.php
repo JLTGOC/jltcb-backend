@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('company_insights', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
-            $table->enum('growth', ['HIGH', 'MEDIUM', 'LOW'])->default('MEDIUM');
+            $table->enum('growth', ['NOT SET', 'HIGH', 'MEDIUM', 'LOW'])->default('NOT SET');
             $table->string('expansion_plan')->nullable();
             $table->string('competitors')->nullable();
             $table->string('opportunities')->nullable();

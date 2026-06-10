@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('companies', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('consignee_used');
-            $table->string('trade_name');
+            $table->string('consignee_used')->nullable();
+            $table->string('trade_name')->nullable();
             // $table->foreignId('account_handler_id')->nullable()->constrained('users')->onDelete('cascade');
             $table->foreignId('transaction_type_id')->nullable()->constrained('transaction_types')->onDelete('cascade');
             $table->string('transaction_type_other')->nullable();
@@ -25,10 +25,10 @@ return new class extends Migration
             $table->string('client_classification_other')->nullable();
             $table->foreignId('business_type_id')->nullable()->constrained('business_types')->onDelete('cascade');
             $table->string('business_type_other')->nullable();
-            $table->string('business_registration_number');
-            $table->string('website');
-            $table->unsignedBigInteger('years_in_operation');
-            $table->date('activation_date');
+            $table->string('business_registration_number')->nullable();
+            $table->string('website')->nullable();
+            $table->unsignedBigInteger('years_in_operation')->nullable();
+            $table->date('activation_date')->nullable();
             $table->timestamps();
         });
     }
