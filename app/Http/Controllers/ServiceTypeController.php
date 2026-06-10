@@ -10,7 +10,7 @@ class ServiceTypeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $this->authorize('viewAny', ServiceType::class);
 

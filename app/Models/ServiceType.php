@@ -14,6 +14,11 @@ class ServiceType extends Model
         'status',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
     public function serviceOptions()
     {
         return $this->hasMany(ServiceOption::class, 'service_type_id');

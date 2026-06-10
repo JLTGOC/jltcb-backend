@@ -27,6 +27,7 @@ use App\Http\Controllers\ReassignmentRequestController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\PlanningTimeline\PlanningConfigController;
 use App\Http\Controllers\PlanningTimelineTemplateController;
+use App\Http\Controllers\ServiceTypeController;
 use Illuminate\Support\Facades\Broadcast;
 
 require __DIR__ . '/public_routes.php';
@@ -137,7 +138,7 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'session.timeout'])->group(fu
     Route::get('/roles', [RoleController::class, 'index']);
 
     // Service Type Routes
-    Route::apiResource('service-types', ServiceTypeController::class)->only(['index']);
+    Route::apiResource('service-types', ServiceTypeController::class)->except(['show']);
 
     // Service Option Routes
     Route::apiResource('sub-services', ServiceOptionController::class)->only(['index', 'store']);
