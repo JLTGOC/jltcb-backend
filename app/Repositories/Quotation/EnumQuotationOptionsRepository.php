@@ -9,6 +9,7 @@ use App\Models\ServiceOption;
 use App\Models\ServiceType;
 use App\Repositories\BaseRepository;
 use App\Models\User;
+use App\Models\QuotationFileChecklistItem;
 
 class EnumQuotationOptionsRepository extends BaseRepository
 {
@@ -38,9 +39,11 @@ class EnumQuotationOptionsRepository extends BaseRepository
         $serviceOptions = [];
         $cargoType = [];
         $containerSize = [];
+        $documentChecklist = [];
 
         if (isset($validated['service'])) {
             if ($validated['service'] === 'REGULATORY') {
+                $documentChecklist = QuotationFileChecklistItem::whereIn('visibility', ['REGULATORY', 'BOTH'])->pluck('name');
                 $serviceTypes = ServiceType::where('service', 'REGULATORY')->pluck('name');
                 if (isset($validated['service_type'])) {
                     $serviceOptions = ServiceOption::where('status', 'ENABLED')
@@ -53,6 +56,7 @@ class EnumQuotationOptionsRepository extends BaseRepository
                 $businessTypes = BusinessType::pluck('name');
                 $regulatoryAssistanceTypes = RegulatoryAssistanceType::pluck('name');
             } elseif ($validated['service'] === 'LOGISTICS') {
+                $documentChecklist = QuotationFileChecklistItem::whereIn('visibility', ['LOGISTICS', 'BOTH'])->pluck('name');
                 $serviceTypes = ServiceType::where('service', 'LOGISTICS')->pluck('name');
                 $transportModes = ['AIR', 'SEA'];
                 if (isset($validated['service_type'])) {
@@ -78,6 +82,7 @@ class EnumQuotationOptionsRepository extends BaseRepository
             'service_options' => $serviceOptions,
             'cargo_type' => $cargoType,
             'container_size' => $containerSize,
+            'document_checklist' => $documentChecklist,
         ];
 
         return $this->success('Quotation options fetched', $quotationOptions, 200);
