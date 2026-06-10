@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->unsignedInteger('version_number')->default(1);
             $table->enum('service_category', ['REGULATORY', 'LOGISTICS']);
-            $table->foreignId('service_type_id')->constrained('service_types')->nullOnDelete();
+            $table->foreignId('service_type_id')->nullable()->constrained('service_types')->nullOnDelete();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
