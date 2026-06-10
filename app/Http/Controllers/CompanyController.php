@@ -70,33 +70,51 @@ class CompanyController extends Controller
                 return ['industry_id' => $industryId];
             }, $request->input('basic_info.industry', [])));
 
-            $company->address()->create($request->input('address'));
-            if ($request->has('address.warehouse_addresses')) {
-                foreach ($request->input('address.warehouse_addresses') as $warehouseAddress) {
-                    $company->warehouseAddresses()->create(['address' => $warehouseAddress]);
+            if (isset($request->address)) {
+                $company->address()->create($request->input('address'));
+                if ($request->has('address.warehouse_addresses')) {
+                    foreach ($request->input('address.warehouse_addresses') as $warehouseAddress) {
+                        $company->warehouseAddresses()->create(['address' => $warehouseAddress]);
+                    }
+                }
+                if ($request->has('address.delivery_addresses')) {
+                    foreach ($request->input('address.delivery_addresses') as $deliveryAddress) {
+                        $company->deliveryAddresses()->create(['address' => $deliveryAddress]);
+                    }
                 }
             }
-            if ($request->has('address.delivery_addresses')) {
-                foreach ($request->input('address.delivery_addresses') as $deliveryAddress) {
-                    $company->deliveryAddresses()->create(['address' => $deliveryAddress]);
+            
+            if (isset($request->primary)) {
+                $company->contacts()->create($request->input('primary'));
+            }
+            if (isset($request->secondary)) {
+                $company->contacts()->create($request->input('secondary'));
+            }
+            if (isset($request->billing)) {
+                $company->contacts()->create($request->input('billing'));
+            }
+            
+            if (isset($request->registration)) {
+                $company->registration()->create($request->input('registration'));
+                if ($request->has('registration.representatives')) {
+                    foreach ($request->input('registration.representatives') as $representative) {
+                        $company->representatives()->create(['full_name' => $representative]);
+                    }
                 }
             }
-
-            $company->contacts()->create($request->input('primary'));
-            $company->contacts()->create($request->input('secondary'));
-            $company->contacts()->create($request->input('billing'));
-
-            $company->registration()->create($request->input('registration'));
-            if ($request->has('registration.representatives')) {
-                foreach ($request->input('registration.representatives') as $representative) {
-                    $company->representatives()->create(['full_name' => $representative]);
-                }
+            
+            if (isset($request->pricing)) {
+                $company->pricing()->create($request->input('pricing'));
             }
-
-            $company->pricing()->create($request->input('pricing'));
-            $company->monitoring()->create($request->input('monitoring'));
-            $company->operation()->create($request->input('operation'));
-            $company->insight()->create($request->input('insights'));
+            if (isset($request->monitoring)) {
+                $company->monitoring()->create($request->input('monitoring'));
+            }
+            if (isset($request->operation)) {
+                $company->operation()->create($request->input('operation'));
+            }
+            if (isset($request->insights)) {
+                $company->insight()->create($request->input('insights'));
+            }
 
             $documentsInput = $request->input('documents', []);
             $uploadedDocs = $request->file('documents', []);
