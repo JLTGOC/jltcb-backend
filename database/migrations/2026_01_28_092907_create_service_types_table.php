@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('code')->unique();
             $table->enum('service', ['LOGISTICS', 'REGULATORY'])->default('LOGISTICS');
+            $table->enum('status', ['ENABLED', 'DISABLED'])->default('ENABLED');
             $table->timestamps();
         });
     }

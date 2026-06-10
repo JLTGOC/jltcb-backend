@@ -136,6 +136,9 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'session.timeout'])->group(fu
     // Role Routes
     Route::get('/roles', [RoleController::class, 'index']);
 
+    // Service Type Routes
+    Route::apiResource('service-types', ServiceTypeController::class)->only(['index']);
+
     // Service Option Routes
     Route::apiResource('sub-services', ServiceOptionController::class)->only(['index', 'store']);
     Route::put('/sub-services/{serviceOption}', [ServiceOptionController::class, 'update']);

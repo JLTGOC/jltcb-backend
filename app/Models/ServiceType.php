@@ -10,6 +10,8 @@ class ServiceType extends Model
     protected $fillable = [
         'name',
         'service',
+        'code',
+        'status',
     ];
 
     public function serviceOptions()
@@ -27,5 +29,13 @@ class ServiceType extends Model
 
     public function planningTemplates() {
         return $this->hasMany(PlanningTemplate::class, 'service_type_id');
+    }
+
+    public function isLocked(): bool
+    {
+        return $this->serviceOptions()->exists() ||
+               $this->quotations()->exists() ||
+               $this->jobOrderClients()->exists() ||
+               $this->planningTemplates()->exists();
     }
 }
