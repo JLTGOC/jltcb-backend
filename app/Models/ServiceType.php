@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\PlanningTimeline\Template\PlanningTemplate;
 use Illuminate\Database\Eloquent\Model;
 
 class ServiceType extends Model
@@ -22,5 +23,9 @@ class ServiceType extends Model
 
     public function jobOrderClients() {
         return $this->hasMany(JobOrderClient::class, 'service_type_id');
+    }
+
+    public function planningTemplates() {
+        return $this->hasMany(PlanningTemplate::class, 'service_type_id');
     }
 }
