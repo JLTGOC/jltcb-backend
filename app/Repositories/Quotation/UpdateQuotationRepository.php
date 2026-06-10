@@ -114,7 +114,7 @@ class UpdateQuotationRepository extends BaseRepository
                 $fileUploaded = $this->quotationFileService->syncClientDocuments(
                     $quotation, 
                     $user,
-                    newFiles: $request->file('documents', []), 
+                    newFiles: $request->documents, 
                     removedFileIds: $request->input('removed_documents', []) 
                 );
 

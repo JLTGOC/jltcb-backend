@@ -142,6 +142,7 @@ class QuotationResource extends JsonResource
                                 'file' => $file->id
                             ]),
                         'file_type' => $file->file_type,
+                        'document_checklist_item' => $file->documentChecklistItem ? $file->documentChecklistItem->name : 'OTHER',
                         'created_at' => $file->created_at,
                         'updated_at' => $file->updated_at,
                     ];

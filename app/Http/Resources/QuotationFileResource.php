@@ -27,6 +27,7 @@ class QuotationFileResource extends JsonResource
             'file_type' => $this->file_type,
             'type' => $this->type,
             'file_name' => $this->original_file_name,
+            'document_checklist_item' => $this->documentChecklistItem ? $this->documentChecklistItem->name : 'OTHER',
             'created_at' => $this->created_at?->toDateTimeString(),
             'updated_at' => $this->updated_at?->toDateTimeString(),
         ];

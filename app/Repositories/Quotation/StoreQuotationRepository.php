@@ -99,7 +99,7 @@ class StoreQuotationRepository extends BaseRepository
 
             // Upload client documents
             $fileUploaded = $this->quotationFileService->syncClientDocuments(
-                $quotation, auth()->user(), newFiles: $request->file('documents')
+                $quotation, auth()->user(), newFiles: $request->documents
             );
 
             if ($fileUploaded !== true) {

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Http\Resources\QuotationFileResource;
 use App\Models\Quotation;
 use App\Models\QuotationFile;
+use App\Models\QuotationFileChecklistItem;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -60,7 +61,7 @@ class QuotationFileService
 
             // Add new files
             foreach ($newFiles as $file) {
-                $path = $file->store(self::DIRECTORY, self::DISK);
+                $path = $file['file']->store(self::DIRECTORY, self::DISK);
 
                 $quotation->files()->create([
                     'file_path'          => $path,
