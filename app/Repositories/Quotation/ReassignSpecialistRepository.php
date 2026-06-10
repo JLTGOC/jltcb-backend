@@ -17,6 +17,35 @@ class ReassignSpecialistRepository extends BaseRepository
         $reassignmentRequest = ReassignmentRequest::where('quotation_id', $quotation->id)->where('status', 'PENDING')->latest()->first();
 
         if (!$reassignmentRequest) {
+            $userIsLeadAs = auth()->user()->hasRole('Lead Account Specialist');
+            $userIsAssignedAs = auth()->id() === $quotation->as_id;
+
+            if (!$userIsLeadAs || !$userIsAssignedAs) {
+                return $this->error('You are not authorized to reassign the Account Specialist for this quotation.', 403);
+            } else {
+                if (!User::role('Account Specialist')->where('id', $validated['as_id'])->exists()) {
+                    return $this->error('The selected user must have an Account Specialist role.', 422);
+                }
+                if ((int) $validated['as_id'] === $quotation->as_id || (int) $validated['as_id'] === auth()->id()) {
+                    return $this->error('The selected Account Specialist is already assigned to this quotation.', 422);
+                }
+
+                $quotation->update([
+                    'as_id' => $validated['as_id'],
+                    'assigned_at' => Carbon::now(),
+                    'assignment_status' => 'ASSIGNED',
+                ]);
+
+                $activityLog = ActivityLog::create([
+                    'subject_id' => $quotation->id,
+                    'subject_type' => Quotation::class,
+                    'user_id' => auth()->id(),
+                    'action' => 'Account Specialist Reassigned',
+                ]);
+
+                return $this->success('Account Specialist reassigned successfully', new QuotationResource($quotation), 200);
+            }
+
             return $this->error('No pending reassignment request for this quotation', 422);
         }
 
