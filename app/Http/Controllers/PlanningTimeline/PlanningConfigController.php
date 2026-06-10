@@ -4,14 +4,10 @@ namespace App\Http\Controllers\PlanningTimeline;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PlanningTimeline\UpdatePlanningConfigRequest;
-use App\Models\PlanningTimeline\Config\PlanningConfigPhase;
-use App\Models\PlanningTimeline\Config\PlanningConfigProcess;
-use App\Models\PlanningTimeline\Config\PlanningConfigTask;
 use App\Http\Resources\PlanningTimeline\Config\PlanningTemplateConfigResource;
 use App\Models\PlanningTimeline\Config\PlanningTemplateConfig;
 use App\Services\PlanningConfigService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class PlanningConfigController extends Controller
 {
@@ -57,21 +53,11 @@ class PlanningConfigController extends Controller
     public function update(UpdatePlanningConfigRequest $request, string $serviceCategory) {
         $validated = $request->validated();
 
-        $templateConfig = PlanningTemplateConfig::where('service_category', $serviceCategory)
-            ->first();
-
-        if ($validated['version_number'] !== $templateConfig->version_number) {
-            return $this->error(
-                'Version Conflict: Your changes are based on an old Planning Template Configuration version. Reload and try again.', 
-                statusCode: 409
-            );               
-        }
-
-        $newTemplateConfig = $this->planningConfigService->update($templateConfig, $validated);
+        $newTemplateConfig = $this->planningConfigService->update($serviceCategory, $validated);
 
         return $this->success(
-            $serviceCategory . ' template configurations fetched successfully', 
-            new PlanningTemplateConfigResource($newTemplateConfig)
+            $serviceCategory . ' Template configurations updated successfully', 
+            new PlanningTemplateConfigResource($newTemplateConfig),
         );
     }
 }

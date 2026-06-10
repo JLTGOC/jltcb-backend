@@ -1,6 +1,8 @@
 <?php
 
+use App\Exceptions\InvalidConfigIdsException;
 use App\Exceptions\LockedConfigItemException;
+use App\Exceptions\TemplateConfigVersionConflictException;
 use App\Http\Middleware\AllowGuest;
 use App\Http\Middleware\RoleBasedSessionTimeout;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -76,6 +78,19 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->renderable(function (LockedConfigItemException $e, $request) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'errors' => $e->violations
+            ], 422);
+        });
+
+        $exceptions->renderable(function (TemplateConfigVersionConflictException $e, $request) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 409);
+        });
+
+        $exceptions->renderable(function (InvalidConfigIdsException $e, $request) {
             return response()->json([
                 'message' => $e->getMessage(),
                 'errors' => $e->violations

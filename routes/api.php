@@ -26,8 +26,8 @@ use App\Http\Controllers\ServiceOptionController;
 use App\Http\Controllers\ReassignmentRequestController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\PlanningTimeline\PlanningConfigController;
-use App\Http\Controllers\PlanningTimelineTemplateController;
 use App\Http\Controllers\ServiceTypeController;
+use App\Http\Controllers\PlanningTimeline\PlanningTemplateController;
 use Illuminate\Support\Facades\Broadcast;
 
 require __DIR__ . '/public_routes.php';
@@ -158,21 +158,16 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'session.timeout'])->group(fu
 
     // Planning & Timeline Routes
     Route::prefix('planning-timeline')->group(function() {
-        // Route::apiResource('/templates', PlanningTimelineTemplateController::class)
-        //     ->only(['index', 'show', 'update']);
+        Route::apiResource('/templates', PlanningTemplateController::class)
+            ->only(['index', 'store', 'show', 'update']);
+        
+        // Toggle template active status endpoint
 
         Route::get('/configs/{serviceCategory}', [PlanningConfigController::class, 'show'])
             ->where('serviceCategory', 'LOGISTICS|REGULATORY');
         Route::put('/configs/{serviceCategory}', [PlanningConfigController::class, 'update'])
             ->where('serviceCategory', 'LOGISTICS|REGULATORY');
     });
-    
-    // store template draft
-    // save template draft
-    // update template
-    
-    // store template config
-    // edit template config
 
     // Register unregistered client
     // NOTE: This method is currently not in use. Implementation will be based on future requirements regarding unregistered clients.
