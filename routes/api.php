@@ -177,4 +177,7 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'session.timeout'])->group(fu
     // Register unregistered client
     // NOTE: This method is currently not in use. Implementation will be based on future requirements regarding unregistered clients.
     Route::post('/clients/register', [ClientController::class, 'registerUnregisteredClient']);
+
+    // Quotation Document Checklist Routes
+    Route::apiResource('document-checklist', QuotationFileChecklistItemController::class)->only(['index', 'store', 'update', 'destroy']);
 });

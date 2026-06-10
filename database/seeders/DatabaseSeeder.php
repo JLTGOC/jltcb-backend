@@ -65,6 +65,7 @@ class DatabaseSeeder extends Seeder
             ReassignmentRequestSeeder::class,
             HistorySeeder::class,
             PlanningTemplateSeeder::class,
+            QuotationFileChecklistItemSeeder::class,
         ]);
     }
 }
