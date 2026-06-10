@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignIdFor(JobOrder::class)->constrained()->onDelete('cascade');
             $table->string('client_type');
             $table->string('accredited');
-            $table->foreignIdFor(ServiceType::class)->constrained()->onDelete('cascade');
+            $table->foreignIdFor(ServiceType::class)->nullable()->constrained()->nullOnDelete();
             $table->string('tone_and_attitude')->nullable();
             $table->text('client_remarks')->nullable();
             $table->timestamps();

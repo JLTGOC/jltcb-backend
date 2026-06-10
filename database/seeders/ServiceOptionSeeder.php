@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\ServiceOption;
+use App\Models\ServiceType;
 
 class ServiceOptionSeeder extends Seeder
 {
@@ -13,7 +14,15 @@ class ServiceOptionSeeder extends Seeder
      */
     public function run(): void
     {
-        $names = [
+        ServiceOption::create([
+            'name' => 'ALL IN',
+            'status' => 'ENABLED',
+            'service_type_id' => null
+        ]);
+
+        $logisticsServiceTypes = ServiceType::where('service', 'LOGISTICS')->pluck('id')->toArray();
+
+        $logisticsServiceOptions = [
             'CUSTOMS CLEARANCE',
             'PEZA PROCESSING & COMPLIANCE',
             'CUSTOMS DISPUTE RESOLUTION',
@@ -26,24 +35,31 @@ class ServiceOptionSeeder extends Seeder
             'PROJECT CARGO'
         ];
 
-        ServiceOption::create([
-            'name' => 'ALL IN',
-            'status' => 'ENABLED',
-            'service_type_id' => null
-        ]);
+        foreach ($logisticsServiceOptions as $name) {
+            foreach ($logisticsServiceTypes as $serviceTypeId) {
+                ServiceOption::create([
+                    'name' => $name,
+                    'status' => 'ENABLED',
+                    'service_type_id' => $serviceTypeId
+                ]);
+            }
+        }
 
-        foreach ($names as $name) {
-            ServiceOption::create([
-                'name' => $name,
-                'status' => 'ENABLED',
-                'service_type_id' => 1
-            ]);
+        $regulatoryServiceTypes = ServiceType::where('service', 'REGULATORY')->pluck('id')->toArray();
 
-            ServiceOption::create([
-                'name' => $name,
-                'status' => 'ENABLED',
-                'service_type_id' => 2
-            ]);
+        $regulatoryServiceOptions = [
+            'NEW APPLICATION',
+            'RENEWAL',
+        ];
+
+        foreach ($regulatoryServiceOptions as $name) {
+            foreach ($regulatoryServiceTypes as $serviceTypeId) {
+                ServiceOption::create([
+                    'name' => $name,
+                    'status' => 'ENABLED',
+                    'service_type_id' => $serviceTypeId
+                ]);
+            }
         }
     }
 }
