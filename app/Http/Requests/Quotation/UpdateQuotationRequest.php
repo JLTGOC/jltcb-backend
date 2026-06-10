@@ -28,7 +28,8 @@ class UpdateQuotationRequest extends FormRequest
         $baseRules = [
             'services' => 'sometimes|in:LOGISTICS,REGULATORY',
             'documents' => ['nullable', 'array'],
-            'documents.*' => ['file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
+            'documents.*.file' => ['file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
+            'documents.*.type' => ['string', Rule::in(QuotationFileChecklistItem::whereIn('visibility', [$this->input('services'), 'BOTH'])->pluck('name')->toArray())],
             'removed_documents' => ['nullable', 'array'],
             'removed_documents.*' => [
                 'integer',

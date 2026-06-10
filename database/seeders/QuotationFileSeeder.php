@@ -53,6 +53,7 @@ class QuotationFileSeeder extends Seeder
                     'file_path'          => $filePath,
                     'type'               => $fileIndex ? 'PROPOSAL' : 'REQUESTED',
                     'original_file_name' => $fileIndex ? 'QUOTATION.pdf' : 'DOCUMENT.pdf',
+                    'document_checklist_item_id' => null,
                     'file_type' => 'pdf'
                 ]);
             }

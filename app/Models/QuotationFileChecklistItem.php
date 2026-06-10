@@ -15,4 +15,8 @@ class QuotationFileChecklistItem extends Model
         'created_at',
         'updated_at'
     ];
+
+    public function quotationFiles() {
+        return $this->hasMany(QuotationFile::class, 'document_checklist_item_id');
+    }
 }

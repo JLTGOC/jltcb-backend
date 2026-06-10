@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('file_type');
             $table->foreignId('uploaded_by')->constrained('users');
             $table->enum('type', ['REQUESTED', 'PROPOSAL'])->default('REQUESTED');
+            $table->foreignId('document_checklist_item_id')->nullable()->constrained('quotation_file_checklist_items')->nullOnDelete();
             $table->timestamps();
             $table->unique(['quotation_id', 'file_path']);
         });

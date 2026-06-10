@@ -10,6 +10,7 @@ use App\Models\{
     ContainerSize,
     BusinessType,
     RegulatoryAssistanceType,
+    QuotationFileChecklistItem,
     User
 };
 
@@ -55,7 +56,8 @@ class StoreQuotationRequest extends FormRequest
                 'shipment.origin' => 'required|string',
                 'shipment.destination' => 'required|string',
                 'documents' => ['sometimes', 'nullable', 'array'],
-                'documents.*' => ['required_with:documents', 'file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
+                'documents.*.file' => ['required_with:documents', 'file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
+                'documents.*.type' => ['required_with:documents', 'string', Rule::in(QuotationFileChecklistItem::whereIn('visibility', ['LOGISTICS', 'BOTH'])->pluck('name')->toArray())],
                 'remarks' => ['nullable', 'string']
             ];
         } elseif ($this->input('services') === 'REGULATORY') {
@@ -90,7 +92,8 @@ class StoreQuotationRequest extends FormRequest
                     }
                 }],
                 'documents' => ['sometimes', 'nullable', 'array'],
-                'documents.*' => ['required_with:documents', 'file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
+                'documents.*.file' => ['required_with:documents', 'file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
+                'documents.*.type' => ['sometimes', 'nullable', 'string', Rule::in(QuotationFileChecklistItem::whereIn('visibility', ['REGULATORY', 'BOTH'])->pluck('name')->toArray())],
             ];
         }
 

@@ -55,6 +55,7 @@ class DatabaseSeeder extends Seeder
             ContainerSizeSeeder::class,
             BillingModeSeeder::class,
             ServiceLevelSeeder::class,
+            QuotationFileChecklistItemSeeder::class,
             QuotationSeeder::class,
             QuotationFileSeeder::class,
             ChatSeeder::class,
@@ -65,7 +66,6 @@ class DatabaseSeeder extends Seeder
             ReassignmentRequestSeeder::class,
             HistorySeeder::class,
             PlanningTemplateSeeder::class,
-            QuotationFileChecklistItemSeeder::class,
         ]);
     }
 }

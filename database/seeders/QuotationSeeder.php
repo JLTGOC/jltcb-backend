@@ -115,12 +115,14 @@ class QuotationSeeder extends Seeder
                         'type' => 'PROPOSAL',
                         'original_file_name' => 'QUOTATION.pdf',
                         'file_type' => 'pdf',
+                        'document_checklist_item_id' => null,
                         'created_at' => $quotation->updated_at,
                         'updated_at' => $quotation->updated_at,
                     ]);
                 } else {
                     $quotation->files()->where('file_path', 'files/QuotationFile.pdf')->where('quotation_id', $quotation->id)->update([
                         'type' => 'PROPOSAL',
+                        'document_checklist_item_id' => null,
                         'created_at' => $quotation->created_at,
                         'updated_at' => $quotation->updated_at,
                     ]);
@@ -413,6 +415,7 @@ class QuotationSeeder extends Seeder
                 'type' => 'REQUESTED',
                 'original_file_name' => 'DOCUMENT.pdf',
                 'file_type' => 'pdf',
+                'document_checklist_item_id' => $quotation->serviceType?->service === 'LOGISTICS' ? fake()->randomElement([1,3,4,5]) : fake()->randomElement([2,3,5]),
                 'created_at' => $createdAt ?? $quotation->created_at,
                 'updated_at' => $updatedAt ?? $quotation->updated_at,
             ]);
