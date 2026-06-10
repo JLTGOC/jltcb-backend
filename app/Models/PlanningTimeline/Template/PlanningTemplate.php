@@ -17,7 +17,7 @@ class PlanningTemplate extends Model
     ];
 
     public function phases() {
-        return $this->hasMany(PlanningTemplatePhase::class, 'planning_template_id');
+        return $this->hasMany(PlanningTemplatePhase::class, 'planning_template_id')->orderBy('sort_order');
     }
 
     public function serviceType() {

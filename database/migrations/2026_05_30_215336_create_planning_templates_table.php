@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->unsignedInteger('version_number')->default(1);
             $table->enum('service_category', ['REGULATORY', 'LOGISTICS']);
-            $table->foreignId('service_type_id')->nullable()->constrained('service_types')->nullOnDelete();
+            $table->foreignId('service_type_id')->constrained('service_types')->restrictOnDelete();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
@@ -90,6 +90,20 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['template_process_id', 'config_task_id'], 'template_task_unique');
+        });
+
+        Schema::create('planning_template_phase_headings', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('template_phase_id')
+                ->constrained('planning_template_phases')
+                ->cascadeOnDelete();
+            $table->string('name'); 
+            $table->enum('input_type', ['TEXT', 'NUMBER', 'DATETIME']);
+            $table->unsignedInteger('sort_order')->default(1);
+            $table->string('key')->nullable(); // default headings have keys, null for custom
+            $table->timestamps();
+
+            $table->unique(['template_phase_id', 'key']);
         });
     }
 
