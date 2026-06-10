@@ -42,6 +42,14 @@ class EnumQuotationOptionsRepository extends BaseRepository
         if (isset($validated['service'])) {
             if ($validated['service'] === 'REGULATORY') {
                 $serviceTypes = ServiceType::where('service', 'REGULATORY')->pluck('name');
+                if (isset($validated['service_type'])) {
+                    $serviceOptions = ServiceOption::where('status', 'ENABLED')
+                        ->where('service_type_id', null)
+                        ->orWhere('service_type_id', ServiceType::where('name', $validated['service_type'])->first()->id)
+                        ->pluck('name');
+                } else {
+                    $serviceOptions = ServiceOption::where('status', 'ENABLED')->pluck('name');
+                }
                 $businessTypes = BusinessType::pluck('name');
                 $regulatoryAssistanceTypes = RegulatoryAssistanceType::pluck('name');
             } elseif ($validated['service'] === 'LOGISTICS') {
