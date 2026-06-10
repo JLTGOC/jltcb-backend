@@ -36,6 +36,7 @@ class ShipmentResource extends JsonResource
                 'job_order_id' => $this->job_order_id,
                 'client' => $this->client->full_name,
                 'company_name' => $this->client->company?->name ?? null,
+                'ops_id' => $this->operations?->id,
                 'person_in_charge' => mb_strtoupper($this->operations?->username) . ' ' . $this->operations?->last_name,
                 'person_in_charge_full_name' => $this->operations?->full_name,
                 'person_in_charge_image' => $this->operations->image_path ? asset(Storage::url($this->operations->image_path)) : null,
@@ -77,6 +78,7 @@ class ShipmentResource extends JsonResource
                     'image_path' => $this->client->image_path ? asset(Storage::url($this->client->image_path)) : null,
                 ],
                 'person_in_charge' => [
+                    'id' => $this->operations?->id,
                     'username' => mb_strtoupper($this->operations?->username) . ' ' . $this->operations?->last_name,
                     'role' => $this->operations?->getRoleNames()->first() ?? null,
                     'full_name' => $this->operations?->full_name,
