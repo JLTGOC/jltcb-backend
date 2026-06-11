@@ -56,7 +56,7 @@ class StoreQuotationRequest extends FormRequest
             $additionalRules = [
                 'service.transport_mode' => ['required', 'string', Rule::in(['SEA', 'AIR'])],
                 'service.options' => 'required|array',
-                'service.options.*' => ['required', 'string', Rule::in(ServiceOption::where('service_type_id', ServiceType::where('name', $this->input('service.type'))->first()->id)->pluck('name')->toArray())],
+                'service.options.*' => ['required', 'string', Rule::in(ServiceOption::where('service_type_id', ServiceType::where('name', $this->input('service.type'))->first()->id)->orWhereNull('service_type_id')->pluck('name')->toArray())],
                 'commodity.commodity' => 'required|string',
                 'commodity.cargo_type' => ['required', 'string', Rule::in(['CONTAINERIZED', 'LCL'])],
                 'commodity.container_size' => ['required_if:commodity.cargo_type,CONTAINERIZED', function ($attribute, $value, $fail) {
@@ -93,6 +93,6 @@ class StoreQuotationRequest extends FormRequest
             ];
         }
 
-        return array_merge($rules, $additionalRules);
+        return array_merge($baseRules, $additionalRules);
     }
 }
