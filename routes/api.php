@@ -162,7 +162,7 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'session.timeout'])->group(fu
         Route::apiResource('/templates', PlanningTemplateController::class)
             ->only(['index', 'store', 'show', 'update']);
         
-        // Toggle template active status endpoint
+        Route::patch('/templates/{template}/active-status', [PlanningTemplateController::class, 'toggleStatus']);
 
         Route::get('/configs/{serviceCategory}', [PlanningConfigController::class, 'show'])
             ->where('serviceCategory', 'LOGISTICS|REGULATORY');

@@ -91,4 +91,25 @@ class PlanningTemplateController extends Controller
     {
         //
     }
+
+    /**
+     * Toggle Template Active Status
+     * 
+     * Change the active status of a planning template.
+     */
+    public function toggleStatus(Request $request, PlanningTemplate $template)
+    {
+        $request->validate([
+            'is_active' => 'required|boolean',
+        ]);
+
+        $template->update([
+            'is_active' => $request->is_active
+        ]);
+
+        return $this->success(
+            'Planning Template active status changed successfully', 
+            new PlanningTemplateResource($template)
+        );
+    }
 }
