@@ -20,7 +20,7 @@ class EnumQuotationOptionsRepository extends BaseRepository
             $user = User::find(auth()->id());
         }
 
-        $autofillDetails = [
+        $autofillDetails = $user ? [
             'full_name' => $user?->full_name,
             'company' => [
                 'name' => $user->company?->name ?? null,
@@ -30,7 +30,7 @@ class EnumQuotationOptionsRepository extends BaseRepository
                 'email' => $user->email,
                 'business_type' => $user->company ? $user->company->businessType->name : $user->company?->business_type_other ?? null,
             ],
-        ];
+        ] : null;
         $clients = User::role('Client')->pluck('full_name', 'id');
         $businessTypes = [];
         $regulatoryAssistanceTypes = [];
