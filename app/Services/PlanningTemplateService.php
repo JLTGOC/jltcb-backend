@@ -37,7 +37,7 @@ class PlanningTemplateService {
                 'is_active' => true
             ]);
 
-            $headings = [];
+            $headingsToInsert = [];
 
             foreach($data['phases'] as $phaseData) {
                 $templatePhase = $planningTemplate->phases()->create([
@@ -65,7 +65,7 @@ class PlanningTemplateService {
             }
 
             if (!empty($headingsToInsert)) {
-                PlanningTemplatePhaseHeading::insert($headings);
+                PlanningTemplatePhaseHeading::insert($headingsToInsert);
             }
 
             return $planningTemplate;
