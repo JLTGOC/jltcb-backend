@@ -28,6 +28,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\PlanningTimeline\PlanningConfigController;
 use App\Http\Controllers\ServiceTypeController;
 use App\Http\Controllers\PlanningTimeline\PlanningTemplateController;
+use App\Http\Controllers\QuotationFileChecklistItemController;
 use Illuminate\Support\Facades\Broadcast;
 
 require __DIR__ . '/public_routes.php';
