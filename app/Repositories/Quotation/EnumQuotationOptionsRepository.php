@@ -21,7 +21,7 @@ class EnumQuotationOptionsRepository extends BaseRepository
         }
 
         $autofillDetails = [
-            'full_name' => $user->full_name,
+            'full_name' => $user?->full_name,
             'company' => [
                 'name' => $user->company?->name ?? null,
                 'address' => $user->company?->address->registered_address ?? null,

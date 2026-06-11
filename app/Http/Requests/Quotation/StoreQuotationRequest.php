@@ -31,14 +31,28 @@ class StoreQuotationRequest extends FormRequest
      */
     public function rules(): array
     {
+        $baseRules = [
+            'services' => 'required|in:LOGISTICS,REGULATORY',
+            'client' => 'sometimes|nullable',
+            'full_name' => 'sometimes|nullable|string',
+            'company.name' => 'required|string',
+            'company.address' => 'required|string',
+            'company.contact_person' => ['sometimes', 'nullable', 'string', function ($attribute, $value, $fail) {
+                if ($this->input('company.contact_person') === "" || empty($value)) {
+                    $value = null; // Convert empty string to null
+                    return;
+                }
+            }],
+            'company.contact_number' => 'required|string|min:11|max:11|regex:/^09\d{9}$/',
+            'company.email' => 'required|email',
+            'documents' => ['sometimes', 'nullable', 'array'],
+            'documents.*.file' => ['required_with:documents', 'file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
+            'documents.*.type' => ['sometimes', 'nullable', 'string', Rule::in(QuotationFileChecklistItem::whereIn('visibility', [strtoupper($this->input('services')), 'BOTH'])->pluck('name')->toArray())],
+        ];
+        $additionalRules = [];
+
         if ($this->input('services') === 'LOGISTICS') {
-            $rules = [
-                'services' => 'required|in:LOGISTICS,REGULATORY',
-                'company.name' => 'required|string',
-                'company.address' => 'required|string',
-                'company.contact_person' => 'required|string',
-                'company.contact_number' => 'required|string|min:11|max:11|regex:/^09\d{9}$/',
-                'company.email' => 'required|email',
+            $additionalRules = [
                 'service.type' => ['required', 'string', Rule::in(ServiceType::where('service', 'LOGISTICS')->pluck('name')->toArray())],
                 'service.transport_mode' => ['required', 'string', Rule::in(['SEA', 'AIR'])],
                 'service.options' => 'required|array',
@@ -55,33 +69,18 @@ class StoreQuotationRequest extends FormRequest
                 }],
                 'shipment.origin' => 'required|string',
                 'shipment.destination' => 'required|string',
-                'documents' => ['sometimes', 'nullable', 'array'],
-                'documents.*.file' => ['required_with:documents', 'file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
-                'documents.*.type' => ['sometimes', 'nullable', 'string', Rule::in(QuotationFileChecklistItem::whereIn('visibility', ['LOGISTICS', 'BOTH'])->pluck('name')->toArray())],
                 'remarks' => ['nullable', 'string']
             ];
         } elseif ($this->input('services') === 'REGULATORY') {
-            $rules = [
-                'services' => 'required|in:LOGISTICS,REGULATORY',
-                'full_name' => 'required|string',
-                'company.contact_person' => ['sometimes', 'nullable', 'string', function ($attribute, $value, $fail) {
-                    if ($this->input('company.contact_person') === "" || empty($value)) {
-                        $value = null; // Convert empty string to null
-                        return;
-                    }
-                }],
+            $additionalRules = [
+                'company.position' => 'sometimes|nullable|string',
+                'company.business_type' => ['sometimes', 'nullable', Rule::in(BusinessType::pluck('name')->toArray())],
                 'company.cp_contact_number' => ['sometimes', 'nullable', 'string', 'min:11', 'max:11', 'regex:/^09\d{9}$/', function ($attribute, $value, $fail) {
                     if ($this->input('company.cp_contact_number') === "" || empty($value)) {
                         $value = null; // Convert empty string to null
                         return;
                     }
                 }],
-                'company.name' => 'required|string',
-                'company.address' => 'required|string',
-                'company.position' => 'sometimes|nullable|string',
-                'company.contact_number' => 'required|string|min:11|max:11|regex:/^09\d{9}$/',
-                'company.email' => 'required|email',
-                'company.business_type' => ['sometimes', 'nullable', Rule::in(BusinessType::pluck('name')->toArray())],
                 'type_of_regulatory_assistance' => 'required|array',
                 'type_of_regulatory_assistance.*' => ['required', 'string'],
                 'service_level' => 'required|string|in:NEW,RENEWAL',
@@ -91,16 +90,9 @@ class StoreQuotationRequest extends FormRequest
                         return;
                     }
                 }],
-                'documents' => ['sometimes', 'nullable', 'array'],
-                'documents.*.file' => ['required_with:documents', 'file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
-                'documents.*.type' => ['sometimes', 'nullable', 'string', Rule::in(QuotationFileChecklistItem::whereIn('visibility', ['REGULATORY', 'BOTH'])->pluck('name')->toArray())],
             ];
         }
 
-        if (auth()->user()->hasRole(['Account Specialist, Lead Account Specialist', 'Client Success'])) {
-            $rules['client'] = 'required';
-        }
-
-        return $rules;
+        return array_merge($rules, $additionalRules);
     }
 }
