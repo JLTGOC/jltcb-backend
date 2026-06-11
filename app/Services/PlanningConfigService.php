@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\LockedConfigItemException;
+use App\Exceptions\TemplateConfigVersionConflictException;
 use App\Models\PlanningTimeline\Config\PlanningConfigPhase;
 use App\Models\PlanningTimeline\Config\PlanningConfigProcess;
 use App\Models\PlanningTimeline\Config\PlanningConfigTask;
@@ -12,7 +13,9 @@ use Illuminate\Support\Facades\DB;
 
 class PlanningConfigService {
 
-    public function update(PlanningTemplateConfig $templateConfig, array $data) : PlanningTemplateConfig {
+    public function update(string $serviceCategory, array $data) : PlanningTemplateConfig {
+        $templateConfig = $this->findAndValidateTemplateConfig($serviceCategory, $data['version_number']);
+
         $templateConfig->load([
             'phases.templatePhases', 
             'processes.templateProcesses', 
@@ -69,6 +72,22 @@ class PlanningConfigService {
                 'templateTasks as is_locked'
             ]),
         ]);
+    }
+
+    /**
+     * Retrieves the template configuration and verifies that the provided version matches the current version.
+     *
+     * @throws TemplateConfigVersionConflictException
+     */
+    public function findAndValidateTemplateConfig(string $serviceCategory, int $requestVersionNumber) : PlanningTemplateConfig {
+        $templateConfig = PlanningTemplateConfig::where('service_category', $serviceCategory)
+            ->first();
+
+        if ($requestVersionNumber !== $templateConfig->version_number) {
+            throw new TemplateConfigVersionConflictException();              
+        }
+
+        return $templateConfig;
     }
 
     private function checkViolations(Collection $current, array $incoming, string $level) {

@@ -2,11 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Enums\DefaultPhaseHeading;
 use App\Models\PlanningTimeline\Config\PlanningConfigPhase;
 use App\Models\PlanningTimeline\Config\PlanningConfigProcess;
 use App\Models\PlanningTimeline\Config\PlanningConfigTask;
 use App\Models\PlanningTimeline\Config\PlanningTemplateConfig;
 use App\Models\PlanningTimeline\Template\PlanningTemplate;
+use App\Models\PlanningTimeline\Template\PlanningTemplatePhaseHeading;
 use App\Models\ServiceType;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -142,6 +144,8 @@ class PlanningTemplateSeeder extends Seeder
                 }
             }
         }
+
+        $this->createPhaseHeadings($planningTemplate);
     }
 
     private function createConfigs() {
@@ -230,5 +234,13 @@ class PlanningTemplateSeeder extends Seeder
                 ])
                 ->all()
         );
+    }
+
+    public function createPhaseHeadings(PlanningTemplate $planningTemplate) {
+        foreach($planningTemplate->phases as $phase) {
+            PlanningTemplatePhaseHeading::insert(
+                DefaultPhaseHeading::defaultRows($phase->id)
+            );
+        }
     }
 }

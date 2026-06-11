@@ -4,7 +4,7 @@ namespace App\Http\Resources\PlanningTimeline\Config;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\PlanningTimeline\PlanningTemplateResource;
+use App\Http\Resources\PlanningTimeline\Template\PlanningTemplateResource;
 
 class PlanningConfigProcessResource extends JsonResource
 {

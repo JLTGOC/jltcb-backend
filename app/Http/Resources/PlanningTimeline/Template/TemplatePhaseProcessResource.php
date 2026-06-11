@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\PlanningTimeline;
+namespace App\Http\Resources\PlanningTimeline\Template;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
