@@ -57,7 +57,7 @@ class StoreQuotationRequest extends FormRequest
                 'shipment.destination' => 'required|string',
                 'documents' => ['sometimes', 'nullable', 'array'],
                 'documents.*.file' => ['required_with:documents', 'file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
-                'documents.*.type' => ['required_with:documents', 'string', Rule::in(QuotationFileChecklistItem::whereIn('visibility', ['LOGISTICS', 'BOTH'])->pluck('name')->toArray())],
+                'documents.*.type' => ['sometimes', 'nullable', 'string', Rule::in(QuotationFileChecklistItem::whereIn('visibility', ['LOGISTICS', 'BOTH'])->pluck('name')->toArray())],
                 'remarks' => ['nullable', 'string']
             ];
         } elseif ($this->input('services') === 'REGULATORY') {
