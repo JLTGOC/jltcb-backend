@@ -45,6 +45,7 @@ class StoreQuotationRequest extends FormRequest
             }],
             'company.contact_number' => 'required|string|min:11|max:11|regex:/^09\d{9}$/',
             'company.email' => 'required|email',
+            'service.type' => ['sometimes', 'string', Rule::in(ServiceType::where('service', $this->input('services'))->pluck('name')->toArray())],
             'documents' => ['sometimes', 'nullable', 'array'],
             'documents.*.file' => ['required_with:documents', 'file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
             'documents.*.type' => ['sometimes', 'nullable', 'string', Rule::in(QuotationFileChecklistItem::whereIn('visibility', [strtoupper($this->input('services')), 'BOTH'])->pluck('name')->toArray())],
@@ -53,7 +54,6 @@ class StoreQuotationRequest extends FormRequest
 
         if ($this->input('services') === 'LOGISTICS') {
             $additionalRules = [
-                'service.type' => ['required', 'string', Rule::in(ServiceType::where('service', 'LOGISTICS')->pluck('name')->toArray())],
                 'service.transport_mode' => ['required', 'string', Rule::in(['SEA', 'AIR'])],
                 'service.options' => 'required|array',
                 'service.options.*' => ['required', 'string', Rule::in(ServiceOption::where('service_type_id', ServiceType::where('name', $this->input('service.type'))->first()->id)->pluck('name')->toArray())],
