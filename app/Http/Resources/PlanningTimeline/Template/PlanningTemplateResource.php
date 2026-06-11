@@ -19,6 +19,7 @@ class PlanningTemplateResource extends JsonResource
             'name' => $this->name,
             'version_number' => $this->version_number,
             'service_type' => $this->serviceType->name,
+            'service_category' => $this->service_category,
             'is_active' => $this->is_active,
             'phases' => TemplatePhaseResource::collection($this->whenLoaded('phases')),
         ];

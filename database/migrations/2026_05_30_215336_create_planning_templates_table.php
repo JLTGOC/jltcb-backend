@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('planning_templates', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name')->unique();
             $table->unsignedInteger('version_number')->default(1);
             $table->enum('service_category', ['REGULATORY', 'LOGISTICS']);
             $table->foreignId('service_type_id')->constrained('service_types')->restrictOnDelete();

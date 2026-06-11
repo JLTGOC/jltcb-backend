@@ -37,12 +37,12 @@ class PlanningTemplateService {
                 'is_active' => true
             ]);
 
-            $headings = [];
+            $headingsToInsert = [];
 
             foreach($data['phases'] as $phaseData) {
                 $templatePhase = $planningTemplate->phases()->create([
                     'config_phase_id' => $phaseData['config_phase_id'], 
-                    'sort_order' => $phaseData['config_phase_id']
+                    'sort_order' => $phaseData['sort_order']
                 ]);
 
                 foreach (DefaultPhaseHeading::defaultRows($templatePhase->id) as $record) {
@@ -65,7 +65,7 @@ class PlanningTemplateService {
             }
 
             if (!empty($headingsToInsert)) {
-                PlanningTemplatePhaseHeading::insert($headings);
+                PlanningTemplatePhaseHeading::insert($headingsToInsert);
             }
 
             return $planningTemplate;
@@ -74,8 +74,8 @@ class PlanningTemplateService {
 
     private function assertConfigIdsAreValid(array $phases, PlanningTemplateConfig $planningTemplateConfig) {
         $validPhaseIds = $planningTemplateConfig->phases->pluck('id')->all();
-        $validProcessIds = $planningTemplateConfig->phases->pluck('id')->all();
-        $validTaskIds = $planningTemplateConfig->phases->pluck('id')->all();
+        $validProcessIds = $planningTemplateConfig->processes->pluck('id')->all();
+        $validTaskIds = $planningTemplateConfig->tasks->pluck('id')->all();
 
         $submittedPhaseIds = collect($phases)->pluck('config_phase_id')->all();
 
@@ -88,18 +88,17 @@ class PlanningTemplateService {
             ->flatMap(fn($phase) => collect($phase['processes']))
                 ->flatMap(fn($process) => collect($process['tasks'])->pluck('config_task_id'))
             ->unique()
-            ->values()
             ->all();
 
-        $invalidPhases    = array_diff($submittedPhaseIds,   $validPhaseIds);
-        $invalidProcesses = array_diff($submittedProcessIds, $validProcessIds);
-        $invalidTasks     = array_diff($submittedTaskIds,    $validTaskIds);
+        $invalidPhases = array_values(array_diff($submittedPhaseIds, $validPhaseIds));
+        $invalidProcesses = array_values(array_diff($submittedProcessIds, $validProcessIds));
+        $invalidTasks = array_values(array_diff($submittedTaskIds, $validTaskIds));
 
         if ($invalidPhases || $invalidProcesses || $invalidTasks) {
             throw new InvalidConfigIdsException([
-                'invalid_phases' => $invalidPhases,
-                'invalid_processes' => $invalidProcesses,
-                'invalid_tasks' => $invalidTasks
+                'invalid_phase_ids' => $invalidPhases,
+                'invalid_process_ids' => $invalidProcesses,
+                'invalid_task_ids' => $invalidTasks
             ]);
         }
     }
