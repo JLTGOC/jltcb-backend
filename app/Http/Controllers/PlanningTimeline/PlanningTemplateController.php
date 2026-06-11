@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\PlanningTimeline\Template\PlanningTemplateResource;
 use App\Models\PlanningTimeline\Template\PlanningTemplate;
 use App\Http\Requests\PlanningTimeline\StorePlanningTemplateRequest;
+use App\Http\Requests\PlanningTimeline\UpdatePlanningTemplateRequest;
 use App\Services\PlanningTemplateService;
 use Illuminate\Http\Request;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -79,7 +80,7 @@ class PlanningTemplateController extends Controller
      * 
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdatePlanningTemplateRequest $request, PlanningTemplate $template)
     {
         //
     }
