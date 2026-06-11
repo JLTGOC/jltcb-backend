@@ -2,7 +2,7 @@
 
 use App\Exceptions\InvalidConfigIdsException;
 use App\Exceptions\LockedConfigItemException;
-use App\Exceptions\TemplateConfigVersionConflictException;
+use App\Exceptions\VersionConflictException;
 use App\Http\Middleware\AllowGuest;
 use App\Http\Middleware\RoleBasedSessionTimeout;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -84,9 +84,10 @@ return Application::configure(basePath: dirname(__DIR__))
             ], 422);
         });
 
-        $exceptions->renderable(function (TemplateConfigVersionConflictException $e, $request) {
+        $exceptions->renderable(function (VersionConflictException $e, $request) {
             return response()->json([
                 'message' => $e->getMessage(),
+                'conflicts' => $e->conflicts
             ], 409);
         });
 

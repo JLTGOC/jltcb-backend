@@ -3,18 +3,26 @@
 namespace App\Services;
 
 use App\Exceptions\LockedConfigItemException;
-use App\Exceptions\TemplateConfigVersionConflictException;
+use App\Exceptions\VersionConflictException;
 use App\Models\PlanningTimeline\Config\PlanningConfigPhase;
 use App\Models\PlanningTimeline\Config\PlanningConfigProcess;
 use App\Models\PlanningTimeline\Config\PlanningConfigTask;
 use App\Models\PlanningTimeline\Config\PlanningTemplateConfig;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PlanningConfigService {
 
     public function update(string $serviceCategory, array $data) : PlanningTemplateConfig {
-        $templateConfig = $this->findAndValidateTemplateConfig($serviceCategory, $data['version_number']);
+        $templateConfig = PlanningTemplateConfig::where('service_category', $serviceCategory)
+            ->first();
+
+        if (!$this->isValidConfigVersion($templateConfig, $data['version_number'])) {
+            throw new VersionConflictException([
+                'version_number' => 'your changes are based on an old planning template configuration version. Reload and try again.'
+            ]);
+        }
 
         $templateConfig->load([
             'phases.templatePhases', 
@@ -76,18 +84,13 @@ class PlanningConfigService {
 
     /**
      * Retrieves the template configuration and verifies that the provided version matches the current version.
-     *
-     * @throws TemplateConfigVersionConflictException
      */
-    public function findAndValidateTemplateConfig(string $serviceCategory, int $requestVersionNumber) : PlanningTemplateConfig {
-        $templateConfig = PlanningTemplateConfig::where('service_category', $serviceCategory)
-            ->first();
-
+    public function isValidConfigVersion(PlanningTemplateConfig $templateConfig, int $requestVersionNumber) : bool {
         if ($requestVersionNumber !== $templateConfig->version_number) {
-            throw new TemplateConfigVersionConflictException();              
+            return false;              
         }
 
-        return $templateConfig;
+        return true;
     }
 
     private function checkViolations(Collection $current, array $incoming, string $level) {
