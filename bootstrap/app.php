@@ -81,13 +81,13 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json([
                 'message' => $e->getMessage(),
                 'errors' => $e->violations
-            ], 422);
+            ], 409);
         });
 
         $exceptions->renderable(function (VersionConflictException $e, $request) {
             return response()->json([
                 'message' => $e->getMessage(),
-                'conflicts' => $e->conflicts
+                'errors' => $e->conflicts
             ], 409);
         });
 

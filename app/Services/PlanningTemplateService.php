@@ -13,26 +13,14 @@ use App\Models\PlanningTimeline\Template\PlanningTemplateTask;
 use App\Models\ServiceType;
 use App\Services\PlanningConfigService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class PlanningTemplateService {
     public function __construct(private readonly PlanningConfigService $planningConfigService) {
 
     }
 
-    public function create(array $data) : PlanningTemplate {
-        $serviceType = ServiceType::find($data['service_type_id']);
-
-        $templateConfig = PlanningTemplateConfig::with(['phases', 'processes', 'tasks'])
-            ->where('service_category', $serviceType->service)->first();
-
-        if (!$this->planningConfigService->isValidConfigVersion($templateConfig, $data['config_version_number'])) {
-            throw new VersionConflictException([
-                'config_version_number' => 'your changes are based on an old planning template Configuration version. Reload and try again.'
-            ]);
-        }
-
-        $this->assertConfigIdsAreValid($data['phases'], $templateConfig);
-
+    public function create(array $data, ServiceType $serviceType) : PlanningTemplate {
         return DB::transaction(function() use ($data, $serviceType) {
             $planningTemplate = PlanningTemplate::create([
                 'name' => $data['name'], 
@@ -77,24 +65,19 @@ class PlanningTemplateService {
         });
     }
 
-    public function update(PlanningTemplate $template, $data) {
-        $violations = [];
+    public function update(PlanningTemplate $template, array $data) {
+        //
+    }
 
-        if ($data['template_version_number'] !== $template->version_number) {
-            $violations[] = [
-                "template_version_number" => "Your changes are based on an old planning template version. Reload and try again."
-            ]; 
-        }
+    public function validateConfigIds(array $data) {
+        $configIdsValidator = Validator::make($data, [
+            "phases.*.config_phase_id" => 'exists:planning_config_phases,id',
+            "phases.*.processes.*.config_process_id" => 'exists:planning_config_processes,id',
+            "phases.*.processes.*.tasks.*.config_task_id" => 'exists:planning_config_tasks,id',
+        ]);
 
-        $templateConfig = PlanningTemplateConfig::where('service_category', $template->service_category)->first();
-        if (!$this->planningConfigService->isValidConfigVersion($templateConfig, $data['config_version_number'])) {
-            $violations[] = [
-                "config_version_number" => "Your changes are based on an old planning template configuration version. Reload and try again."
-            ]; 
-        }
-
-        if (!empty($violations)) {
-            throw new VersionConflictException($violations);
+        if ($configIdsValidator->fails()) {
+            throw new InvalidConfigIdsException($configIdsValidator->errors()->toArray());
         }
     }
 
@@ -105,36 +88,5 @@ class PlanningTemplateService {
             'phases.headings',                              
             'phases.processes.tasks',        
         ]);
-    }
-
-    private function assertConfigIdsAreValid(array $phases, PlanningTemplateConfig $planningTemplateConfig) {
-        $validPhaseIds = $planningTemplateConfig->phases->pluck('id')->all();
-        $validProcessIds = $planningTemplateConfig->processes->pluck('id')->all();
-        $validTaskIds = $planningTemplateConfig->tasks->pluck('id')->all();
-
-        $submittedPhaseIds = collect($phases)->pluck('config_phase_id')->all();
-
-        $submittedProcessIds = collect($phases)
-            ->flatMap(fn($phase) => collect($phase['processes'])->pluck('config_process_id'))
-            ->unique()
-            ->all();
-
-        $submittedTaskIds = collect($phases)
-            ->flatMap(fn($phase) => collect($phase['processes']))
-                ->flatMap(fn($process) => collect($process['tasks'])->pluck('config_task_id'))
-            ->unique()
-            ->all();
-
-        $invalidPhases = array_values(array_diff($submittedPhaseIds, $validPhaseIds));
-        $invalidProcesses = array_values(array_diff($submittedProcessIds, $validProcessIds));
-        $invalidTasks = array_values(array_diff($submittedTaskIds, $validTaskIds));
-
-        if ($invalidPhases || $invalidProcesses || $invalidTasks) {
-            throw new InvalidConfigIdsException([
-                'invalid_phase_ids' => $invalidPhases,
-                'invalid_process_ids' => $invalidProcesses,
-                'invalid_task_ids' => $invalidTasks
-            ]);
-        }
     }
 }

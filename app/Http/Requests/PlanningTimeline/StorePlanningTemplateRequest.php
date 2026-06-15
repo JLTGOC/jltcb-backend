@@ -30,7 +30,7 @@ class StorePlanningTemplateRequest extends FormRequest
             'service_category'      => [
                 'required', 'string', 'in:LOGISTICS,REGULATORY'],
             'service_type_id'       => [
-                'required', 'integer', 'exists:service_types,id', 
+                'bail', 'required', 'integer', 'exists:service_types,id', 
                 function (string $attribute, mixed $value, Closure $fail) {
                     $serviceCategory = ServiceType::find($value)->service;
                     $requestServiceCategory = $this->service_category;

@@ -2,19 +2,27 @@
 
 namespace App\Http\Controllers\PlanningTimeline;
 
+use App\Exceptions\InvalidConfigIdsException;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PlanningTimeline\Template\PlanningTemplateResource;
 use App\Models\PlanningTimeline\Template\PlanningTemplate;
+use App\Models\ServiceType;
 use App\Http\Requests\PlanningTimeline\StorePlanningTemplateRequest;
 use App\Http\Requests\PlanningTimeline\UpdatePlanningTemplateRequest;
+use App\Services\PlanningConfigService;
 use App\Services\PlanningTemplateService;
 use Illuminate\Http\Request;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
+use App\Exceptions\VersionConflictException;
+use Illuminate\Support\Facades\Validator;
 
 class PlanningTemplateController extends Controller
 {
-    public function __construct(private readonly PlanningTemplateService $planningTemplateService) {
+    public function __construct(
+        private readonly PlanningTemplateService $templateService, 
+        private readonly PlanningConfigService $configService,
+    ) {
         //
     }
 
@@ -50,10 +58,22 @@ class PlanningTemplateController extends Controller
      */
     public function store(StorePlanningTemplateRequest $request)
     {
-        $planningTemplate = $this->planningTemplateService->create($request->validated());
+        $validated = $request->validated();
 
-        $planningTemplate = $this->planningTemplateService->loadForView($planningTemplate);
-        
+        $serviceType = ServiceType::find($validated['service_type_id']);
+        $templateConfig = $this->configService->getTemplateConfig($serviceType->service);
+
+        if (!$this->configService->isValidConfigVersion($templateConfig, $validated['config_version_number'])) {
+            throw new VersionConflictException([
+                'config_version_number' => 'your changes are based on an old planning template Configuration version. Reload and try again.'
+            ]);
+        }
+
+        $this->templateService->validateConfigIds($validated);
+
+        $planningTemplate = $this->templateService->create($validated, $serviceType);
+        $planningTemplate = $this->templateService->loadForView($planningTemplate);
+
         return $this->success(
             'Planning Template created successfully',
             new PlanningTemplateResource($planningTemplate)
@@ -67,7 +87,7 @@ class PlanningTemplateController extends Controller
      */
     public function show(PlanningTemplate $template)
     {
-        $template = $this->planningTemplateService->loadForView($template);
+        $template = $this->templateService->loadForView($template);
 
         return $this->success(
             'Planning Templates fetched successfully',
@@ -82,7 +102,28 @@ class PlanningTemplateController extends Controller
      */
     public function update(UpdatePlanningTemplateRequest $request, PlanningTemplate $template)
     {
-        //
+        $validated = $request->validated();
+
+        $conflictViolations = [];
+
+        if ($validated['template_version_number'] !== $template->version_number) {
+            $conflictViolations[] = [
+                "template_version_number" => "Your changes are based on an old Planning Template version. Reload and try again."
+            ]; 
+        }
+
+        $templateConfig = $this->configService->getTemplateConfig($template->service_category);
+        if (!$this->configService->isValidConfigVersion($templateConfig, $validated['config_version_number'])) {
+            $conflictViolations[] = [
+                "config_version_number" => "Your changes are based on an old Template Configuration version. Reload and try again."
+            ]; 
+        }
+
+        if (!empty($conflictViolations)) {
+            throw new VersionConflictException($conflictViolations);
+        }
+
+        $this->templateService->validateConfigIds($validated);
     }
 
     /**
