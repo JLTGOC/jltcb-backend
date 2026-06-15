@@ -14,16 +14,7 @@ use Illuminate\Validation\ValidationException;
 
 class PlanningConfigService {
 
-    public function update(string $serviceCategory, array $data) : PlanningTemplateConfig {
-        $templateConfig = PlanningTemplateConfig::where('service_category', $serviceCategory)
-            ->first();
-
-        if (!$this->isValidConfigVersion($templateConfig, $data['version_number'])) {
-            throw new VersionConflictException([
-                'version_number' => 'your changes are based on an old planning template configuration version. Reload and try again.'
-            ]);
-        }
-
+    public function update(PlanningTemplateConfig $templateConfig, array $data) {
         $templateConfig->load([
             'phases.templatePhases', 
             'processes.templateProcesses', 
@@ -65,32 +56,29 @@ class PlanningConfigService {
             $templateConfig->increment('version_number');
         });
 
-        return $templateConfig->fresh()->load([
-            'phases.templatePhases.template', 
-            'processes.templateProcesses.phase.template', 
-            'tasks.templateTasks.process.phase.template',
-
-            'phases' => fn ($q) => $q->withExists([
-                'templatePhases as is_locked'
-            ]),
-            'processes' => fn ($q) => $q->withExists([
-                'templateProcesses as is_locked'
-            ]),
-            'tasks' => fn ($q) => $q->withExists([
-                'templateTasks as is_locked'
-            ]),
-        ]);
+        return $this->loadForView($templateConfig);
     }
 
     /**
-     * Retrieves the template configuration and verifies that the provided version matches the current version.
+     * Verifies that the provided template configuration version matches the current version.
      */
-    public function isValidConfigVersion(PlanningTemplateConfig $templateConfig, int $requestVersionNumber) : bool {
+    public function isValidConfigVersion(PlanningTemplateConfig $templateConfig, int $requestVersionNumber) : bool 
+    {
         if ($requestVersionNumber !== $templateConfig->version_number) {
             return false;              
         }
 
         return true;
+    }
+
+    /**
+     * Return planning template configuration based on service category.
+     * 
+     * @param string $serviceCategory - service type(LOGISTICS/REGULATORY)
+     */
+    public function getTemplateConfig(string $serviceCategory) : PlanningTemplateConfig {
+        return PlanningTemplateConfig::where('service_category', $serviceCategory)
+            ->first();
     }
 
     private function checkViolations(Collection $current, array $incoming, string $level) {
@@ -117,6 +105,25 @@ class PlanningConfigService {
         }
 
         return $violations;
+    }
+
+    public function loadForView(PlanningTemplateConfig $templateConfig) : PlanningTemplateConfig
+    {
+        return $templateConfig->load([
+            'phases.templatePhases.template', 
+            'processes.templateProcesses.phase.template', 
+            'tasks.templateTasks.process.phase.template',
+
+            'phases' => fn ($q) => $q->withExists([
+                'templatePhases as is_locked'
+            ]),
+            'processes' => fn ($q) => $q->withExists([
+                'templateProcesses as is_locked'
+            ]),
+            'tasks' => fn ($q) => $q->withExists([
+                'templateTasks as is_locked'
+            ]),
+        ]);
     }
 
     private function buildViolation($item, string $action) {
