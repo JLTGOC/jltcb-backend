@@ -25,10 +25,10 @@ class UpdatePlanningTemplateRequest extends FormRequest
             'phases.*.sort_order'      => ['required', 'integer', 'min:1', 'distinct'],
 
             'phases.*.processes'                     => ['required', 'array', 'min:1'],
-            'phases.*.processes.*.config_process_id' => ['required', 'integer', 'distinct'],
+            'phases.*.processes.*.config_process_id' => ['required', 'integer'],
 
             'phases.*.processes.*.tasks'                   => ['required', 'array', 'min:1'],
-            'phases.*.processes.*.tasks.*.config_task_id'  => ['required', 'integer', 'distinct'],
+            'phases.*.processes.*.tasks.*.config_task_id'  => ['required', 'integer'],
         ];
     }
 
@@ -60,6 +60,55 @@ class UpdatePlanningTemplateRequest extends FormRequest
                         'phases.*.sort_order',
                         'The sort_order values must be sequential starting from 1.'
                     );
+                }
+
+                
+                foreach ($this->input('phases', []) as $phaseIndex => $phase) {
+
+                    // ----------------------------
+                    // Processes must be unique within phase
+                    // ----------------------------
+                    $processGroups = collect($phase['processes'] ?? [])
+                        ->groupBy('config_process_id');
+
+                    foreach ($processGroups as $processId => $group) {
+                        if ($group->count() > 1) {
+
+                            foreach ($group as $item) {
+                                $processIndex = array_search($item, $phase['processes']);
+
+                                $validator->errors()->add(
+                                    "phases.$phaseIndex.processes.$processIndex.config_process_id",
+                                    "The process ID {$processId} must be unique within a phase."
+                                );
+                            }
+                        }
+                    }
+
+                    // ----------------------------
+                    // Tasks must be unique within each process
+                    // ----------------------------
+                    foreach ($phase['processes'] ?? [] as $processIndex => $process) {
+
+                        foreach (($process['tasks'] ?? []) as $taskIndex => $task) {
+                            $taskId = $task['config_task_id'];
+
+                            $taskMap[$taskId][] = $taskIndex;
+                        }
+
+                        foreach ($taskMap ?? [] as $taskId => $indexes) {
+                            if (count($indexes) > 1) {
+                                foreach ($indexes as $taskIndex) {
+                                    $validator->errors()->add(
+                                        "phases.$phaseIndex.processes.$processIndex.tasks.$taskIndex.config_task_id",
+                                        "The task ID {$taskId} must be unique within a process."
+                                    );
+                                }
+                            }
+                        }
+
+                        unset($taskMap);
+                    }
                 }
             }
         ];
