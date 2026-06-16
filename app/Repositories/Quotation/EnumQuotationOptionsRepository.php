@@ -31,7 +31,6 @@ class EnumQuotationOptionsRepository extends BaseRepository
                 'business_type' => $user->company ? $user->company->businessType->name : $user->company?->business_type_other ?? null,
             ],
         ] : null;
-        $clients = User::role('Client')->pluck('full_name', 'id');
         $businessTypes = [];
         $regulatoryAssistanceTypes = [];
         $serviceTypes = [];
@@ -41,14 +40,23 @@ class EnumQuotationOptionsRepository extends BaseRepository
         $containerSize = [];
         $documentChecklist = [];
 
+        $clientQuery = User::query()->role('Client');
+        if (isset($validated['client_search'])) {
+            $clientSearch = $validated['client_search'];
+            $clientQuery->where(function ($query) use ($clientSearch) {
+                $query->where('full_name', 'like', "%{$clientSearch}%")
+                    ->orWhere('id', 'like', "%{$clientSearch}%");
+            });
+        }
+        $clients = $clientQuery->pluck('full_name', 'id');
+
         if (isset($validated['service'])) {
             if ($validated['service'] === 'REGULATORY') {
                 $documentChecklist = QuotationFileChecklistItem::whereIn('visibility', ['REGULATORY', 'BOTH'])->pluck('name');
                 $serviceTypes = ServiceType::where('service', 'REGULATORY')->pluck('name');
                 if (isset($validated['service_type'])) {
                     $serviceOptions = ServiceOption::where('status', 'ENABLED')
-                        ->where('service_type_id', null)
-                        ->orWhere('service_type_id', ServiceType::where('name', $validated['service_type'])->first()->id)
+                        ->where('service_type_id', ServiceType::where('name', $validated['service_type'])->first()->id)
                         ->pluck('name');
                 } else {
                     $serviceOptions = ServiceOption::where('status', 'ENABLED')->pluck('name');

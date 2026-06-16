@@ -46,6 +46,7 @@ class EnumQuotationOptionsRequest extends FormRequest
                 }
             }],
             'client_id' => 'sometimes|nullable|exists:users,id',
+            'client_search' => 'sometimes|nullable|string',
         ];
     }
 }
