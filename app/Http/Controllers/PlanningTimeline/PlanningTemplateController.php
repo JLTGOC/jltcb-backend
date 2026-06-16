@@ -124,6 +124,13 @@ class PlanningTemplateController extends Controller
         }
 
         $this->templateService->validateConfigIds($validated);
+        $template = $this->templateService->update($template, $validated);
+        $template = $this->templateService->loadForView($template);
+
+        return $this->success(
+            'Planning Template updated successfully',
+            new PlanningTemplateResource($template)
+        );
     }
 
     /**
