@@ -46,12 +46,16 @@ class StoreQuotationRepository extends BaseRepository
                 $assignedSpecialist = $user->company ? $user->company->accountHandler : null;
             }
 
+            $stringifiedServiceOptions = implode(',', $request->service['options']);
+
             $quotation = Quotation::create([
                 'reference_number' => "RQ-{$serviceSection}-{$dateSection}-{$idSection}",
                 'service_type_id' => ServiceType::where('name', $request->input('service_type'))->first()->id ?? null,
                 'client_id' => $user ? $user->id : null,
                 'client_name' => $clientName,
                 'as_id' => $assignedSpecialist?->id ?? null,
+                'service_options' => $stringifiedServiceOptions,
+                'commodity' => $request->commodity['commodity'],
                 'company_name' => $request->input('company.name'),
                 'company_address' => $request->input('company.address'),
                 'contact_person' => $request->input('company.contact_person'),
@@ -63,14 +67,11 @@ class StoreQuotationRepository extends BaseRepository
             ]);
 
             if ($request->input('services') === 'LOGISTICS') {
-                $stringifiedServiceOptions = implode(',', $request->service['options']);
                 $specialists = User::role('Account Specialist')->pluck('id');
 
                 $logisticsService = $quotation->logisticsService()->create([
                     // 'service_type' => $request->service['type'],
                     'transport_mode' => $request->service['transport_mode'],
-                    'service_options' => $stringifiedServiceOptions,
-                    'commodity' => $request->commodity['commodity'],
                     'cargo_type' => $request->commodity['cargo_type'],
                     'container_size' => $request->commodity['container_size'] ?? null,
                     'origin' => $request->shipment['origin'],

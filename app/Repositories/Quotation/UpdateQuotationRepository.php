@@ -35,6 +35,10 @@ class UpdateQuotationRepository extends BaseRepository
                     return $this->error('Shipment already ongoing', 422);
                 }
 
+                $serviceOptions = $request->has('service.options')
+                    ? implode(',', $request->input('service.options', []))
+                    : $quotation->logisticsService?->service_options;
+
                 $serviceType = $request->input('services');
 
                 if (!$serviceType) {
@@ -55,6 +59,9 @@ class UpdateQuotationRepository extends BaseRepository
                     'contact_person' => $request->input('company.contact_person', $quotation->contact_person),
                     'contact_number' => $request->input('company.contact_number', $quotation->contact_number),
                     'email' => $request->input('company.email', $quotation->email),
+                    'service_type' => $request->input('service.type', $quotation->service_type),
+                    'service_options' => $serviceOptions,
+                    'commodity' => $request->input('commodity.commodity', $quotation->commodity),
                 ]);
 
                 if ($serviceType === 'REGULATORY') {
@@ -80,10 +87,6 @@ class UpdateQuotationRepository extends BaseRepository
                     }
 
                 } elseif ($serviceType === 'LOGISTICS') {
-                    $serviceOptions = $request->has('service.options')
-                        ? implode(',', $request->input('service.options', []))
-                        : $quotation->logisticsService?->service_options;
-
                     $incomingCargoType = $request->input('commodity.cargo_type', $quotation->logisticsService?->cargo_type);
                     $containerSize = $request->input('commodity.container_size', $quotation->logisticsService?->container_size);
                     if ($incomingCargoType === 'LCL') {
@@ -93,10 +96,7 @@ class UpdateQuotationRepository extends BaseRepository
                     $quotation->logisticsService()->updateOrCreate(
                         ['quotation_id' => $quotation->id],
                         [
-                            'service_type' => $request->input('service.type', $quotation->logisticsService?->service_type),
                             'transport_mode' => $request->input('service.transport_mode', $quotation->logisticsService?->transport_mode),
-                            'service_options' => $serviceOptions,
-                            'commodity' => $request->input('commodity.commodity', $quotation->logisticsService?->commodity),
                             'cargo_type' => $incomingCargoType,
                             'container_size' => $containerSize,
                             'origin' => $request->input('shipment.origin', $quotation->logisticsService?->origin),
