@@ -17,6 +17,8 @@ class Quotation extends Model implements Searchable
         'client_name',
         'as_id',
         'status',
+        'service_options',
+        'commodity',
         'contact_person',
         'contact_number',
         'email',

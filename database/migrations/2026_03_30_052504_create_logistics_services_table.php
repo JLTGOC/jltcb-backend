@@ -19,8 +19,8 @@ return new class extends Migration
             $table->foreignIdFor(Quotation::class)->constrained()->onDelete('cascade');
             // $table->enum('service_type', ['IMPORT', 'EXPORT'])->default('IMPORT');
             $table->enum('transport_mode', ['AIR', 'SEA'])->default('AIR');
-            $table->string('service_options');
-            $table->string('commodity');
+            // $table->string('service_options');
+            // $table->string('commodity');
             $table->enum('cargo_type', ['CONTAINERIZED', 'LCL'])->default('CONTAINERIZED');
             $table->string('container_size')->nullable();
             $table->string('origin');
