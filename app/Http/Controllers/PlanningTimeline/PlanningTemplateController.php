@@ -3,19 +3,23 @@
 namespace App\Http\Controllers\PlanningTimeline;
 
 use App\Exceptions\InvalidConfigIdsException;
+use App\Exceptions\VersionConflictException;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\PlanningTimeline\Template\PlanningTemplateResource;
-use App\Models\PlanningTimeline\Template\PlanningTemplate;
-use App\Models\ServiceType;
 use App\Http\Requests\PlanningTimeline\StorePlanningTemplateRequest;
 use App\Http\Requests\PlanningTimeline\UpdatePlanningTemplateRequest;
+use App\Http\Requests\PlanningTimeline\UpdateTemplatePhaseHeadingRequest;
+use App\Http\Resources\PlanningTimeline\Template\PlanningPhaseHeadingResource;
+use App\Http\Resources\PlanningTimeline\Template\PlanningTemplateResource;
+use App\Models\PlanningTimeline\Template\PlanningTemplate;
+use App\Models\PlanningTimeline\Template\PlanningTemplatePhase;
+use App\Models\ServiceType;
 use App\Services\PlanningConfigService;
 use App\Services\PlanningTemplateService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
-use App\Exceptions\VersionConflictException;
-use Illuminate\Support\Facades\Validator;
 
 class PlanningTemplateController extends Controller
 {
@@ -159,6 +163,56 @@ class PlanningTemplateController extends Controller
         return $this->success(
             'Planning Template active status changed successfully', 
             new PlanningTemplateResource($template)
+        );
+    }
+
+    /**
+     * Update Template Phase Headings
+     * 
+     * Change the headings of a phase in a planning template.
+     */
+    public function updateHeadings(UpdateTemplatePhaseHeadingRequest $request, PlanningTemplate $template, PlanningTemplatePhase $phase) {
+        $validated = $request->validated();
+
+        $phaseHeadings = DB::transaction(function() use ($phase, $validated) {
+            $incomingHeadingIds = collect($validated['headings'])->pluck('id')->filter()->all();
+            $phase->headings()->customs()->whereNotIn('id', $incomingHeadingIds)->delete();
+
+            $headingsToUpdate = collect($validated['headings'])
+                ->filter(fn($h)  => $h['id'] ?? [])
+                ->all();
+
+            $defaultHeadingIds = $phase->headings()->defaults()->pluck('id')->all();
+
+            foreach ($headingsToUpdate as $headingData) {
+                if (in_array($headingData['id'], $defaultHeadingIds)) {
+                    $phase->headings()->where('id', $headingData['id'])->update([
+                        'sort_order' => $headingData['sort_order']
+                    ]);
+
+                    continue;
+                } 
+
+                $phase->headings()->where('id', $headingData['id'])->update([
+                    'name' => $headingData['name'],
+                    'input_type' => $headingData['input_type'],
+                    'sort_order' => $headingData['sort_order']
+                ]);
+            }
+
+            $headingsToCreate = collect($validated['headings'])
+                ->filter(fn($h) => ($h['id'] ?? null) === null)
+                ->values()
+                ->all();
+
+            $phase->headings()->createMany($headingsToCreate);
+
+            return $phase->headings;
+        });
+
+        return $this->success(
+            'Phase headings updated successfully',
+            PlanningPhaseHeadingResource::collection($phaseHeadings)
         );
     }
 }

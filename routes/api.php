@@ -163,6 +163,7 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'session.timeout'])->group(fu
             ->only(['index', 'store', 'show', 'update']);
         
         Route::patch('/templates/{template}/active-status', [PlanningTemplateController::class, 'toggleStatus']);
+        Route::put('/templates/{template}/phases/{phase}/headings', [PlanningTemplateController::class, 'updateHeadings'])->scopeBindings();
 
         Route::get('/configs/{serviceCategory}', [PlanningConfigController::class, 'show'])
             ->where('serviceCategory', 'LOGISTICS|REGULATORY');

@@ -20,6 +20,7 @@ class PlanningPhaseHeadingResource extends JsonResource
             'name' => $this->name,
             'input_type' => $this->input_type,
             'sort_order' => $this->sort_order,
+            'is_default' => $this->isDefault(),
         ];
     }
 }
