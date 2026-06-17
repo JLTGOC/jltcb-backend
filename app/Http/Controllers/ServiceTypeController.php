@@ -8,6 +8,8 @@ use App\Models\ServiceType;
 class ServiceTypeController extends Controller
 {
     /**
+     * Index Service Types
+     * 
      * Display a listing of the resource.
      */
     public function index(Request $request)
@@ -24,6 +26,8 @@ class ServiceTypeController extends Controller
     }
 
     /**
+     * Store Service Type
+     * 
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
@@ -53,6 +57,8 @@ class ServiceTypeController extends Controller
     }
 
     /**
+     * Update Service Type
+     * 
      * Update the specified resource in storage.
      */
     public function update(Request $request, ServiceType $serviceType)
@@ -75,6 +81,8 @@ class ServiceTypeController extends Controller
     }
 
     /**
+     * Delete Service Type
+     * 
      * Remove the specified resource from storage.
      */
     public function destroy(ServiceType $serviceType)
