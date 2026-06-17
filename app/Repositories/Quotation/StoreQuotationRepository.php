@@ -50,7 +50,7 @@ class StoreQuotationRepository extends BaseRepository
 
             $quotation = Quotation::create([
                 'reference_number' => "RQ-{$serviceSection}-{$dateSection}-{$idSection}",
-                'service_type_id' => ServiceType::where('name', $request->input('service_type'))->first()->id ?? null,
+                'service_type_id' => ServiceType::where('name', $request->input('service.type'))->first()->id ?? null,
                 'client_id' => $user ? $user->id : null,
                 'client_name' => $clientName,
                 'as_id' => $assignedSpecialist?->id ?? null,

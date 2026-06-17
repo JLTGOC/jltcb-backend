@@ -5,6 +5,7 @@ namespace App\Repositories\Quotation;
 use App\Http\Resources\QuotationResource;
 use App\Models\Shipment;
 use App\Models\User;
+use App\Models\ServiceType;
 use App\Repositories\BaseRepository;
 use App\Services\QuotationFileService;
 use Illuminate\Support\Facades\DB;
@@ -59,7 +60,7 @@ class UpdateQuotationRepository extends BaseRepository
                     'contact_person' => $request->input('company.contact_person', $quotation->contact_person),
                     'contact_number' => $request->input('company.contact_number', $quotation->contact_number),
                     'email' => $request->input('company.email', $quotation->email),
-                    'service_type' => $request->input('service.type', $quotation->service_type),
+                    'service_type_id' => ServiceType::where('name', $request->input('service.type'))->first()->id ?? null,
                     'service_options' => $serviceOptions,
                     'commodity' => $request->input('commodity.commodity', $quotation->commodity),
                 ]);
