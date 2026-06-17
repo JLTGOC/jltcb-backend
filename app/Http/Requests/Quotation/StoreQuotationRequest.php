@@ -52,7 +52,7 @@ class StoreQuotationRequest extends FormRequest
                     ->orWhereNull('service_type_id')
                     ->pluck('name')
                     ->toArray())],
-            'commodity.commodity' => 'required|string',
+            'commodity.commodity' => 'sometimes|nullable|string',
             'documents' => ['sometimes', 'nullable', 'array'],
             'documents.*.file' => ['required_with:documents', 'file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
             'documents.*.type' => ['sometimes', 'nullable', 'string', Rule::in(QuotationFileChecklistItem::whereIn('visibility', [strtoupper($this->input('services')), 'BOTH'])->pluck('name')->toArray())],

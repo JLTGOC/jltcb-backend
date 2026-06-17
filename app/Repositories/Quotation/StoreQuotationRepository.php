@@ -55,7 +55,7 @@ class StoreQuotationRepository extends BaseRepository
                 'client_name' => $clientName,
                 'as_id' => $assignedSpecialist?->id ?? null,
                 'service_options' => $stringifiedServiceOptions,
-                'commodity' => $request->commodity['commodity'],
+                'commodity' => $request->input('commodity.commodity'),
                 'company_name' => $request->input('company.name'),
                 'company_address' => $request->input('company.address'),
                 'contact_person' => $request->input('company.contact_person'),
@@ -100,7 +100,7 @@ class StoreQuotationRepository extends BaseRepository
 
             // Upload client documents
             $fileUploaded = $this->quotationFileService->syncClientDocuments(
-                $quotation, auth()->user(), newFiles: $request->documents
+                $quotation, auth()->user(), newFiles: $request->documents ?? []
             );
 
             if ($fileUploaded !== true) {

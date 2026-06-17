@@ -44,7 +44,7 @@ class UpdateQuotationRequest extends FormRequest
             'service.type' => ['sometimes', 'string', Rule::in(ServiceType::where('service', $serviceDomain)->pluck('name')->toArray())],
             'service.options' => 'sometimes|array',
             'service.options.*' => ['sometimes', 'string', Rule::in(ServiceOption::where('service_type_id', $serviceTypeId)->orWhereNull('service_type_id')->pluck('name')->toArray())], 
-            'commodity.commodity' => 'sometimes|string',
+            'commodity.commodity' => 'sometimes|nullable|string',
             'documents' => ['nullable', 'array'],
             'documents.*.file' => ['file', 'mimes:pdf,png,jpg,doc,docx,heic,xls,xlsx'],
             'documents.*.type' => ['string', Rule::in(QuotationFileChecklistItem::whereIn('visibility', [$this->input('services'), 'BOTH'])->pluck('name')->toArray())],
@@ -83,8 +83,8 @@ class UpdateQuotationRequest extends FormRequest
                         return;
                     }
                 }],
-                'company.position' => 'sometimes|string',
-                'company.business_type' => 'sometimes|string',
+                'company.position' => 'sometimes|nullable|string',
+                'company.business_type' => 'sometimes|nullable|string',
                 'type_of_regulatory_assistance' => 'sometimes|array',
                 'type_of_regulatory_assistance.*' => 'sometimes|string',
                 'service_level' => 'sometimes|string|in:NEW,RENEWAL',
