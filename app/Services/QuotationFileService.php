@@ -26,8 +26,8 @@ class QuotationFileService
             [
                 'file_path'          => $path,
                 'uploaded_by'        => $user->id,
-                'original_file_name' => $file['file']->getClientOriginalName(),
-                'file_type'          => $file['file']->getClientOriginalExtension(),
+                'original_file_name' => $file->getClientOriginalName(),
+                'file_type'          => $file->getClientOriginalExtension(),
                 'document_checklist_item_id' => null,
             ]
         );
