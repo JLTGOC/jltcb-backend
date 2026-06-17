@@ -48,7 +48,7 @@ class EnumQuotationOptionsRepository extends BaseRepository
                     ->orWhere('id', 'like', "%{$clientSearch}%");
             });
         }
-        $clients = $clientQuery->pluck('full_name', 'id');
+        $clients = $clientQuery->limit(10)->pluck('full_name', 'id');
 
         if (isset($validated['service'])) {
             if ($validated['service'] === 'REGULATORY') {
