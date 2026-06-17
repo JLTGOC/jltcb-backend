@@ -48,7 +48,7 @@ class StoreQuotationRequest extends FormRequest
             'service.type' => ['sometimes', 'string', Rule::in(ServiceType::where('service', $this->input('services'))->pluck('name')->toArray())],
             'service.options' => 'required|array',
             'service.options.*' => ['required', 'string', Rule::in(
-                ServiceOption::where('service_type_id', ServiceType::where('name', $this->input('service.type'))->first()->id)
+                ServiceOption::where('service_type_id', ServiceType::where('name', $this->input('service.type'))->first()?->id)
                     ->orWhereNull('service_type_id')
                     ->pluck('name')
                     ->toArray())],

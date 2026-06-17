@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Quotation;
 
 use App\Models\ServiceType;
+use App\Models\ServiceOption;
 use App\Models\ContainerSize;
 use App\Models\QuotationFileChecklistItem;
 use Illuminate\Foundation\Http\FormRequest;
@@ -27,10 +28,11 @@ class UpdateQuotationRequest extends FormRequest
     {
         $quotation = $this->route('quotation');
         $serviceTypeId = ServiceType::where('name', $this->input('service.type'))->first()?->id ?? ($quotation->serviceType ? $quotation->serviceType->id : null);
+        $serviceDomain = $this->input('services');
 
         $baseRules = [
             'services' => 'sometimes|in:LOGISTICS,REGULATORY',
-            'full_name' => 'sometimes||string',
+            'full_name' => 'sometimes|string',
             'company.name' => 'sometimes|string',
             'company.address' => 'sometimes|string',
             'company.contact_person' => ['sometimes', 'nullable', 'string', function ($attribute, $value, $fail) {
@@ -57,7 +59,6 @@ class UpdateQuotationRequest extends FormRequest
             ],
         ];
 
-        $serviceDomain = $this->input('services');
 
         if (!$serviceDomain && $quotation) {
             if ($quotation->logisticsService) {

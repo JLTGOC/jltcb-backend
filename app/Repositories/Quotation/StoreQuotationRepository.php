@@ -44,6 +44,8 @@ class StoreQuotationRepository extends BaseRepository
 
             if ($user) {
                 $assignedSpecialist = $user->company ? $user->company->accountHandler : null;
+                $assignmentStatus = $assignedSpecialist ? 'ASSIGNED' : 'AVAILABLE';
+                $assignedAt = $assignedSpecialist ? Carbon::now() : null;
             }
 
             $stringifiedServiceOptions = implode(',', $request->service['options']);
