@@ -30,6 +30,7 @@ return new class extends Migration
             $table->string('company_name');
             $table->string('company_address');
             $table->string('position')->nullable();
+            $table->string('consignee')->nullable();
             $table->enum('assignment_status', ['AVAILABLE', 'ASSIGNED', 'REASSIGNMENT REQUESTED'])->default('AVAILABLE');
             $table->timestamp('assigned_at')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->cascadeOnDelete();

@@ -34,6 +34,7 @@ class UpdateQuotationRequest extends FormRequest
             'services' => 'sometimes|in:LOGISTICS,REGULATORY',
             'full_name' => 'sometimes|string',
             'company.name' => 'sometimes|string',
+            'company.consignee' => 'sometimes|nullable|string',
             'company.address' => 'sometimes|string',
             'company.contact_person' => ['sometimes', 'nullable', 'string', function ($attribute, $value, $fail) {
                 if ($this->input('company.contact_person') === "" || empty($value)) {

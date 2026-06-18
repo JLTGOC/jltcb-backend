@@ -63,6 +63,7 @@ class UpdateQuotationRepository extends BaseRepository
                     'service_type_id' => ServiceType::where('name', $request->input('service.type'))->first()->id ?? null,
                     'service_options' => $serviceOptions,
                     'commodity' => $request->input('commodity.commodity', $quotation->commodity),
+                    'consignee' => $request->input('company.consignee', $quotation->consignee),
                 ]);
 
                 if ($serviceType === 'REGULATORY') {

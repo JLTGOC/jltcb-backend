@@ -25,6 +25,7 @@ class Quotation extends Model implements Searchable
         'company_name',
         'company_address',
         'position',
+        'consignee',
         'assignment_status',
         'assigned_at',
         'created_by'

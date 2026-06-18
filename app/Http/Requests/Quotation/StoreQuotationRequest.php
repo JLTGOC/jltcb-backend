@@ -36,6 +36,7 @@ class StoreQuotationRequest extends FormRequest
             'client' => 'sometimes|nullable',
             'full_name' => 'sometimes|nullable|string',
             'company.name' => 'required|string',
+            'company.consignee' => 'sometimes|nullable|string',
             'company.address' => 'required|string',
             'company.contact_person' => ['sometimes', 'nullable', 'string', function ($attribute, $value, $fail) {
                 if ($this->input('company.contact_person') === "" || empty($value)) {

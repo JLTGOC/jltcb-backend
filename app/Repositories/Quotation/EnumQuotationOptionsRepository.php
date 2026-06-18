@@ -25,6 +25,7 @@ class EnumQuotationOptionsRepository extends BaseRepository
             'company' => [
                 'name' => $user->company?->name ?? null,
                 'address' => $user->company?->address->registered_address ?? null,
+                'consignee' => $user->company?->consignee_used ?? null,
                 'position' => $user->company_position,
                 'contact_number' => $user->contact_number,
                 'email' => $user->email,
