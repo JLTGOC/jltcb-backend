@@ -27,7 +27,9 @@ class PlanningTemplateController extends Controller
         private readonly PlanningTemplateService $templateService, 
         private readonly PlanningConfigService $configService,
     ) {
-        //
+        $this->authorizeResource(PlanningTemplate::class, 'template', [
+            'except' => ['destroy'],
+        ]);
     }
 
     /**
@@ -152,6 +154,8 @@ class PlanningTemplateController extends Controller
      */
     public function toggleStatus(Request $request, PlanningTemplate $template)
     {
+        $this->authorize('toggleStatus', $template);
+
         $request->validate([
             'is_active' => 'required|boolean',
         ]);
@@ -172,6 +176,8 @@ class PlanningTemplateController extends Controller
      * Change the headings of a phase in a planning template.
      */
     public function updateHeadings(UpdateTemplatePhaseHeadingRequest $request, PlanningTemplate $template, PlanningTemplatePhase $phase) {
+        $this->authorize('updateHeadings', [$template, $phase]);
+
         $validated = $request->validated();
 
         $phaseHeadings = DB::transaction(function() use ($phase, $validated) {

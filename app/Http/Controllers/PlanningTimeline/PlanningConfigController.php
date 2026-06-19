@@ -24,6 +24,8 @@ class PlanningConfigController extends Controller
      */
     public function show(string $serviceCategory)
     {
+        $this->authorize('view', PlanningTemplateConfig::class);
+
         $templateConfig = $this->configService->getTemplateConfig($serviceCategory);
 
         $templateConfig = $this->configService->loadForView($templateConfig);
@@ -40,6 +42,8 @@ class PlanningConfigController extends Controller
      * NOTE: serviceCategory should be either 'LOGISTICS' or 'REGULATORY'
      */
     public function update(UpdatePlanningConfigRequest $request, string $serviceCategory) {
+        $this->authorize('update', PlanningTemplateConfig::class);
+
         $validated = $request->validated();
 
         $templateConfig = $this->configService->getTemplateConfig($serviceCategory);
