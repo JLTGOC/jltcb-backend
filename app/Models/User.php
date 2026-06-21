@@ -13,6 +13,8 @@ use App\Models\{
     Quotation
 };
 use App\Models\IssuedQuotation\IssuedQuotation;
+use App\Models\PlanningTimeline\Timeline\Timeline;
+use App\Models\PlanningTimeline\Timeline\TimelineTask;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\Searchable\Searchable;
 use Spatie\Searchable\SearchResult;
@@ -144,5 +146,18 @@ class User extends Authenticatable implements Searchable
 
     public function company() {
         return $this->belongsTo(Company::class, 'company_id');
+    }
+
+    public function timelines() {
+        return $this->hasMany(Timeline::class, 'created_by');
+    }
+
+    public function timelineTasks() {
+        return $this->belongsToMany(
+            TimelineTask::class,
+            'planning_timeline_task_assignees',
+            'user_id',
+            'planning_timeline_task_id'
+        );
     }
 }

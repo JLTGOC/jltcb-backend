@@ -98,7 +98,7 @@ return new class extends Migration
                 ->constrained('planning_template_phases')
                 ->cascadeOnDelete();
             $table->string('name'); 
-            $table->enum('input_type', ['TEXT', 'NUMBER', 'DATETIME']);
+            $table->enum('input_type', ['TEXT', 'NUMBER', 'DATETIME'])->default('TEXT');
             $table->unsignedInteger('sort_order')->default(1);
             $table->string('key')->nullable(); // default headings have keys, null for custom
             $table->timestamps();

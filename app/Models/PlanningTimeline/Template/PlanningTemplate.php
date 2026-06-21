@@ -5,6 +5,7 @@ namespace App\Models\PlanningTimeline\Template;
 use App\Models\PlanningTimeline\Config\PlanningConfigPhase;
 use App\Models\PlanningTimeline\Config\PlanningConfigProcess;
 use App\Models\PlanningTimeline\Config\PlanningConfigTask;
+use App\Models\PlanningTimeline\Timeline\Timeline;
 use App\Models\ServiceType;
 use Illuminate\Database\Eloquent\Model;
 
@@ -22,5 +23,9 @@ class PlanningTemplate extends Model
 
     public function serviceType() {
         return $this->belongsTo(ServiceType::class, 'service_type_id');
+    }
+
+    public function timelines() {
+        return $this->hasMany(Timeline::class, 'planning_template_id');
     }
 }

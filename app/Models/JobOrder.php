@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\PlanningTimeline\Timeline\Timeline;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Searchable\Searchable;
 use Spatie\Searchable\SearchResult;
@@ -90,5 +91,9 @@ class JobOrder extends Model implements Searchable
 
     public function activities() {
         return $this->morphMany(ActivityLog::class, 'subject');
+    }
+
+    public function timelines() {
+        return $this->hasMany(Timeline::class, 'job_order_id');
     }
 }
