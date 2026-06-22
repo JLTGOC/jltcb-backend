@@ -50,6 +50,7 @@ class WebRegulatoryJobOrderResource extends JsonResource
                 : null,
             'generate_shipment' => false, // REGULATORY job orders should not have the option to generate shipment
             'shipment_creation_status' => $this->shipment_creation_status,
+            'has_timeline' => $this->hasTimeline(),
         ];
     }
 }

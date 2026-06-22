@@ -93,7 +93,11 @@ class JobOrder extends Model implements Searchable
         return $this->morphMany(ActivityLog::class, 'subject');
     }
 
-    public function timelines() {
-        return $this->hasMany(Timeline::class, 'job_order_id');
+    public function timeline() {
+        return $this->hasOne(Timeline::class, 'job_order_id');
+    }
+
+    public function hasTimeline() : bool {
+        return $this->timeline()->exists();
     }
 }

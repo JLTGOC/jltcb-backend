@@ -64,6 +64,7 @@ class WebLogisticsJobOrderResource extends JsonResource
                 : null,
             'generate_shipment' => $this->operations_id === $user->id && !$this->shipment && $this->assignment_status === 'ASSIGNED' ? true : false,
             'shipment_creation_status' => $this->shipment_creation_status,
+            'has_timeline' => $this->hasTimeline(),
         ];
     }
 }
