@@ -95,6 +95,86 @@ class PlanningTemplateSeeder extends Seeder
                     ],
                 ],
             ],
+
+            [
+                'name' => 'Permits & Licensing Template',
+                'service_category' => 'REGULATORY',
+                'service_type_id' => ServiceType::where('name', 'PERMITS & LICENSING')->value('id'),
+
+                'workflow' => [
+
+                    'BOC ACCREDITATION' => [
+                        'Client Profile Creation' => [
+                            'Collect SEC and BIR registration documents',
+                        ],
+                        'BOC Client Registration System (CRS) Enrollment' => [
+                            'Register client in BOC systems',
+                        ],
+                    ],
+
+                    'IMPORTER REGISTRATION' => [
+                        'Importer Clearance Certificate Validation' => [
+                            'Validate importer accreditation status',
+                        ],
+                    ],
+
+                    'REGULATED GOODS PERMITTING' => [
+                        'FDA Permit Processing' => [
+                            'Submit FDA LTO requirements',
+                            'Apply for FDA import permit',
+                        ],
+                    ],
+
+                    'PERMIT RENEWALS' => [
+                        'Permit Renewal Management' => [
+                            'Track permit validity dates',
+                        ],
+                    ],
+
+                    'COMPLIANCE AUDITS' => [
+                        'Customs Compliance Review' => [
+                            'Prepare compliance documentation',
+                            'Respond to customs compliance findings',
+                        ],
+                    ],
+                ],
+            ],
+
+            [
+                'name' => 'Post Clearance Audit Template',
+                'service_category' => 'REGULATORY',
+                'service_type_id' => ServiceType::where('name', 'POST CLEARANCE AUDIT')->value('id'),
+
+                'workflow' => [
+
+                    'REGULATED GOODS PERMITTING' => [
+                        'FDA Permit Processing' => [
+                            'Submit FDA LTO requirements',
+                            'Apply for FDA import permit',
+                        ],
+
+                        'NTC Equipment Permit Processing' => [
+                            'Apply for NTC import permit',
+                        ],
+
+                        'DENR Permit Processing' => [
+                            'Apply for DENR clearance',
+                        ],
+                    ],
+
+                    'PERMIT RENEWALS' => [
+                        'Permit Renewal Management' => [
+                            'Track permit validity dates',
+                        ],
+                    ],
+
+                    'COMPLIANCE AUDITS' => [
+                        'Customs Compliance Review' => [
+                            'Prepare compliance documentation',
+                        ],
+                    ],
+                ],
+            ],
         ];
 
         foreach ($templates as $templateData) {
@@ -207,22 +287,70 @@ class PlanningTemplateSeeder extends Seeder
             ],
         ];
 
-        $templateConfig = PlanningTemplateConfig::create([
+        $logisticsTemplateConfig = PlanningTemplateConfig::create([
             'version_number' => 1,
             'service_category' => 'LOGISTICS'
         ]);
 
-        $configId = $templateConfig->id;
+        $configId = $logisticsTemplateConfig->id;
 
         $this->insertConfigData(PlanningConfigPhase::class, $configs['phases'], $configId);
         $this->insertConfigData(PlanningConfigProcess::class, $configs['processes'], $configId);
         $this->insertConfigData(PlanningConfigTask::class, $configs['tasks'], $configId);
 
         // Regulatory Config Version
-        PlanningTemplateConfig::create([
+        $regulatoryTemplateConfig = PlanningTemplateConfig::create([
             'version_number' => 1,
             'service_category' => 'REGULATORY'
         ]);
+
+        $configs = [
+            'phases' => [
+                'BOC ACCREDITATION',
+                'IMPORTER REGISTRATION',
+                'EXPORTER REGISTRATION',
+                'REGULATED GOODS PERMITTING',
+                'TRADE INCENTIVE REGISTRATION',
+                'PERMIT RENEWALS',
+                'COMPLIANCE AUDITS',
+            ],
+
+            'processes' => [
+                'Client Profile Creation',
+                'BOC Client Registration System (CRS) Enrollment',
+                'Importer Clearance Certificate Validation',
+                'CPRS Enrollment',
+                'FDA Permit Processing',
+                'BPI Import Permit Processing',
+                'BAI Import Clearance Processing',
+                'NTC Equipment Permit Processing',
+                'DENR Permit Processing',
+                'PEZA Accreditation',
+                'Permit Renewal Management',
+                'Customs Compliance Review',
+            ],
+
+            'tasks' => [
+                'Collect SEC and BIR registration documents',
+                'Register client in BOC systems',
+                'Validate importer accreditation status',
+                'Submit FDA LTO requirements',
+                'Apply for FDA import permit',
+                'Apply for BPI SPS permit',
+                'Apply for BAI veterinary clearance',
+                'Apply for NTC import permit',
+                'Apply for DENR clearance',
+                'Track permit validity dates',
+                'Prepare compliance documentation',
+                'Respond to customs compliance findings',
+            ],
+        ];
+
+        $configId = $regulatoryTemplateConfig->id;
+
+        $this->insertConfigData(PlanningConfigPhase::class, $configs['phases'], $configId);
+        $this->insertConfigData(PlanningConfigProcess::class, $configs['processes'], $configId);
+        $this->insertConfigData(PlanningConfigTask::class, $configs['tasks'], $configId);
     }
 
     private function insertConfigData(string $modelClass, array $data, $configId) {

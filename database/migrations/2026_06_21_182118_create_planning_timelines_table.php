@@ -35,13 +35,14 @@ return new class extends Migration
             $table->foreignId('timeline_phase_id')->constrained('planning_timeline_phases')
                 ->cascadeOnDelete();
             $table->string('key')->nullable();
-            $table->string('name')->unique();
+            $table->string('name');
             $table->enum('input_type', ['TEXT', 'NUMBER', 'DATETIME'])->default('TEXT');
             $table->unsignedSmallInteger('sort_order')->default(1);
             $table->timestamps();
 
             $table->unique(['timeline_phase_id', 'key'], 'timeline_heading_key_unique');
-        });
+            $table->unique(['timeline_phase_id', 'name'], 'timeline_heading_name_unique');
+        }); 
 
         Schema::create('planning_timeline_processes', function (Blueprint $table) {
             $table->id();

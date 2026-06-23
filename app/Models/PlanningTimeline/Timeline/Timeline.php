@@ -24,4 +24,8 @@ class Timeline extends Model
     public function template() {
         return $this->belongsTo(PlanningTemplate::class, 'planning_template_id');
     }
+    
+    public function phases() {
+        return $this->hasMany(TimelinePhase::class, 'planning_timeline_id');
+    }
 }

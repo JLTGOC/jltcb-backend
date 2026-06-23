@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TimelinePhase extends Model
 {
-    protected $table = ['planning_timeline_phases'];
+    protected $table = 'planning_timeline_phases';
 
     protected $fillable = ['planning_timeline_id', 'name', 'sort_order'];
 

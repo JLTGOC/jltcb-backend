@@ -102,6 +102,10 @@ class Quotation extends Model implements Searchable
         return $this->belongsTo(ServiceType::class, 'service_type_id');
     }
 
+    public function serviceCategory() {
+        return $this->logisticsService()->exists() ? 'LOGISTICS' : 'REGULATORY';
+    }
+
     protected $casts = [
         'client_id' => 'integer',
         'as_id' => 'integer',

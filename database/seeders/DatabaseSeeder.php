@@ -66,6 +66,7 @@ class DatabaseSeeder extends Seeder
             ReassignmentRequestSeeder::class,
             HistorySeeder::class,
             PlanningTemplateSeeder::class,
+            PlanningTimelineSeeder::class,
         ]);
     }
 }
