@@ -11,12 +11,16 @@ class TimelineTask extends Model
 
     protected $fillable = ['name', 'is_complete', 'timeline_process_id'];
 
+    protected $casts = [
+        'is_complete' => 'boolean'
+    ];
+
     public function process() {
         return $this->belongsTo(TimelineProcess::class, 'timeline_process_id');
     }
 
-    public function value() {
-        return $this->hasOne(TimelineTaskValue::class, 'timeline_task_id');
+    public function values() {
+        return $this->hasMany(TimelineTaskValue::class, 'timeline_task_id');
     }
 
     public function assignees() {
