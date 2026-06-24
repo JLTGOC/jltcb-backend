@@ -83,12 +83,20 @@ class PlanningTimelineSeeder extends Seeder
 
                         $timelineTask->assignees()->attach($randomCsd);
 
-                        $targetDateHeading = $timelinePhase->headings()->where('key', 'target_datetime')->first();
+                        $timelinePhaseHeadings = $timelinePhase->headings;
 
-                        if ($targetDateHeading) {
-                            $timelineTask->value()->create([
-                                'timeline_phase_heading_id' => $targetDateHeading->id,
-                                'value' => $taskDateCursor->toDateTimeString(),
+                        foreach ($timelinePhaseHeadings as $heading) {
+                            if ($heading->key === 'target_datetime') {
+                                $timelineTask->values()->create([
+                                    'timeline_phase_heading_id' => $heading->id,
+                                    'value' => $taskDateCursor->toDateTimeString(),
+                                ]);
+
+                                continue;
+                            }
+
+                            $timelineTask->values()->create([
+                                'timeline_phase_heading_id' => $heading->id,
                             ]);
                         }
                     }
