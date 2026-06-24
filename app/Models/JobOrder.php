@@ -100,4 +100,15 @@ class JobOrder extends Model implements Searchable
     public function hasTimeline() : bool {
         return $this->timeline()->exists();
     }
+
+    public function resolveChildRouteBinding($childType, $value, $field)
+    {
+        if ($childType === 'timeline') {
+            return $this->timeline()
+                ->where($field ?? 'id', $value)
+                ->firstOrFail();
+        }
+
+        return parent::resolveChildRouteBinding($childType, $value, $field);
+    }
 }

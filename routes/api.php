@@ -28,6 +28,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\PlanningTimeline\PlanningConfigController;
 use App\Http\Controllers\ServiceTypeController;
 use App\Http\Controllers\PlanningTimeline\PlanningTemplateController;
+use App\Http\Controllers\PlanningTimeline\PlanningTimelineController;
 use App\Http\Controllers\QuotationFileChecklistItemController;
 use Illuminate\Support\Facades\Broadcast;
 
@@ -169,6 +170,11 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'session.timeout'])->group(fu
             ->where('serviceCategory', 'LOGISTICS|REGULATORY');
         Route::put('/configs/{serviceCategory}', [PlanningConfigController::class, 'update'])
             ->where('serviceCategory', 'LOGISTICS|REGULATORY');
+    });
+
+    Route::prefix('job-orders')->group(function() {
+        Route::get('/{jobOrder}/planning-timelines/{timeline}', [PlanningTimelineController::class, 'show'])
+            ->scopeBindings();
     });
 
     // Register unregistered client
