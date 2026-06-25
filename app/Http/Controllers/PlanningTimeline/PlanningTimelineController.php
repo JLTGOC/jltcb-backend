@@ -40,11 +40,13 @@ class PlanningTimelineController extends Controller
             return $this->error('A Planning & Timeline already exists for this job order', statusCode: 409);
         }
 
-        $applicableTemplateId = PlanningTemplate::where('id', $request->input('planning_template_id'))
-            ->where('service_category', $jobOrder->quotation->serviceCategory())->exists();
+        if ($request->input('planning_template_id', null)) {
+            $applicableTemplateId = PlanningTemplate::where('id', $request->input('planning_template_id'))
+                ->where('service_category', $jobOrder->quotation->serviceCategory())->exists();
 
-        if (!$applicableTemplateId) {
-            return $this->error("The planning template id is invalid for the job order's service category", statusCode: 422);
+            if (!$applicableTemplateId) {
+                return $this->error("The planning template id is invalid for the job order's service category", statusCode: 422);
+            }
         }
 
         $timeline = $this->timelineService->create($jobOrder, $request->validated(), $request->user());
