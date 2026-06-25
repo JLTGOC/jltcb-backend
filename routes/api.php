@@ -173,6 +173,7 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'session.timeout'])->group(fu
     });
 
     Route::prefix('job-orders')->group(function() {
+        Route::post('{jobOrder}/planning-timelines', [PlanningTimelineController::class, 'store']);
         Route::get('/{jobOrder}/planning-timelines/{timeline}', [PlanningTimelineController::class, 'show'])
             ->scopeBindings();
     });

@@ -3,13 +3,21 @@
 namespace App\Http\Controllers\PlanningTimeline;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PlanningTimeline\StorePlanningTimelineRequest;
 use App\Http\Resources\PlanningTimeline\Timeline\TimelineResource;
 use App\Models\JobOrder;
+use App\Models\PlanningTimeline\Template\PlanningTemplate;
 use App\Models\PlanningTimeline\Timeline\Timeline;
+use App\Services\PlanningTimelineService;
 use Illuminate\Http\Request;
 
 class PlanningTimelineController extends Controller
 {
+    public function __construct(private readonly PlanningTimelineService $timelineService)
+    {
+        //
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -19,13 +27,32 @@ class PlanningTimelineController extends Controller
     }
 
     /**
-     * Create Planning Timeline
+     * Store Planning Timeline
      * 
-     * create a planning timeline for a job order.
+     * NOTE: 
+     * Default phase headings are identified using the key field, which serves as the mapping reference for default headings within each phase. Headings are stored as static  values rather than database identifiers. 
+     * When submitting or updating phase headings, all required default heading keys must be included to ensure data integrity and proper system mapping.
+     * The list of valid heading keys is returned in the phases.headings section of the API response.
      */
-    public function store(Request $request)
+    public function store(StorePlanningTimelineRequest $request, JobOrder $jobOrder)
     {
-        //
+        if (Timeline::where('job_order_id', $jobOrder->id)->exists()) {
+            return $this->error('A Planning & Timeline already exists for this job order', statusCode: 409);
+        }
+
+        $applicableTemplateId = PlanningTemplate::where('id', $request->input('planning_template_id'))
+            ->where('service_category', $jobOrder->quotation->serviceCategory())->exists();
+
+        if (!$applicableTemplateId) {
+            return $this->error("The planning template id is invalid for the job order's service category", statusCode: 422);
+        }
+
+        $timeline = $this->timelineService->create($jobOrder, $request->validated(), $request->user());
+
+        return $this->success(
+            'Planning and Timeline created successfully',
+            new TimelineResource($timeline)
+        );
     }
 
     /**
@@ -35,11 +62,7 @@ class PlanningTimelineController extends Controller
      */
     public function show(JobOrder $jobOrder, Timeline $timeline)
     {
-        $timeline->load([
-            'phases.processes.tasks.values.phaseHeading',
-            'phases.processes.tasks.assignees',
-            'phases.headings'
-        ]);
+        $timeline = $this->timelineService->loadForView($timeline);
 
         return $this->success(
             'Planning timeline fetched successfully',
