@@ -29,6 +29,7 @@ use App\Http\Controllers\PlanningTimeline\PlanningConfigController;
 use App\Http\Controllers\ServiceTypeController;
 use App\Http\Controllers\PlanningTimeline\PlanningTemplateController;
 use App\Http\Controllers\PlanningTimeline\PlanningTimelineController;
+use App\Http\Controllers\PlanningTimeline\TimelineDocumentController;
 use App\Http\Controllers\QuotationFileChecklistItemController;
 use Illuminate\Support\Facades\Broadcast;
 
@@ -181,6 +182,12 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'session.timeout'])->group(fu
     Route::prefix('planning-timelines')->group(function() {
         Route::get('/persons-in-charge', [PlanningTimelineController::class, 'getAssignees']);
         Route::post('/{timeline}/assignments', [PlanningTimelineController::class, 'assignTasks']);
+        
+        Route::get('/{timeline}/documents', [TimelineDocumentController::class, 'index']);
+        Route::get('/{timeline}/documents/{document}', [TimelineDocumentController::class, 'show'])
+            ->scopeBindings();
+        Route::post('/{timeline}/documents', [TimelineDocumentController::class, 'store']);
+        Route::get('/{timeline}/documents/file-type', [TimelineDocumentController::class, 'availableFileTypes']);
     });
 
     // Register unregistered client

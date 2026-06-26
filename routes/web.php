@@ -4,6 +4,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\IssuedQuotationController;
 use App\Http\Controllers\QuotationFileController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\PlanningTimeline\TimelineDocumentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -27,4 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/chat/attachments/{message}', [ChatController::class, 'viewAttachments'])
         ->name('chat.attachments.view');
+
+    Route::get('/planning-timelines/documents/{document}', [TimelineDocumentController::class, 'viewDocument'])
+        ->name('timeline-documents.view');
 });
