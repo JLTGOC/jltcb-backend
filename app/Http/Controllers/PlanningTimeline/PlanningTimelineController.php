@@ -2,18 +2,23 @@
 
 namespace App\Http\Controllers\PlanningTimeline;
 
+use App\Enums\DefaultPhaseHeading;
+use App\Enums\RoleType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PlanningTimeline\StorePlanningTimelineRequest;
 use App\Http\Resources\PlanningTimeline\Timeline\TimelineResource;
 use App\Models\JobOrder;
 use App\Models\PlanningTimeline\Template\PlanningTemplate;
 use App\Models\PlanningTimeline\Timeline\Timeline;
+use App\Models\User;
+use App\Services\PersonInChargeService;
 use App\Services\PlanningTimelineService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class PlanningTimelineController extends Controller
 {
-    public function __construct(private readonly PlanningTimelineService $timelineService)
+    public function __construct(private readonly PlanningTimelineService $timelineService, private readonly PersonInChargeService $personInChargeService)
     {
         //
     }
@@ -86,5 +91,29 @@ class PlanningTimelineController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Show Persons In Charge
+     * 
+     * Fetches list of persons-in-charge for accomplishing planning timeline tasks. Defaults to Client Sucess users if no roles provided in request.
+     */
+    public function getAssignees(Request $request) {
+        $request->validate([
+            'roles' => ['sometimes', 'nullable'],
+            'roles.*' => ['required', Rule::in(RoleType::cases())]
+        ]);
+
+        $roles = [RoleType::CLIENT_SUCCESS];
+        if ($request->input('roles')) {
+            $roles = $request->input('roles');
+        }
+
+        return $this->success(
+            'Planning timeline persons-in-charge fetched successfully',
+            [
+                'users' => $this->personInChargeService->getPersonsInCharge($roles, $request->input('search', null))
+            ] 
+        );
     }
 }
