@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\JobOrder;
 use App\Models\PlanningTimeline\Timeline\Timeline;
 use App\Models\PlanningTimeline\Timeline\TimelinePhaseHeading;
+use App\Models\PlanningTimeline\Timeline\TimelineTask;
+use App\Models\PlanningTimeline\Timeline\TimelineTaskValue;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -57,6 +59,36 @@ class PlanningTimelineService {
             'phases.processes.tasks.assignees',
             'phases.headings'
         ]);
+    }
+
+    public function assignTasks(Timeline $timeline, array $data) {
+        $submittedTaskIds = collect($data['assignments'])->pluck('task_id')->all();
+
+        $currentTasks = TimelineTask::with(['process.phase.headings'])->whereIn('id', $submittedTaskIds)->get()->keyBy('id');
+
+        DB::transaction(function() use ($data, $currentTasks) {
+            foreach($data['assignments'] as $assignment) {
+                $task = $currentTasks->get($assignment['task_id']);
+                
+                $task->assignees()->sync($assignment['user_ids']);
+
+                $targetDateHeading = $task->process->phase->headings->firstWhere('key', 'target_datetime');
+                
+                TimelineTaskValue::updateOrCreate(
+                    [
+                        'timeline_task_id' => $task->id,
+                        'timeline_phase_heading_id' => $targetDateHeading->id
+                    ],
+                    [
+                        'value' => $assignment['target_datetime']
+                    ]
+                );
+                
+            }
+        });
+
+        $timeline = $this->loadForView($timeline);
+        return $timeline;
     }
 
     private function insertHeadings(int $phaseId, array $headings) {

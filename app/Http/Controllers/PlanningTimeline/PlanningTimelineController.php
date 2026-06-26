@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers\PlanningTimeline;
 
-use App\Enums\DefaultPhaseHeading;
 use App\Enums\RoleType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PlanningTimeline\AssignTimelineTaskRequest;
 use App\Http\Requests\PlanningTimeline\StorePlanningTimelineRequest;
 use App\Http\Resources\PlanningTimeline\Timeline\TimelineResource;
 use App\Models\JobOrder;
 use App\Models\PlanningTimeline\Template\PlanningTemplate;
 use App\Models\PlanningTimeline\Timeline\Timeline;
-use App\Models\User;
 use App\Services\PersonInChargeService;
 use App\Services\PlanningTimelineService;
 use Illuminate\Http\Request;
@@ -58,7 +57,8 @@ class PlanningTimelineController extends Controller
 
         return $this->success(
             'Planning and Timeline created successfully',
-            new TimelineResource($timeline)
+            new TimelineResource($timeline),
+            201
         );
     }
 
@@ -116,4 +116,20 @@ class PlanningTimelineController extends Controller
             ] 
         );
     }
+
+    /**
+     * Assign Timeline Tasks
+     * 
+     * Selects persons-in-charge to be assigned to planning timeline tasks.
+     */
+    public function assignTasks(AssignTimelineTaskRequest $request, Timeline $timeline) {
+        $timeline = $this->timelineService->assignTasks($timeline, $request->validated());
+        return $this->success(
+            'Planning Timeline tasks person-in-charge assigned successfully',
+            new TimelineResource($timeline), 
+            201
+        );
+    }
+
+
 }

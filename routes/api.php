@@ -178,8 +178,10 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'session.timeout'])->group(fu
             ->scopeBindings();
     });
 
-    Route::get('planning-timelines/persons-in-charge', [PlanningTimelineController::class, 'getAssignees']);
-
+    Route::prefix('planning-timelines')->group(function() {
+        Route::get('/persons-in-charge', [PlanningTimelineController::class, 'getAssignees']);
+        Route::post('/{timeline}/assignments', [PlanningTimelineController::class, 'assignTasks']);
+    });
 
     // Register unregistered client
     // NOTE: This method is currently not in use. Implementation will be based on future requirements regarding unregistered clients.
