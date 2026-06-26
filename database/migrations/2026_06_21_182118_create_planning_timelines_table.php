@@ -79,13 +79,26 @@ return new class extends Migration
 
         Schema::create('planning_timeline_task_assignees', function (Blueprint $table) {
             $table->id();
-
             $table->foreignId('timeline_task_id')->constrained('planning_timeline_tasks')
                 ->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->restrictOnDelete();
             $table->timestamps();
 
             $table->unique(['timeline_task_id', 'user_id'], 'task_assignee_unique');
+        });
+
+        Schema::create('planning_timeline_documents', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('planning_timeline_id')->constrained('planning_timelines')
+                ->cascadeOnDelete();
+            $table->foreignId('uploaded_by')->constrained('users')->restrictOnDelete();
+            $table->string('name');
+            $table->string('type');
+            $table->enum('status', ['UPLOADED']);
+            $table->string('file_path');
+            $table->string('file_type');
+
+            $table->timestamps();
         });
     }
 

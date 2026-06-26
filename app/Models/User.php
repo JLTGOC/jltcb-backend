@@ -14,6 +14,7 @@ use App\Models\{
 };
 use App\Models\IssuedQuotation\IssuedQuotation;
 use App\Models\PlanningTimeline\Timeline\Timeline;
+use App\Models\PlanningTimeline\Timeline\TimelineDocument;
 use App\Models\PlanningTimeline\Timeline\TimelineTask;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\Searchable\Searchable;
@@ -159,5 +160,9 @@ class User extends Authenticatable implements Searchable
             'user_id',
             'planning_timeline_task_id'
         );
+    }
+
+    public function timelineDocuments() {
+        return $this->hasMany(TimelineDocument::class, 'uploaded_by');
     }
 }

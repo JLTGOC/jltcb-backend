@@ -5,13 +5,17 @@ namespace Database\Seeders;
 use App\Enums\DefaultPhaseHeading;
 use App\Models\JobOrder;
 use App\Models\PlanningTimeline\Template\PlanningTemplate;
+use App\Models\PlanningTimeline\Timeline\Timeline;
 use App\Models\User;
 use Carbon\Carbon;
+use Database\Seeders\Traits\SeederFileTrait;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class PlanningTimelineSeeder extends Seeder
 {
+    use SeederFileTrait;
+
     /**
      * Run the database seeds.
      */
@@ -29,10 +33,14 @@ class PlanningTimelineSeeder extends Seeder
             $serviceCategory = $jobOrder->quotation->serviceCategory();
             $template = PlanningTemplate::where('service_category', $serviceCategory)->inRandomOrder()->first();
 
+            $createdBy = $jobOrder->operations_id;
+
             $timeline = $jobOrder->timeline()->create([
-                'created_by'           => $jobOrder->operations_id,
+                'created_by'           => $createdBy,
                 'planning_template_id' => $template->id
             ]);
+
+            $this->addTimelineDocuments($timeline, $createdBy);
 
             $baseDate = Carbon::now()->addMonth();
 
@@ -105,5 +113,21 @@ class PlanningTimelineSeeder extends Seeder
                 $baseDate = $taskDateCursor->copy()->addDays(rand(1, 3));
             }
         }
+    }
+
+    private function addTimelineDocuments(Timeline $timeline, $uploadedBy) {
+        $sampleFile = 'billOfLading.pdf';
+        $filePath = $this->copySeederFile('files', $sampleFile, disk: 'local');
+
+        $availableTypes = ['INVOICE', 'PL', 'BL', 'AWB', 'CERTIFICATE', 'LICENSE', 'INSURANCE', 'NOTICE'];
+
+        $timeline->documents()->create([
+            'name'          => 'Sample', 
+            'type'          => fake()->randomElement($availableTypes), 
+            'file_type'     => 'pdf', 
+            'file_path'     => $filePath,
+            'status'        => 'UPLOADED', 
+            'uploaded_by'   => $uploadedBy, 
+        ]);
     }
 }

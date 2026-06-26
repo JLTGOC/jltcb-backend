@@ -28,4 +28,8 @@ class Timeline extends Model
     public function phases() {
         return $this->hasMany(TimelinePhase::class, 'planning_timeline_id');
     }
+
+    public function documents() {
+        return $this->hasMany(TimelineDocument::class, 'planning_timeline_id');
+    }
 }
