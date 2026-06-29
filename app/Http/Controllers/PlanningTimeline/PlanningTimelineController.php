@@ -40,6 +40,10 @@ class PlanningTimelineController extends Controller
      */
     public function store(StorePlanningTimelineRequest $request, JobOrder $jobOrder)
     {
+        $this->timelineService->ensureJobOrderIsAccepted($jobOrder);
+
+        $this->authorize('create', [Timeline::class, $jobOrder]);
+
         if (Timeline::where('job_order_id', $jobOrder->id)->exists()) {
             return $this->error('A Planning & Timeline already exists for this job order', statusCode: 409);
         }
@@ -69,6 +73,8 @@ class PlanningTimelineController extends Controller
      */
     public function show(JobOrder $jobOrder, Timeline $timeline)
     {
+        $this->authorize('view', [Timeline::class, $jobOrder, $timeline]);
+
         $timeline = $this->timelineService->loadForView($timeline);
 
         return $this->success(
@@ -96,15 +102,17 @@ class PlanningTimelineController extends Controller
     /**
      * Show Persons In Charge
      * 
-     * Fetches list of persons-in-charge for accomplishing planning timeline tasks. Defaults to Client Sucess users if no roles provided in request.
+     * Fetches list of persons-in-charge for accomplishing planning timeline tasks. Defaults to Operations users if no roles provided in request.
      */
     public function getAssignees(Request $request) {
+        $this->authorize('getAssignees', [Timeline::class]);
+
         $request->validate([
             'roles' => ['sometimes', 'nullable'],
             'roles.*' => ['required', Rule::in(RoleType::cases())]
         ]);
 
-        $roles = [RoleType::CLIENT_SUCCESS];
+        $roles = [RoleType::OPERATIONS];
         if ($request->input('roles')) {
             $roles = $request->input('roles');
         }
@@ -123,6 +131,8 @@ class PlanningTimelineController extends Controller
      * Selects persons-in-charge to be assigned to planning timeline tasks.
      */
     public function assignTasks(AssignTimelineTaskRequest $request, Timeline $timeline) {
+        $this->authorize('assignTasks', [Timeline::class, $timeline]);
+
         $timeline = $this->timelineService->assignTasks($timeline, $request->validated());
         return $this->success(
             'Planning Timeline tasks person-in-charge assigned successfully',

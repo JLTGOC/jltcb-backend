@@ -2,33 +2,30 @@
 
 namespace App\Providers;
 
-use App\Models\QuotationTemplateConfig\{
-    BillingConfiguration,
-    DetailsConfiguration,
-    MessageTemplate,
-    StandardConfiguration
-};
+use App\Models\Conversation;
+use App\Models\PlanningTimeline\Timeline\Timeline;
+use App\Models\QuotationField;
+use App\Models\QuotationTemplate\QuotationTemplate;
+use App\Models\QuotationTemplateConfig\{ BillingConfiguration, DetailsConfiguration, MessageTemplate, StandardConfiguration };
+use App\Policies\ChatPolicy;
+use App\Policies\ConfigurationPolicy;
+use App\Policies\PlanningTimelinePolicy;
+use App\Policies\RolePolicy;
 use App\Support\Scramble\SanctumAuthOperationTransformer;
 use Dedoc\Scramble\Configuration\OperationTransformers;
+use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\Operation;
 use Dedoc\Scramble\Support\Generator\Parameter;
 use Dedoc\Scramble\Support\Generator\Schema;
-use Dedoc\Scramble\Support\Generator\Types\StringType;
-use Dedoc\Scramble\Scramble;
-use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Gate;
-use App\Models\Conversation;
-use App\Models\QuotationField;
-use App\Models\QuotationTemplate\QuotationTemplate;
-use App\Policies\ChatPolicy;
-use App\Policies\ConfigurationPolicy;
-use Spatie\Permission\Models\Role;
-use App\Policies\RolePolicy;
-use Illuminate\Support\Facades\RateLimiter;
+use Dedoc\Scramble\Support\Generator\Types\StringType;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\ServiceProvider;
+use Spatie\Permission\Models\Role;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -97,6 +94,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(QuotationTemplate::class, ConfigurationPolicy::class);
         Gate::policy(QuotationField::class, ConfigurationPolicy::class);
         Gate::policy(Role::class, RolePolicy::class);
+        Gate::policy(Timeline::class, PlanningTimelinePolicy::class);
 
         RateLimiter::for('api', function (Request $request) {
             $user = $request->user();

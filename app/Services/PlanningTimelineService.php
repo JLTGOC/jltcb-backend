@@ -9,6 +9,7 @@ use App\Models\PlanningTimeline\Timeline\TimelineTask;
 use App\Models\PlanningTimeline\Timeline\TimelineTaskValue;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PlanningTimelineService {
     public function create(JobOrder $jobOrder, array $data, User $createdBy) {
@@ -89,6 +90,14 @@ class PlanningTimelineService {
 
         $timeline = $this->loadForView($timeline);
         return $timeline;
+    }
+
+    public function ensureJobOrderIsAccepted(JobOrder $jobOrder) {
+        if (!$jobOrder->operations_id) {
+            throw ValidationException::withMessages([
+                'job_order' => 'This job order has not been accepted yet.'
+            ]);
+        }
     }
 
     private function insertHeadings(int $phaseId, array $headings) {
