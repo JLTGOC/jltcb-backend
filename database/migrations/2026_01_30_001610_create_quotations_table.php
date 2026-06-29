@@ -22,7 +22,7 @@ return new class extends Migration
             $table->foreign('as_id')->references('id')->on('users')->constrained();
             $table->foreignId('service_type_id')->nullable()->constrained()->nullOnDelete();
             $table->enum('status', ['REQUESTED', 'RESPONDED', 'ACCEPTED', 'DISCARDED'])->default('REQUESTED');
-            $table->string('service_options');
+            $table->longText('service_options');
             $table->string('commodity');
             $table->string('contact_person')->nullable();
             $table->string('contact_number');
