@@ -187,7 +187,7 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'session.timeout'])->group(fu
         Route::get('/{timeline}/documents/{document}', [TimelineDocumentController::class, 'show'])
             ->scopeBindings();
         Route::post('/{timeline}/documents', [TimelineDocumentController::class, 'store']);
-        Route::get('/{timeline}/documents/file-type', [TimelineDocumentController::class, 'availableFileTypes']);
+        Route::get('/file-types', [TimelineDocumentController::class, 'availableFileTypes']);
     });
 
     // Register unregistered client

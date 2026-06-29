@@ -17,6 +17,8 @@ class TimelineDocumentController extends Controller
      */
     public function index(Timeline $timeline)
     {
+        $this->authorize('viewAllDocuments', [Timeline::class, $timeline]);
+
         $documents = $timeline->documents->load('uploadedBy');
 
         return $this->success(
@@ -32,6 +34,8 @@ class TimelineDocumentController extends Controller
      */
     public function store(Request $request, Timeline $timeline)
     {
+        $this->authorize('uploadDocument', [Timeline::class, $timeline]);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', 'string', 'max:100', 'in:INVOICE,PL,BL,AWB,CERTIFICATE,LICENSE,INSURANCE,NOTICE'],
@@ -65,6 +69,8 @@ class TimelineDocumentController extends Controller
      */
     public function show(Timeline $timeline, TimelineDocument $document)
     {
+        $this->authorize('viewDocumentData', [Timeline::class, $timeline, $document]);
+
         $document->load('uploadedBy');
 
         return $this->success(
@@ -92,8 +98,10 @@ class TimelineDocumentController extends Controller
     /**
      * File Type Enums
      */
-    public function availableFileTypes(Timeline $timeline)
+    public function availableFileTypes()
     {
+        $this->authorize('availableFileTypes', [Timeline::class]);
+
         return $this->success(
             'Available timeline document file types fetched successfully', 
             ['INVOICE', 'PL', 'BL', 'AWB', 'CERTIFICATE', 'LICENSE', 'INSURANCE', 'NOTICE']
@@ -105,7 +113,7 @@ class TimelineDocumentController extends Controller
      */
     public function viewDocument(TimelineDocument $document)
     {
-        // authorize 
+        $this->authorize('viewDocument', [Timeline::class, $document]);
 
         return Storage::disk('local')->response($document->file_path);
     }

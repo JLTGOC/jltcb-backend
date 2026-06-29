@@ -85,11 +85,11 @@ class PlanningTimelineSeeder extends Seeder
                             'name' => $task->configTask->name
                         ]);
 
-                        $csds = User::role('Client Success')->pluck('id')->all();
-                        $randomCsdCount = fake()->numberBetween(1, 2);
-                        $randomCsd = fake()->randomElements($csds, $randomCsdCount);
+                        $ops = User::role('Operations')->pluck('id')->all();
+                        $randomOpsCount = fake()->numberBetween(1, 2);
+                        $randomOps = fake()->randomElements($ops, $randomOpsCount);
 
-                        $timelineTask->assignees()->attach($randomCsd);
+                        $timelineTask->assignees()->attach($randomOps);
 
                         $timelinePhaseHeadings = $timelinePhase->headings;
 
