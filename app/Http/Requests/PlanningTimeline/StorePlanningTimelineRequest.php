@@ -3,7 +3,7 @@
 namespace App\Http\Requests\PlanningTimeline;
 
 use App\Enums\DefaultPhaseHeading;
-use App\Models\ServiceType;
+use App\Models\PlanningTimeline\Template\PlanningTemplate;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -28,15 +28,20 @@ class StorePlanningTimelineRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'planning_template_id'  => ['sometimes', 'nullable', 'integer', 'exists:planning_templates,id'],
+            'planning_template_id' => [
+                'required', 'integer', 'exists:planning_templates,id',
+                function (string $attribute, mixed $value, Closure $fail) {
+                    $serviceCategory = $this->route('jobOrder')->job_type;
+                    $templateServiceCategory = PlanningTemplate::find($value)->service_category;
 
-            'save_as_template'                  => ['sometimes', 'required', 'array:name,service_type_id'],
-            'save_as_template.name'             => ['required_with:save_as_template', 'string', 'max:100'],
-            'save_as_template.service_type_id'  => [
-                'required_with:save_as_template',
-                'integer',
-                Rule::exists('service_types', 'id'),
+                    if ($serviceCategory !== $templateServiceCategory) {
+                        $fail("The selected planning template does not match the job order's job type.");
+                    }
+                },
             ],
+
+            'save_as_template' => ['sometimes', 'required', 'array:name,service_type_id'],
+            'save_as_template.name' => ['required_with:save_as_template', 'string', 'max:100'],
 
             'phases'                   => ['required', 'array', 'min:1'],
             'phases.*.name'            => ['required', 'string', 'max:100'],
